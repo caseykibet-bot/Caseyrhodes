@@ -120,7 +120,7 @@ async function connectToWA() {
         }
       } else if (connection === 'open') {
         try {
-          console.log('[ 🧬 ] Installing Plugins')
+          console.log('Connected to WhatsApp successfully ✅')
 
           fs.readdirSync("./plugins/").forEach((plugin) => {
             if (path.extname(plugin).toLowerCase() === ".js") {
@@ -135,6 +135,7 @@ async function connectToWA() {
 *ᴄᴀsᴇʏʀʜᴏᴅᴇs-xᴍᴅ ᴄᴏɴɴᴇᴄᴛᴇᴅ sᴜᴄᴄᴇsғᴜʟʟʏ✅*
 > Simple , Straight Forward But Loaded With Features, 
 Meet CASEYRHODES-XMD WhatsApp Bot.
+ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : *${totalCommands}*
 *Thanks for using CASEYRHODES MD* 
 *Join WhatsApp Channel :- ⤵️*
 > https://whatsapp.com/channel/0029VakUEfb4o7qVdkwPk83E
