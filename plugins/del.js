@@ -1,28 +1,35 @@
-const config = require('../config')
-const { cmd, commands } = require('../command')
+const config = require('../config');
+const { cmd, commands } = require('../command');
 
 cmd({
-pattern: "delete",
-react: "❌",
-alias: ["del"],
-desc: "delete message",
-category: "group",
-use: '.del',
-filename: __filename
+    pattern: "delete",
+    react: "❌",
+    alias: ["del", "remove"],
+    desc: "Delete a quoted message",
+    category: "group",
+    usage: '.del (reply to a message)',
+    filename: __filename
 },
-async(conn, mek, m,{from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants,  isItzcp, groupAdmins, isBotAdmins, isAdmins, reply}) => {
-if (!isOwner ||  !isAdmins) return;
-try{
-if (!m.quoted) return reply(mg.notextfordel);
-const key = {
-            remoteJid: m.chat,
-            fromMe: false,
-            id: m.quoted.id,
-            participant: m.quoted.sender
-        }
-        await conn.sendMessage(m.chat, { delete: key })
-} catch(e) {
-console.log(e);
-reply('💎 ᴄᴀsᴇʏʀʜᴏᴅᴇs-xᴍᴅ 💎 successful..👨‍💻✅')
-} 
-})
+async (conn, m, { isOwner, isAdmin, reply, quoted, chat }) => {
+    try {
+        // Check if user has permission (owner or admin)
+        if (!isOwner && !isAdmin) return reply("❌ You need to be an admin to use this command.");
+        
+        // Check if there's a quoted message
+        if (!quoted) return reply("🔍 Please reply to the message you want to delete.");
+        
+        // Delete the message
+        await conn.sendMessage(chat, {
+            delete: {
+                remoteJid: chat,
+                fromMe: quoted.fromMe,
+                id: quoted.id,
+                participant: quoted.sender
+            }
+        });
+        
+    } catch (e) {
+        console.error('Error in delete command:', e);
+        reply("❌ Failed to delete the message. Please try again.");
+    }
+});
