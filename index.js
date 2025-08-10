@@ -44,7 +44,7 @@ const Crypto = require('crypto')
 const path = require('path')
 const prefix = config.PREFIX
 
-const ownerNumber = ['254734939236']
+const ownerNumber = ['254112192119']
 
 const tempDir = path.join(os.tmpdir(), 'cache-temp')
 if (!fs.existsSync(tempDir)) {
@@ -134,12 +134,12 @@ async function connectToWA() {
             caption: `
 *ᴄᴀsᴇʏʀʜᴏᴅᴇs-xᴍᴅ ᴄᴏɴɴᴇᴄᴛᴇᴅ sᴜᴄᴄᴇsғᴜʟʟʏ✅*
 > Simple , Straight Forward But Loaded With Features, 
-Meet CASEYRHODES-XMD WhatsApp Bot.
-ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : *${totalCommands}*
+Meet CASEYRHODES-XMD WhatsApp Bot
+
 *Thanks for using CASEYRHODES MD* 
 *Join WhatsApp Channel :- ⤵️*
 > https://whatsapp.com/channel/0029VakUEfb4o7qVdkwPk83E
-- *YOUR PREFIX:* = ${prefix}
+
 *Dont forget to give star to repo ⬇️*🌟
 > https://github.com/caseyweb/CASEYRHODES-XMD
 
