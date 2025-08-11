@@ -1,114 +1,81 @@
-const { cmd ,commands } = require('../command');
-const { exec } = require('child_process');
-const config = require('../config');
-const {sleep} = require('../lib/functions')
+const { cmd } = require('../command');
 
-// 1. Shutdown Bot
-cmd({
-    pattern: "shutdown",
-    desc: "Shutdown the bot.",
-    category: "owner",
-    react: "🛑",
-    filename: __filename
-},
-async (conn, mek, m, { from, isOwner, reply }) => {
-    if (!isOwner) return reply("❌ You are not the owner!");
-    await reply("✅ Bot is shutting down...");
-    await sleep(1000);
-    process.exit(0);
-});
-
-// 2. Broadcast Message to All Groups
-cmd({
-    pattern: "broadcast",
-    desc: "Broadcast a message to all groups.",
-    category: "owner",
-    react: "📢",
-    filename: __filename
-},
-async (conn, mek, m, { from, isOwner, args, reply }) => {
-    if (!isOwner) return reply("❌ You are not the owner!");
-    if (args.length === 0) return reply("📢 Please provide a message to broadcast.");
-    
-    const message = args.join(' ');
-    const groups = Object.keys(await conn.groupFetchAllParticipating());
-    
-    await reply("✅ Starting broadcast to all groups...");
-    
-    let successCount = 0;
-    let failCount = 0;
-    
-    for (const groupId of groups) {
-        try {
-            await conn.sendMessage(groupId, { text: message }, { quoted: mek });
-            successCount++;
-        } catch (error) {
-            failCount++;
-            console.error(`Failed to send to ${groupId}:`, error);
-        }
-    }
-    
-    reply(`✅ Broadcast completed!\n\n📢 Success: ${successCount} groups\n❌ Failed: ${failCount} groups`);
-});
-
-// 8. Group JIDs List
-cmd({
-    pattern: "gjid",
-    desc: "Get the list of JIDs for all groups the bot is part of.",
-    category: "owner",
-    react: "📝",
-    filename: __filename
-},
-async (conn, mek, m, { from, isOwner, reply }) => {
-    if (!isOwner) return reply("❌ You are not the owner!");
-    
-    await reply("✅ Fetching group JIDs...");
-    const groups = await conn.groupFetchAllParticipating();
-    const groupJids = Object.keys(groups).join('\n');
-    
-    reply(`✅ Here are all group JIDs:\n\n${groupJids}\n\n📝 Total: ${Object.keys(groups).length} groups`);
-});
-
-// block
 cmd({
     pattern: "block",
-    desc: "Block a user.",
+    desc: "Blocks a person",
     category: "owner",
     react: "🚫",
     filename: __filename
 },
-async (conn, mek, m, { from, isOwner, quoted, reply }) => {
-    if (!isOwner) return reply("❌ You are not the owner!");
-    if (!quoted) return reply("❌ Please reply to the user you want to block.");
+async (conn, m, { reply, q, react }) => {
+    // Get the bot owner's number dynamically
+    const botOwner = conn.user.id.split(":")[0] + "@s.whatsapp.net";
     
-    const user = quoted.sender;
+    if (m.sender !== botOwner) {
+        await react("❌");
+        return reply("_Only the bot owner can use this command._");
+    }
+
+    let jid;
+    if (m.quoted) {
+        jid = m.quoted.sender; // If replying to a message, get sender JID
+    } else if (m.mentionedJid.length > 0) {
+        jid = m.mentionedJid[0]; // If mentioning a user, get their JID
+    } else if (q && q.includes("@")) {
+        jid = q.replace(/[@\s]/g, '') + "@s.whatsapp.net"; // If manually typing a JID
+    } else {
+        await react("❌");
+        return reply("_Please mention a user or reply to their message._");
+    }
+
     try {
-        await reply("✅ Blocking user...");
-        await conn.updateBlockStatus(user, 'block');
-        reply(`🚫 Success! User ${user.split('@')[0]} has been blocked.`);
+        await reply(`_Blocking @${jid.split("@")[0]}..._`, { mentions: [jid] });
+        await conn.updateBlockStatus(jid, "block");
+        await react("✅");
+        reply(`_Successfully blocked @${jid.split("@")[0]}_`, { mentions: [jid] });
     } catch (error) {
-        reply(`❌ Error blocking user: ${error.message}`);
+        console.error("Block command error:", error);
+        await react("❌");
+        reply("_Failed to block the user._");
     }
 });
 
-// Unblock User
 cmd({
     pattern: "unblock",
-    desc: "Unblock a user.",
+    desc: "Unblocks a person",
     category: "owner",
-    react: "✅",
+    react: "🔓",
     filename: __filename
 },
-async (conn, mek, m, { from, isOwner, quoted, reply }) => {
-    if (!isOwner) return reply("❌ You are not the owner!");
-    if (!quoted) return reply("❌ Please reply to the user you want to unblock.");
-    
-    const user = quoted.sender;
+async (conn, m, { reply, q, react }) => {
+    // Get the bot owner's number dynamically
+    const botOwner = conn.user.id.split(":")[0] + "@s.whatsapp.net";
+
+    if (m.sender !== botOwner) {
+        await react("❌");
+        return reply("_Only the bot owner can use this command._");
+    }
+
+    let jid;
+    if (m.quoted) {
+        jid = m.quoted.sender;
+    } else if (m.mentionedJid.length > 0) {
+        jid = m.mentionedJid[0];
+    } else if (q && q.includes("@")) {
+        jid = q.replace(/[@\s]/g, '') + "@s.whatsapp.net";
+    } else {
+        await react("❌");
+        return reply("_Please mention a user or reply to their message._");
+    }
+
     try {
-        await reply("✅ Unblocking user...");
-        await conn.updateBlockStatus(user, 'unblock');
-        reply(`✅ Success! User ${user.split('@')[0]} has been unblocked.`);
+        await reply(`_Unblocking @${jid.split("@")[0]}..._`, { mentions: [jid] });
+        await conn.updateBlockStatus(jid, "unblock");
+        await react("✅");
+        reply(`_Successfully unblocked @${jid.split("@")[0]}_`, { mentions: [jid] });
     } catch (error) {
-        reply(`❌ Error unblocking user: ${error.message}`);
+        console.error("Unblock command error:", error);
+        await react("❌");
+        reply("_Failed to unblock the user._");
     }
 });
