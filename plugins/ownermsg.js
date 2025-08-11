@@ -18,10 +18,27 @@ async (conn, m, { reply, react }) => {
 
     try {
         const chatId = m.chat; // Get current chat ID
-        await reply(`_Blocking this chat..._`);
-        await conn.updateBlockStatus(chatId, "block");
         await react("✅");
-        reply(`_Successfully blocked this chat_`);
+        
+        // Combine both messages into one send operation
+        await conn.sendMessage(m.chat, { 
+            text: `_Successfully blocked this chat_`,
+            image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
+            caption: "*𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐍𝐄𝐖𝐒𝐋𝐄𝐓𝐓𝐄𝐑*\n\nThis chat has been blocked by the owner.",
+            contextInfo: {
+                mentionedJid: [m.sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
+                    serverMessageId: 143
+                }
+            }
+        }, { quoted: m });
+        
+        // Actually block the chat after sending the message
+        await conn.updateBlockStatus(chatId, "block");
     } catch (error) {
         console.error("Block command error:", error);
         await react("❌");
@@ -46,10 +63,27 @@ async (conn, m, { reply, react }) => {
 
     try {
         const chatId = m.chat; // Get current chat ID
-        await reply(`_Unblocking this chat..._`);
-        await conn.updateBlockStatus(chatId, "unblock");
         await react("✅");
-        reply(`_Successfully unblocked this chat_`);
+        
+        // Combine both messages into one send operation
+        await conn.sendMessage(m.chat, { 
+            text: `_Successfully unblocked this chat_`,
+            image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
+            caption: "*𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐍𝐄𝐖𝐒𝐋𝐄𝐓𝐓𝐄𝐑*\n\nThis chat has been unblocked by the owner.",
+            contextInfo: {
+                mentionedJid: [m.sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
+                    serverMessageId: 143
+                }
+            }
+        }, { quoted: m });
+        
+        // Actually unblock the chat after sending the message
+        await conn.updateBlockStatus(chatId, "unblock");
     } catch (error) {
         console.error("Unblock command error:", error);
         await react("❌");
