@@ -2,12 +2,12 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "block",
-    desc: "Blocks a person",
+    desc: "Blocks this chat",
     category: "owner",
     react: "🚫",
     filename: __filename
 },
-async (conn, m, { reply, q, react }) => {
+async (conn, m, { reply, react }) => {
     // Get the bot owner's number dynamically
     const botOwner = conn.user.id.split(":")[0] + "@s.whatsapp.net";
     
@@ -16,39 +16,27 @@ async (conn, m, { reply, q, react }) => {
         return reply("_Only the bot owner can use this command._");
     }
 
-    let jid;
-    if (m.quoted) {
-        jid = m.quoted.sender; // If replying to a message, get sender JID
-    } else if (m.mentionedJid.length > 0) {
-        jid = m.mentionedJid[0]; // If mentioning a user, get their JID
-    } else if (q && q.includes("@")) {
-        jid = q.replace(/[@\s]/g, '') + "@s.whatsapp.net"; // If manually typing a JID
-    } else {
-        await react("❌");
-        return reply("_Please mention a user or reply to their message._");
-    }
-
     try {
-        await reply(`_Blocking @${jid.split("@")[0]}..._`, { mentions: [jid] });
-        await conn.updateBlockStatus(jid, "block");
+        const chatId = m.chat; // Get current chat ID
+        await reply(`_Blocking this chat..._`);
+        await conn.updateBlockStatus(chatId, "block");
         await react("✅");
-        reply(`_Successfully blocked @${jid.split("@")[0]}_`, { mentions: [jid] });
+        reply(`_Successfully blocked this chat_`);
     } catch (error) {
         console.error("Block command error:", error);
         await react("❌");
-        reply("_Failed to block the user._");
+        reply(`_Failed to block this chat._\nError: ${error.message}_`);
     }
 });
 
 cmd({
     pattern: "unblock",
-    desc: "Unblocks a person",
+    desc: "Unblocks this chat",
     category: "owner",
     react: "🔓",
     filename: __filename
 },
-async (conn, m, { reply, q, react }) => {
-    // Get the bot owner's number dynamically
+async (conn, m, { reply, react }) => {
     const botOwner = conn.user.id.split(":")[0] + "@s.whatsapp.net";
 
     if (m.sender !== botOwner) {
@@ -56,26 +44,15 @@ async (conn, m, { reply, q, react }) => {
         return reply("_Only the bot owner can use this command._");
     }
 
-    let jid;
-    if (m.quoted) {
-        jid = m.quoted.sender;
-    } else if (m.mentionedJid.length > 0) {
-        jid = m.mentionedJid[0];
-    } else if (q && q.includes("@")) {
-        jid = q.replace(/[@\s]/g, '') + "@s.whatsapp.net";
-    } else {
-        await react("❌");
-        return reply("_Please mention a user or reply to their message._");
-    }
-
     try {
-        await reply(`_Unblocking @${jid.split("@")[0]}..._`, { mentions: [jid] });
-        await conn.updateBlockStatus(jid, "unblock");
+        const chatId = m.chat; // Get current chat ID
+        await reply(`_Unblocking this chat..._`);
+        await conn.updateBlockStatus(chatId, "unblock");
         await react("✅");
-        reply(`_Successfully unblocked @${jid.split("@")[0]}_`, { mentions: [jid] });
+        reply(`_Successfully unblocked this chat_`);
     } catch (error) {
         console.error("Unblock command error:", error);
         await react("❌");
-        reply("_Failed to unblock the user._");
+        reply(`_Failed to unblock this chat._\nError: ${error.message}_`);
     }
 });
