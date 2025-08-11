@@ -1,6 +1,6 @@
 // Block Current Chat
 cmd({
-    pattern: "block",
+    pattern: "block2",
     desc: "Block the current user/group.",
     category: "owner",
     react: "🚫",
