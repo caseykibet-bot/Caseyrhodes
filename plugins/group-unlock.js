@@ -3,7 +3,7 @@ const { cmd, commands } = require('../command')
 const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson} = require('../lib/functions')
 
 cmd({
-    pattern: "unlockgc",
+    pattern: "unmute",
     alias: ["unlock"],
     react: "🔓",
     desc: "Unlock the group (Allows new members to join).",
@@ -18,6 +18,40 @@ async (conn, mek, m, { from, isGroup, isAdmins, isBotAdmins, reply }) => {
 
         await conn.groupSettingUpdate(from, "unlocked");
         reply("✅ Group has been unlocked. New members can now join.");
+        
+        // Contact message for verified context
+        const verifiedContact = {
+            key: {
+                fromMe: false,
+                participant: `0@s.whatsapp.net`,
+                remoteJid: "status@broadcast"
+            },
+            message: {
+                contactMessage: {
+                    displayName: "CASEYRHODES VERIFIED ✅",
+                    vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
+                }
+            }
+        };
+
+        await conn.sendMessage(
+            from,
+            {
+                image: { url: getRandom('image') },
+                caption: "Group unlocked successfully! 🎉",
+                contextInfo: {
+                    mentionedJid: [m.sender],
+                    forwardingScore: 999,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363302677217436@newsletter',
+                        newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃👻⚡',
+                        serverMessageId: 143
+                    }
+                }
+            },
+            { quoted: verifiedContact }
+        );
     } catch (e) {
         console.error("Error unlocking group:", e);
         reply("❌ Failed to unlock the group. Please try again.");
