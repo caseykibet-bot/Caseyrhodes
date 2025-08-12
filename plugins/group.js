@@ -1,12 +1,12 @@
 const config = require('../config');
 const { cmd, commands } = require('../command');
-const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson } = require('../lib/functions');
+const { getBuffer } = require('../lib/functions');
 
 const muteCommand = {
   pattern: 'mute',
   react: '🔇',
   alias: ["close", "f_mute"],
-  desc: "Change to group settings to only admins can send messages.",
+  desc: "Change group settings to only allow admins to send messages.",
   category: "group",
   use: '.mute',
   filename: __filename
@@ -22,24 +22,24 @@ cmd(muteCommand, async (client, message, args, {
   reply
 }) => {
   try {
-    const replyMsgs = {
-      only_gp: "This command can only be used in groups!",
-      you_adm: "You need to be an admin to use this command!",
-      give_adm: "The bot needs to be an admin to perform this action!"
-    };
-    
-    if (!isGroup) return reply(replyMsgs.only_gp);
-    if (!isAdmins && !isDev) return reply(replyMsgs.you_adm, { quoted: message });
-    if (!isBotAdmins) return reply(replyMsgs.give_adm);
-    
+    // Error messages
+    if (!isGroup) return reply("This command can only be used in groups!");
+    if (!isAdmins && !isDev) return reply("You need to be an admin to use this command!", { quoted: message });
+    if (!isBotAdmins) return reply("The bot needs admin privileges to perform this action!");
+
+    // Mute the group
     await client.groupSettingUpdate(chatId, 'announcement');
-    
-    // Combined message with image and newsletter info
-    await client.sendMessage(chatId, { 
-      image: { url: `https://i.ibb.co/8gHCXCV9/IMG-20250216-WA0009.jpg` },
-      text: `*🔇 Group Chat Closed*\n\nAdmin: ${pushname}\n\nGroup settings updated to admin-only messaging.`,
+
+    // Get image buffer
+    const imageUrl = 'https://i.ibb.co/8gHCXCV9/IMG-20250216-WA0009.jpg';
+    const imageBuffer = await getBuffer(imageUrl);
+
+    // Send combined message with image
+    await client.sendMessage(chatId, {
+      image: imageBuffer,
+      caption: `*🔇 GROUP MUTED*\n\n• Action by: @${message.sender.split('@')[0]}\n• Admin: ${pushname}\n\nOnly admins can now send messages.`,
+      mentions: [message.sender],
       contextInfo: {
-        mentionedJid: [message.sender],
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
@@ -49,13 +49,13 @@ cmd(muteCommand, async (client, message, args, {
         }
       }
     }, { quoted: message });
-    
+
   } catch (error) {
-    console.error(error);
+    console.error('Mute Error:', error);
     await client.sendMessage(chatId, {
       react: { text: '❌', key: message.key }
     });
-    reply("❌ *Error Occurred!*\n\n" + error);
+    reply(`❌ Error: ${error.message}`);
   }
 });
 
@@ -63,7 +63,7 @@ const unmuteCommand = {
   pattern: 'unmute',
   react: '🔊',
   alias: ["open", 'f_unmute'],
-  desc: "Change to group settings to all members can send messages.",
+  desc: "Change group settings to allow all members to send messages.",
   category: "group",
   use: ".unmute",
   filename: __filename
@@ -79,24 +79,24 @@ cmd(unmuteCommand, async (client, message, args, {
   reply
 }) => {
   try {
-    const replyMsgs = {
-      only_gp: "This command can only be used in groups!",
-      you_adm: "You need to be an admin to use this command!",
-      give_adm: "The bot needs to be an admin to perform this action!"
-    };
-    
-    if (!isGroup) return reply(replyMsgs.only_gp);
-    if (!isAdmins && !isDev) return reply(replyMsgs.you_adm, { quoted: message });
-    if (!isBotAdmins) return reply(replyMsgs.give_adm);
-    
+    // Error messages
+    if (!isGroup) return reply("This command can only be used in groups!");
+    if (!isAdmins && !isDev) return reply("You need to be an admin to use this command!", { quoted: message });
+    if (!isBotAdmins) return reply("The bot needs admin privileges to perform this action!");
+
+    // Unmute the group
     await client.groupSettingUpdate(chatId, "not_announcement");
-    
-    // Combined message with image and newsletter info
-    await client.sendMessage(chatId, { 
-      image: { url: `https://i.ibb.co/8gHCXCV9/IMG-20250216-WA0009.jpg` },
-      text: `*🔊 Group Chat Opened*\n\nAdmin: ${pushname}\n\nGroup settings updated to allow all members to message.`,
+
+    // Get image buffer
+    const imageUrl = 'https://i.ibb.co/8gHCXCV9/IMG-20250216-WA0009.jpg';
+    const imageBuffer = await getBuffer(imageUrl);
+
+    // Send combined message with image
+    await client.sendMessage(chatId, {
+      image: imageBuffer,
+      caption: `*🔊 GROUP UNMUTED*\n\n• Action by: @${message.sender.split('@')[0]}\n• Admin: ${pushname}\n\nAll members can now send messages.`,
+      mentions: [message.sender],
       contextInfo: {
-        mentionedJid: [message.sender],
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
@@ -106,12 +106,12 @@ cmd(unmuteCommand, async (client, message, args, {
         }
       }
     }, { quoted: message });
-    
+
   } catch (error) {
-    console.error(error);
+    console.error('Unmute Error:', error);
     await client.sendMessage(chatId, {
       react: { text: '❌', key: message.key }
     });
-    reply("❌ *Error Occurred!*\n\n" + error);
+    reply(`❌ Error: ${error.message}`);
   }
 });
