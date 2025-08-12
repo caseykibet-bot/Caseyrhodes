@@ -3,7 +3,7 @@ const { cmd, commands } = require('../command')
 const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson} = require('../lib/functions')
 
 cmd({
-    pattern: "unmute",
+    pattern: "unmute2",
     alias: ["groupunmute"],
     react: "🔊",
     desc: "Unmute the group (Everyone can send messages).",
