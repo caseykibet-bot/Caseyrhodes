@@ -1,103 +1,81 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const { ytsearch } = require('@dark-yasiya/yt-dl.js');
+const ytsr = require('yt-search');
+const fetch = require('node-fetch'); // Make sure to install node-fetch if not already present
 
-// Video download command
 cmd({ 
     pattern: "vid", 
-    alias: ["ytdlv", "playvideo"], 
-    react: "🎬", 
+    alias: ["video", "ytv"], 
+    react: "🎥", 
     desc: "Download YouTube video", 
     category: "main", 
-    use: '.video <Yt url or Name>', 
+    use: '.video <YT url or search term>', 
     filename: __filename 
 }, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
     try { 
-        if (!q) return await reply("Please provide a YouTube URL or video name.");
+        if (!q) return await reply("*Please provide a YouTube URL or video name*");
         
-        const yt = await ytsearch(q);
-        if (yt.results.length < 1) return reply("No results found!");
-        
-        let yts = yt.results[0];  
-        let apiUrl = `https://api.giftedtech.co.ke/api/download/ytvid?apikey=gifted&quality=720p&url=${encodeURIComponent(yts.url)}`;
-        
-        let response = await fetch(apiUrl);
-        let data = await response.json();
-        
-        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
-            return reply("Failed to fetch the video. Please try again later.");
+        // Search for videos if it's not a direct URL
+        let video;
+        if (q.includes('youtube.com') || q.includes('youtu.be')) {
+            // If it's a direct URL, extract video ID
+            const videoId = q.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+            if (!videoId) return reply("❌ Invalid YouTube URL");
+            
+            const videoInfo = await ytsr({ videoId });
+            if (!videoInfo) return reply("❌ Could not fetch video details.");
+            
+            video = {
+                title: videoInfo.title,
+                timestamp: videoInfo.timestamp,
+                views: videoInfo.views,
+                author: { name: videoInfo.author.name },
+                url: `https://youtu.be/${videoId}`,
+                thumbnail: videoInfo.thumbnail
+            };
+        } else {
+            // Search for videos
+            const searchResults = await ytsr(q);
+            if (!searchResults.videos || searchResults.videos.length < 1) {
+                return reply("❌ No results found!");
+            }
+            video = searchResults.videos[0];
         }
         
-        let ytmsg = `🎬 *Video Details*
-📹 *Title:* ${yts.title}
-⏳ *Duration:* ${yts.timestamp}
-👀 *Views:* ${yts.views}
-👤 *Author:* ${yts.author.name}
-🔗 *Link:* ${yts.url}
-
-*Choose download format:*
-1. 📄 Video as Document
-2. 🎥 Video as Normal Video
-
-_Reply with 1 or 2 to this message to download the format you prefer._`;
+        // Use the API to fetch download URL
+        const apiUrl = `https://api.giftedtech.co.ke/api/download/ytmp4?apikey=gifted&url=${encodeURIComponent(video.url)}`;
         
-        let contextInfo = {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
-                newsletterName: 'CASEYRHODES-TECH',
-                serverMessageId: 143
-            }
-        };
+        const response = await fetch(apiUrl);
+        const data = await response.json();
         
-        // Send thumbnail with caption only
-        const videomsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
+        if (!data || !data.downloadUrl) {
+            return reply("❌ Failed to fetch video. Try again later.");
+        }
+        
+        const infoMsg = `╔═══〔 *VIDEO DOWNLOADER* 〕═══❒
+║╭───────────────◆  
+║│ *Title:* ${video.title}
+║│ *Duration:* ${video.timestamp}
+║│ *Views:* ${video.views}
+║│ *Author:* ${video.author.name}
+║│ *Link:* ${video.url}
+╚══════════════════❒`;
 
-        conn.ev.on("messages.upsert", async (msgUpdate) => {
-            const vidmsg = msgUpdate.messages[0];
-            if (!vidmsg.message || !vidmsg.message.extendedTextMessage) return;
+        // Send video info with thumbnail
+        await conn.sendMessage(from, { 
+            image: { url: video.thumbnail }, 
+            caption: infoMsg 
+        }, { quoted: mek });
+        
+        // Send the video file
+        await conn.sendMessage(from, { 
+            video: { url: data.downloadUrl }, 
+            mimetype: "video/mp4",
+            caption: `📥 *${video.title}*\n⬇️ Downloaded via YouTube API`
+        }, { quoted: mek });
 
-            const selectedOption = vidmsg.message.extendedTextMessage.text.trim();
-
-            if (
-                vidmsg.message.extendedTextMessage.contextInfo &&
-                vidmsg.message.extendedTextMessage.contextInfo.stanzaId === videomsg.key.id
-            ) {
-                await conn.sendMessage(from, { react: { text: "⬇️", key: vidmsg.key } });
-
-                switch (selectedOption) {
-                    case "1":   
-                        await conn.sendMessage(from, { 
-                            document: { url: data.result.downloadUrl }, 
-                            mimetype: "video/mp4", 
-                            fileName: `${yts.title}.mp4`, 
-                            contextInfo 
-                        }, { quoted: vidmsg });   
-                        break;
-                    case "2":   
-                        await conn.sendMessage(from, { 
-                            video: { url: data.result.downloadUrl }, 
-                            mimetype: "video/mp4", 
-                            caption: yts.title,
-                            contextInfo 
-                        }, { quoted: vidmsg });
-                        break;
-                    default:
-                        await conn.sendMessage(
-                            from,
-                            {
-                                text: "*Invalid selection please select between (1 or 2) 🔴*",
-                            },
-                            { quoted: vidmsg }
-                        );
-                }
-            }
-        });
-           
     } catch (e) {
-        console.log(e);
-        reply("An error occurred. Please try again later.");
+        console.error("Error in video command:", e);
+        reply("❌ An error occurred. Please try again later.");
     }
 });
