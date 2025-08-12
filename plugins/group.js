@@ -5,7 +5,7 @@ const { getBuffer } = require('../lib/functions');
 const muteCommand = {
   pattern: 'mute',
   react: '🔇',
-  alias: ["close", "f_mute"],
+  alias: ["close", "lock","mutes"],
   desc: "Change group settings to only allow admins to send messages.",
   category: "group",
   use: '.mute',
@@ -62,7 +62,7 @@ cmd(muteCommand, async (client, message, args, {
 const unmuteCommand = {
   pattern: 'unmute',
   react: '🔊',
-  alias: ["open", 'f_unmute'],
+  alias: ["open", 'unlock','groupopen'],
   desc: "Change group settings to allow all members to send messages.",
   category: "group",
   use: ".unmute",
