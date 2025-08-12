@@ -49,7 +49,16 @@ cmd({
     await _0x1f40d4.sendMessage(_0x329458, {
       'text': "🔐 *Your Strong Password* 🔐\n\nPlease find your generated password below:\n\n *𝒮𝒾𝓁𝓋𝒶 𝒮𝓅𝒶𝓇𝓀 𝑀𝒟*"
     }, {
-      'quoted': _0x2b6900
+      'quoted': _0x2b6900,
+      'contextInfo': {
+        'forwardingScore': 5,
+        'isForwarded': true,
+        'forwardedNewsletterMessageInfo': {
+          'newsletterJid': '120363302677217436@newsletter',
+          'newsletterName': "CASEYRHODES-XMD",
+          'serverMessageId': 143
+        }
+      }
     });
     await _0x1f40d4.sendMessage(_0x329458, {
       'text': _0x51f475
