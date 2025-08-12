@@ -1,4 +1,6 @@
-const config = require("../config");
+const config = require('../config');
+const { cmd, commands } = require('../command');
+const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson } = require('../lib/functions');
 
 const muteCommand = {
   pattern: 'mute',
@@ -60,7 +62,7 @@ cmd(muteCommand, async (client, message, args, {
 
 const unmuteCommand = {
   pattern: 'unmute',
-  react: '🔇',
+  react: '🔊',
   alias: ["open", 'f_unmute'],
   desc: "Change to group settings to all members can send messages.",
   category: "group",
@@ -101,7 +103,7 @@ cmd(unmuteCommand, async (client, message, args, {
     
     await client.groupSettingUpdate(chatId, "not_announcement");
     await client.sendMessage(chatId, {
-      text: `*Group Chat Opened by Admin ${pushname}* 🔇`
+      text: `*Group Chat Opened by Admin ${pushname}* 🔊`
     }, { quoted: message });
     
   } catch (error) {
