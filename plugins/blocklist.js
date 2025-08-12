@@ -4,13 +4,12 @@ const { cmd, commands } = require("../command");
 const path = require('path');
 const axios = require("axios");
 
-// Helper function to get random image (if needed)
-function getRandomImage() {
-    const images = [
-        "https://example.com/image1.jpg",
-        "https://example.com/image2.jpg"
-    ];
-    return images[Math.floor(Math.random() * images.length)];
+// List of random emojis to use for blocked numbers
+const blockEmojis = ["🚫", "⛔", "🔒", "🔞", "📛", "🚷", "🚯", "🚳", "🚭", "❌", "🛑", "💢", "♨️", "💀", "☠️", "⚠️", "🔞"];
+
+// Helper function to get random emoji
+function getRandomBlockEmoji() {
+    return blockEmojis[Math.floor(Math.random() * blockEmojis.length)];
 }
 
 cmd({
@@ -31,9 +30,9 @@ async (conn, mek, m, { from, isOwner, reply }) => {
             return reply("📋 Your block list is empty.");
         }
 
-        // Format the blocked users with count
+        // Format the blocked users with count and random emojis
         const list = blockedUsers
-            .map((user, i) => `${i + 1}. � ${user.split('@')[0]}`)
+            .map((user, i) => `${i + 1}. ${getRandomBlockEmoji()} ${user.split('@')[0]}`)
             .join('\n');
 
         const count = blockedUsers.length;
@@ -76,4 +75,3 @@ async (conn, mek, m, { from, isOwner, reply }) => {
         reply(`❌ Failed to fetch block list: ${err.message}`);
     }
 });
-
