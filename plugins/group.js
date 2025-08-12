@@ -31,7 +31,7 @@ cmd(muteCommand, async (client, message, args, {
     await client.groupSettingUpdate(chatId, 'announcement');
 
     // Get image buffer
-    const imageUrl = 'https://i.ibb.co/8gHCXCV9/IMG-20250216-WA0009.jpg';
+    const imageUrl = 'https://files.catbox.moe/y3j3kl.jpg';
     const imageBuffer = await getBuffer(imageUrl);
 
     // Send combined message with image
@@ -44,7 +44,7 @@ cmd(muteCommand, async (client, message, args, {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363302677217436@newsletter',
-          newsletterName: 'CASEYRHODES-XMD💖',
+          newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
           serverMessageId: 143
         }
       }
@@ -88,7 +88,7 @@ cmd(unmuteCommand, async (client, message, args, {
     await client.groupSettingUpdate(chatId, "not_announcement");
 
     // Get image buffer
-    const imageUrl = 'https://i.ibb.co/8gHCXCV9/IMG-20250216-WA0009.jpg';
+    const imageUrl = 'https://files.catbox.moe/y3j3kl.jpg';
     const imageBuffer = await getBuffer(imageUrl);
 
     // Send combined message with image
@@ -101,7 +101,7 @@ cmd(unmuteCommand, async (client, message, args, {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363302677217436@newsletter',
-          newsletterName: 'CASEYRHODES-XMD💖',
+          newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
           serverMessageId: 143
         }
       }
