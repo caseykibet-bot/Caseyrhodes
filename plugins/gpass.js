@@ -27,7 +27,7 @@ const getRandomImage = () => {
 };
 
 cmd({
-    pattern: "allmenu",
+    pattern: "menu",
     desc: "Show interactive menu system",
     category: "menu",
     react: "🧾",
