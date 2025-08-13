@@ -1,3 +1,12 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//   ██████╗ █████╗ ███████╗███████╗██╗   █╗ ██████╗ ██╗  ██╗ ██████╗ ██████╗ ███████╗ ████████╗███████╗ ██████╗██╗  ██╗
+//  ██╔════╝██╔══██╗██╔════╝██╔════╝╚██╗ ██╔╝██╔══██╗██║  ██║██╔═══██╗██╔══██╗██╔════╝ ╚══██╔══╝██╔════╝██╔════╝██║  ██║
+//  ██║     ███████║█████╗  █████╗   ╚████╔╝ ██████╔╝███████║██║   ██║██║  ██║█████╗      ██║   █████╗  ██║     ███████║
+//  ██║     ██╔══██║██╔══╝  ██╔══╝    ╚██╔╝  ██╔══██╗██╔══██║██║   ██║██║  ██║██╔══╝      ██║   ██╔══╝  ██║     ██╔══██║
+//  ╚██████╗██║  ██║██║     ███████╗   ██║   ██║  ██║██║  ██║╚██████╔╝██████╔╝███████╗    ██║   ███████╗╚██████╗██║  ██║
+//   ╚═════╝╚═╝  ╚═╝╚═╝     ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝    ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const fs = require('fs');
 const path = require('path');
 const { cmd } = require('../command');
@@ -5,8 +14,8 @@ const moment = require('moment-timezone');
 
 cmd({
   pattern: "allmenu",
-  alias: ["commandlist", "help", "menu"],
-  desc: "Display all available bot commands",
+  alias: ["commandlist", "help"],
+  desc: "Fetch and display all available bot commands",
   category: "system",
   filename: __filename,
 }, async (Void, m, text, { prefix }) => {
@@ -15,84 +24,33 @@ cmd({
     const commandFiles = fs.readdirSync(commandDir).filter(file => file.endsWith('.js'));
 
     let totalCommands = 0;
-    const categories = {};
+    let commandList = [];
 
-    // Process each command file
     for (const file of commandFiles) {
-      try {
-        const commandModule = require(path.join(commandDir, file));
-        if (!commandModule.cmd) continue;
-
-        const commands = Array.isArray(commandModule.cmd) ? commandModule.cmd : [commandModule.cmd];
-        
-        for (const cmdObj of commands) {
-          if (!cmdObj.pattern) continue;
-          
-          const pattern = typeof cmdObj.pattern === 'string' ? cmdObj.pattern : cmdObj.pattern.source;
-          const category = (cmdObj.category || 'misc').toLowerCase();
-          const desc = cmdObj.desc || 'No description provided';
-          
-          if (!categories[category]) {
-            categories[category] = {
-              name: category.toUpperCase(),
-              commands: []
-            };
-          }
-          
-          categories[category].commands.push({
-            name: pattern,
-            desc: desc,
-            alias: cmdObj.alias || []
-          });
-          
-          totalCommands++;
-          
-          if (cmdObj.alias) {
-            const aliases = Array.isArray(cmdObj.alias) ? cmdObj.alias : [cmdObj.alias];
-            aliases.forEach(alias => {
-              categories[category].commands.push({
-                name: alias,
-                desc: `(Alias of ${pattern}) ${desc}`,
-                alias: []
-              });
-              totalCommands++;
-            });
-          }
-        }
-      } catch (err) {
-        console.error(`Error processing ${file}:`, err);
+      const filePath = path.join(commandDir, file);
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const matches = content.match(/pattern:\s*["'`](.*?)["'`]/g);
+      
+      if (matches) {
+        const extracted = matches.map(x => x.split(':')[1].replace(/["'`,]/g, '').trim());
+        totalCommands += extracted.length;
+        commandList.push(`📁 *${file}*\n${extracted.map(cmd => `⦿ ${cmd}`).join('\n')}`);
       }
     }
 
     const time = moment().tz('Africa/Nairobi').format('HH:mm:ss');
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
-    
-    // Generate the menu sections
-    let menuSections = [];
-    for (const [category, data] of Object.entries(categories)) {
-      let section = `╭───『 ${data.name} 』───\n`;
-      data.commands.sort((a, b) => a.name.localeCompare(b.name));
-      section += data.commands.map(cmd => `│ • ${cmd.name} - ${cmd.desc}`).join('\n');
-      section += `\n╰─────────────────`;
-      menuSections.push(section);
-    }
 
-    const caption = `╭───◇ *CASEYRHODES-XMD* ◇───
-│
-│ 👑 *Total Commands:* ${totalCommands}
-│ 📅 *Date:* ${date}
-│ ⏰ *Time:* ${time}
-│ 🤖 *Prefix:* ${prefix}
-│
-${menuSections.join('\n\n')}
-│
-╰───◇ *Powered by CASEYRHODES TECH* ◇───`;
+    const caption = `╭━━〔 *CASEYRHODES-XMD* 〕━━⬣
+┃ 👑 *Total Commands:* ${totalCommands}
+┃ 📅 *Date:* ${date}
+┃ ⏰ *Time:* ${time}
+┃ 🤖 *Prefix:* ${prefix}
+╰━━━━━━━━━━━━━━━━━━━━⬣\n\n${commandList.join('\n\n')}`;
 
     await Void.sendMessage(m.chat, {
-      image: { 
-        url: "https://files.catbox.moe/y3j3kl.jpg",
-        caption: caption
-      },
+      image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
+      caption,
       contextInfo: {
         forwardingScore: 999,
         isForwarded: true,
@@ -105,38 +63,12 @@ ${menuSections.join('\n\n')}
         externalAdReply: {
           title: "CASEYRHODES TECH",
           body: `ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`,
-          mediaType: 1,
-          thumbnail: await Void.getFile('https://files.catbox.moe/y3j3kl.jpg'),
-          sourceUrl: 'https://github.com/caseyrhodes'
+          mediaType: 1
         }
       }
     }, { quoted: m });
-
   } catch (err) {
-    console.error('❌ Menu Generation Error:', err);
-    
-    // Send a single error message with proper formatting
-    const errorMessage = `╭───◇ *ERROR NOTIFICATION* ◇───
-│
-│ 🚫 *CASEYRHODES TECH Support*
-│
-│ An error occurred while generating the menu.
-│ Please try again later.
-│
-│ ⏰ *Time:* ${moment().tz('Africa/Nairobi').format('HH:mm:ss')}
-│
-╰───◇ *Powered by CASEYRHODES TECH* ◇───`;
-
-    await Void.sendMessage(m.chat, {
-      text: errorMessage,
-      contextInfo: {
-        externalAdReply: {
-          title: "Error Notification",
-          body: "CASEYRHODES TECH Support",
-          mediaType: 1,
-          thumbnail: await Void.getFile('https://files.catbox.moe/y3j3kl.jpg')
-        }
-      }
-    });
+    console.error(err);
+    await m.reply('❌ Error: Could not fetch the command list.');
   }
 });
