@@ -29,22 +29,25 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
 ┃ *💾 𝖱ᴀᴍ ᴜsᴀɢᴇ* : *${usedMem}MB / ${totalMem}MB*
 ┃ *🧑‍💻𝖣ᴇᴘʟᴏʏᴇᴅ ᴏɴ* : *${platform}*
 ┃ *👨‍💻𝖮ᴡɴᴇʀ* : *𝖬ʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs*
-┃ *🧬𝖵ᴇʀsɪᴏɴ* : *𝟣.𝟢.𝟢 𝖡𝖤𝖳𝖠*
+┃ *🧬𝖵ᴇʀsɪᴏɴ* : *𝟣.𝟢.𝟢 �𝖡𝖤𝖳𝖠*
 ╰──────────────────────┈⊷
 > ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`;
-              const verifiedContact = {
+          
+        // Contact message for verified context
+        const verifiedContact = {
             key: {
                 fromMe: false,
-                participant: '0@s.whatsapp.net',
-                remoteJid: 'status@broadcast'
+                participant: `0@s.whatsapp.net`,
+                remoteJid: "status@broadcast"
             },
             message: {
                 contactMessage: {
-                    displayName: "Caseyrhodes Verified✅",
-                    vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:Caseyrhodes Verified✅\nORG:CASEYRHODES TEAM;\nTEL;type=CELL;type=VOICE;waid=254701234567:+254701234567\nEND:VCARD`
-                  }
-             }  
+                    displayName: "CASEYRHODES VERIFIED ✅",
+                    vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
+                }
+            }
         };
+        
         // Send image + caption + audio combined
         await conn.sendMessage(from, { 
             image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
