@@ -1,60 +1,5 @@
-
-
-/*
-const config = require('../config')
-const {cmd , commands} = require('../command')
-cmd({
-    pattern: "script",
-    alias: ["sc","repo","info"],
-    desc: "bot repo",
-    react: "🤖",
-    category: "main",
-    filename: __filename
-},
-async(conn, mek, m,{from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply}) => {
-try{
-let repo =`
-*╭──────────────●●►*
-> *BOT OWNER:*
-*|* *CASEYWEB*
-
-> *CASEYWEB REPO:*
-*|* https://github.com/caseyweb/CASEYRHODES XMD
-
-> *SUPPORT GROUP:*
-*|* https://whatsapp.com/channel/0029VaoRxGmJpe8lgCqT1T2h
-*╰──────────────●●►*
-
-> *CREATED BY CASEYRHODES TECH*
-`
-await conn.sendMessage(from, { text: repo ,
-  contextInfo: {
-    mentionedJid: [ '' ],
-    groupMentions: [],
-    forwardingScore: 999,
-    isForwarded: false,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid: '120363318387454868@newsletter',
-      newsletterName: "𝐀ɭι̇ι̇ 𝐌Ɗ 🍁",
-      serverMessageId: 999
-    },
-externalAdReply: { 
-title: '𝐀ɭι̇ι̇ 𝐌Ɗ 🍁',
-body: `${pushname}`,
-mediaType: 1,
-sourceUrl: "https://github.com/itx-alii-raza/ALI-MD" ,
-thumbnailUrl: "https://i.ibb.co/8Dzbtwj2/mrfrankofc.jpg" ,
-renderLargerThumbnail: true,
-showAdAttribution: true
-}
-}}, { quoted: mek})}catch(e){
-console.log(e)
-reply(`${e}`)
-}
-});
-*/
-const more = String.fromCharCode(8206)
-const readMore = more.repeat(4001)
+const more = String.fromCharCode(8206);
+const readMore = more.repeat(4001);
 
 const fetch = require('node-fetch');
 const config = require('../config');    
@@ -73,7 +18,11 @@ async (conn, mek, m, { from, reply }) => {
 
     try {
         // Extract username and repo name from the URL
-        const [, username, repoName] = githubRepoURL.match(/github\.com\/([^/]+)\/([^/]+)/);
+        const [, username, repoName] = githubRepoURL.match(/github\.com\/([^/]+)\/([^/]+)/) || [];
+
+        if (!username || !repoName) {
+            throw new Error("Invalid GitHub URL format");
+        }
 
         // Fetch repository details using GitHub API
         const response = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
@@ -112,17 +61,18 @@ ${readMore}
 > ${repoData.description || 'No description'}\n
 ──────────────────
 \n> *© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ* 🎐`;
-
+  
+        // Contact message for verified context
         const verifiedContact = {
             key: {
                 fromMe: false,
-                participant: '0@s.whatsapp.net',
-                remoteJid: 'status@broadcast'
+                participant: `0@s.whatsapp.net`,
+                remoteJid: "status@broadcast"
             },
             message: {
                 contactMessage: {
-                    displayName: "Caseyrhodes Verified✅",
-                    vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:Caseyrhodes Verified✅\nORG:CASEYRHODES TEAM;\nTEL;type=CELL;type=VOICE;waid=254701234567:+254701234567\nEND:VCARD`
+                    displayName: "CASEYRHODES VERIFIED ✅",
+                    vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
                 }
             }
         };
