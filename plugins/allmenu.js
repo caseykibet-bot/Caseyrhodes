@@ -41,10 +41,7 @@ cmd({
     const time = moment().tz('Africa/Nairobi').format('HH:mm:ss');
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
 
-    const caption = `🌟 *Good ${
-  new Date().getHours() < 12 ? 'Morning' : 
-  (new Date().getHours() < 18 ? 'Afternoon' : 'Evening')
-}, ${pushname}!* 🌟
+    const caption = `
 ╭━━〔 *CASEYRHODES-XMD* 〕━━⬣
 ┃ 👑 *Total Commands:* ${totalCommands}
 ┃ 📅 *Date:* ${date}
