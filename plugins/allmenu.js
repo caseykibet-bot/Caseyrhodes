@@ -6,7 +6,7 @@ const moment = require('moment-timezone');
 cmd({
   pattern: "allmenu",
   alias: ["commandlist", "help", "menu"],
-  desc: "Display all available bot commands with beautiful formatting",
+  desc: "Display all available bot commands",
   category: "system",
   filename: __filename,
 }, async (Void, m, text, { prefix }) => {
@@ -15,40 +15,53 @@ cmd({
     const commandFiles = fs.readdirSync(commandDir).filter(file => file.endsWith('.js'));
 
     let totalCommands = 0;
-    let commandList = [];
     const categories = {};
 
     // Process each command file
     for (const file of commandFiles) {
-      const filePath = path.join(commandDir, file);
-      const content = fs.readFileSync(filePath, 'utf-8');
-      
-      // Extract pattern, category, and description
-      const patternMatches = content.match(/pattern:\s*["'`](.*?)["'`]/g) || [];
-      const categoryMatch = content.match(/category:\s*["'`](.*?)["'`]/) || ['misc'];
-      const descMatch = content.match(/desc:\s*["'`](.*?)["'`]/) || ['No description'];
-      
-      const category = (categoryMatch[1] || 'misc').toLowerCase();
-      const description = descMatch[1] || 'No description';
-      const patterns = patternMatches.map(x => x.split(':')[1].replace(/["'`,]/g, '').trim());
+      try {
+        const commandModule = require(path.join(commandDir, file));
+        if (!commandModule.cmd) continue;
 
-      if (patterns.length > 0) {
-        totalCommands += patterns.length;
+        const commands = Array.isArray(commandModule.cmd) ? commandModule.cmd : [commandModule.cmd];
         
-        // Organize by category
-        if (!categories[category]) {
-          categories[category] = {
-            name: category.toUpperCase(),
-            commands: []
-          };
-        }
-        
-        patterns.forEach(pattern => {
+        for (const cmdObj of commands) {
+          if (!cmdObj.pattern) continue;
+          
+          const pattern = typeof cmdObj.pattern === 'string' ? cmdObj.pattern : cmdObj.pattern.source;
+          const category = (cmdObj.category || 'misc').toLowerCase();
+          const desc = cmdObj.desc || 'No description provided';
+          
+          if (!categories[category]) {
+            categories[category] = {
+              name: category.toUpperCase(),
+              commands: []
+            };
+          }
+          
           categories[category].commands.push({
             name: pattern,
-            desc: description
+            desc: desc,
+            alias: cmdObj.alias || []
           });
-        });
+          
+          totalCommands++;
+          
+          // Add aliases if they exist
+          if (cmdObj.alias) {
+            const aliases = Array.isArray(cmdObj.alias) ? cmdObj.alias : [cmdObj.alias];
+            aliases.forEach(alias => {
+              categories[category].commands.push({
+                name: alias,
+                desc: `(Alias of ${pattern}) ${desc}`,
+                alias: []
+              });
+              totalCommands++;
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing ${file}:`, err);
       }
     }
 
@@ -58,42 +71,53 @@ cmd({
     // Generate the menu sections
     let menuSections = [];
     for (const [category, data] of Object.entries(categories)) {
-      let section = `╭───『 ${data.name} 』\n`;
-      section += data.commands.map(cmd => 
-        `│ ✦ ${cmd.name.padEnd(15)} ➠ ${cmd.desc}`
-      ).join('\n');
+      let section = `╭───『 ${data.name} 』───\n`;
+      
+      // Sort commands alphabetically
+      data.commands.sort((a, b) => a.name.localeCompare(b.name));
+      
+      section += data.commands.map(cmd => {
+        let commandText = `│ • ${cmd.name}`;
+        if (cmd.desc) commandText += ` - ${cmd.desc}`;
+        return commandText;
+      }).join('\n');
+      
       section += `\n╰─────────────────`;
       menuSections.push(section);
     }
 
     const caption = `╭───◇ *CASEYRHODES-XMD* ◇───
 │
+│ 👑 *Total Commands:* ${totalCommands}
 │ 📅 *Date:* ${date}
 │ ⏰ *Time:* ${time}
-│ 🤖 *Prefix:* [ ${prefix} ]
-│ 📊 *Total Commands:* ${totalCommands}
+│ 🤖 *Prefix:* ${prefix}
 │
 ${menuSections.join('\n\n')}
 │
 ╰───◇ *Powered by CASEYRHODES TECH* ◇───`;
 
+    // Send the message with newsletter information
     await Void.sendMessage(m.chat, {
       image: { 
         url: "https://files.catbox.moe/y3j3kl.jpg",
-        caption: caption,
+        caption: caption
       },
       contextInfo: {
         forwardingScore: 999,
         isForwarded: true,
         mentionedJid: [m.sender],
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: "120363302677217436@newsletter",
+          newsletterName: "CASEYRHODES TECH",
+          serverMessageId: 2
+        },
         externalAdReply: {
-          title: "✨ CASEYRHODES TECH ✨",
-          body: `🚀 Premium Bot Services | ${totalCommands} Commands Available`,
-          thumbnail: await Void.getFile('https://files.catbox.moe/y3j3kl.jpg'),
+          title: "CASEYRHODES TECH",
+          body: `ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`,
           mediaType: 1,
-          mediaUrl: 'https://github.com/caseyrhodes',
-          sourceUrl: 'https://github.com/caseyrhodes',
-          showAdAttribution: true
+          thumbnail: await Void.getFile('https://files.catbox.moe/y3j3kl.jpg'),
+          sourceUrl: 'https://github.com/caseyrhodes'
         }
       }
     }, { quoted: m });
@@ -106,7 +130,6 @@ ${menuSections.join('\n\n')}
         externalAdReply: {
           title: "Error Notification",
           body: "CASEYRHODES TECH Support",
-          thumbnail: await Void.getFile('https://files.catbox.moe/error.jpg'),
           mediaType: 1
         }
       }
