@@ -1,3 +1,100 @@
-// 𝐏𝐑𝐎𝐏𝐄𝐑𝐓𝐘 𝐎𝐅 𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇💫
+const settingsManager = require('../lib/settingsmanager'); // Path to your settings manager
+const { cmd } = require('../command'); // Command registration
 
-const _0x415d20=_0x2a50;(function(_0xee957d,_0x4e54d4){const _0x2022d8=_0x2a50,_0x14e2b9=_0xee957d();while(!![]){try{const _0x965435=parseInt(_0x2022d8(0x95))/0x1+-parseInt(_0x2022d8(0x91))/0x2+-parseInt(_0x2022d8(0x83))/0x3+parseInt(_0x2022d8(0x88))/0x4*(-parseInt(_0x2022d8(0x86))/0x5)+-parseInt(_0x2022d8(0x93))/0x6*(parseInt(_0x2022d8(0x7f))/0x7)+parseInt(_0x2022d8(0x85))/0x8+parseInt(_0x2022d8(0x8f))/0x9*(parseInt(_0x2022d8(0x89))/0xa);if(_0x965435===_0x4e54d4)break;else _0x14e2b9['push'](_0x14e2b9['shift']());}catch(_0xb18b8d){_0x14e2b9['push'](_0x14e2b9['shift']());}}}(_0x3906,0x80bb1));function _0x2a50(_0x2c713b,_0x5360fe){const _0x3906b1=_0x3906();return _0x2a50=function(_0x2a50af,_0x308d61){_0x2a50af=_0x2a50af-0x7e;let _0x199ba2=_0x3906b1[_0x2a50af];return _0x199ba2;},_0x2a50(_0x2c713b,_0x5360fe);}const {cmd}=require(_0x415d20(0x8d)),config=require(_0x415d20(0x8c)),recentCallers=new Set();function _0x3906(){const _0x5eb3ea=['body','850112TpyjVd','20jsTHqC','call','430204PcNANh','30zXVnAQ','⚠️\x20Error:\x20','ANTI_CALL','../config','../command','status','5991003VzoUSX','delete','956020fZxAnj','from','598008kblLFx','true','315474uDvymX','error','28mOLwiD','message','isGroup','```Hii\x20this\x20is\x20CASEYRHODES-XMD\x20a\x20Personal\x20Assistant!!\x20Sorry\x20for\x20now,\x20we\x20cannot\x20receive\x20calls,\x20whether\x20in\x20a\x20group\x20or\x20personal\x20if\x20you\x20need\x20help\x20or\x20request\x20features\x20please\x20chat\x20owner```\x20⚠️','1753716qqxwhi'];_0x3906=function(){return _0x5eb3ea;};return _0x3906();}cmd({'on':_0x415d20(0x84)},async(_0x1cde1a,_0x22e6cc,_0x43f466,{from:_0x1a2f40})=>{const _0x2375aa=_0x415d20;try{_0x1cde1a['ev']['on'](_0x2375aa(0x87),async _0x2a5fec=>{const _0x41f786=_0x2375aa;if(config[_0x41f786(0x8b)]!==_0x41f786(0x94))return;for(const _0x155e40 of _0x2a5fec){_0x155e40[_0x41f786(0x8e)]==='offer'&&!_0x155e40[_0x41f786(0x81)]&&(await _0x1cde1a['rejectCall'](_0x155e40['id'],_0x155e40['from']),!recentCallers['has'](_0x155e40['from'])&&(recentCallers['add'](_0x155e40[_0x41f786(0x92)]),await _0x1cde1a['sendMessage'](_0x155e40[_0x41f786(0x92)],{'text':_0x41f786(0x82),'mentions':[_0x155e40[_0x41f786(0x92)]]}),setTimeout(()=>recentCallers[_0x41f786(0x90)](_0x155e40[_0x41f786(0x92)]),0xa*0x3c*0x3e8)));}});}catch(_0x9e871c){console[_0x2375aa(0x7e)](_0x9e871c),await _0x1cde1a['sendMessage'](_0x1a2f40,{'text':_0x2375aa(0x8a)+_0x9e871c[_0x2375aa(0x80)]},{'quoted':_0x43f466});}});
+// Quoted contact card to be used in replies
+const quotedContact = {
+  key: {
+    fromMe: false,
+    participant: "0@s.whatsapp.net",
+    remoteJid: "status@broadcast"
+  },
+  message: {
+    contactMessage: {
+      displayName: "⚙️ Shadow-Xtech | Verified ✅",
+      vcard: "BEGIN:VCARD\nVERSION:3.0\nFN:SCIFI\nORG:Shadow-Xtech BOT;\nTEL;type=CELL;type=VOICE;waid=254700000001:+254 700 000001\nEND:VCARD"
+    }
+  }
+};
+
+cmd({
+    pattern: "anticall",
+    alias: ["callblock", "togglecall"],
+    desc: "Manages the anti-call feature. Use: .anticall [on/off]",
+    category: "owner",
+    react: "📞",
+    filename: __filename,
+    fromMe: true // Only accessible by bot itself
+},
+async (conn, mek, m, { isOwner, reply, from, sender, args, prefix }) => {
+    try {
+        if (!isOwner) {
+            return reply("🚫 This command is for the bot owner only.");
+        }
+
+        let currentStatus = settingsManager.getSetting('ANTICALL');
+        const arg = args[0] ? args[0].toLowerCase() : '';
+
+        let replyText;
+        let finalReactionEmoji = '📞';
+
+        if (arg === 'on') {
+            if (currentStatus) {
+                replyText = `📞 Anti-call feature is already *enabled*.`;
+                finalReactionEmoji = 'ℹ️';
+            } else {
+                settingsManager.setSetting('ANTICALL', true);
+                replyText = `📞 Anti-call feature has been *enabled*!`;
+                finalReactionEmoji = '✅';
+            }
+        } else if (arg === 'off') {
+            if (!currentStatus) {
+                replyText = `📞 Anti-call feature is already *disabled*.`;
+                finalReactionEmoji = 'ℹ️';
+            } else {
+                settingsManager.setSetting('ANTICALL', false);
+                replyText = `📞 Anti-call feature has been *disabled*!`;
+                finalReactionEmoji = '❌';
+            }
+        } else if (arg === '') {
+            const statusEmoji = currentStatus ? '✅ ON' : '❌ OFF';
+            replyText = `
+*📞 Anti-Call Feature Manager*
+
+Current Status: *${statusEmoji}*
+
+To turn On:
+  \`\`\`${prefix}anticall on\`\`\`
+To turn Off:
+  \`\`\`${prefix}anticall off\`\`\`
+            `.trim();
+            finalReactionEmoji = '❓';
+        } else {
+            replyText = `❌ Invalid argument. Please use \`${prefix}anticall on\`, \`${prefix}anticall off\`, or just \`${prefix}anticall\` for help.`;
+            finalReactionEmoji = '❓';
+        }
+
+        // React to the command message
+        await conn.sendMessage(from, {
+            react: { text: finalReactionEmoji, key: mek.key }
+        });
+
+        // Send the status/help reply with quoted contact
+        await conn.sendMessage(from, {
+            text: replyText,
+            contextInfo: {
+                mentionedJid: [sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363369453603973@newsletter',
+                    newsletterName: "𝐒ʜᴀᴅᴏᴡ-𝐗ᴛᴇᴄʜ",
+                    serverMessageId: 143
+                }
+            }
+        }, { quoted: quotedContact });
+
+    } catch (e) {
+        console.error("Error in anticall command:", e);
+        reply(`An error occurred while managing anti-call: ${e.message}`);
+    }
+});
