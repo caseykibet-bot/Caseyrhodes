@@ -11,54 +11,51 @@ cmd({
 async (conn, mek, m, {
     from, q, isGroup, isBotAdmins, reply, quoted, senderNumber
 }) => {
+    // Check if the command is used in a group
     if (!isGroup) return reply("❌ This command can only be used in groups.");
 
+    // Get the bot owner's number dynamically from conn.user.id
     const botOwner = conn.user.id.split(":")[0];
     if (senderNumber !== botOwner) {
         return reply("❌ Only the bot owner can use this command.");
     }
 
+    // Check if the bot is an admin
     if (!isBotAdmins) return reply("❌ I need to be an admin to use this command.");
 
     let number;
     if (m.quoted) {
-        number = m.quoted.sender.split("@")[0];
+        number = m.quoted.sender.split("@")[0]; // If replying to a message, get the sender's number
     } else if (q && q.includes("@")) {
-        number = q.replace(/[@\s]/g, '');
+        number = q.replace(/[@\s]/g, ''); // If mentioning a user
     } else {
         return reply("❌ Please reply to a message or mention a user to remove.");
     }
 
     const jid = number + "@s.whatsapp.net";
-    
+
     try {
         await conn.groupParticipantsUpdate(from, [jid], "remove");
         
-        // Create the forwarded newsletter message
-        const newsletterMessage = {
-            conversation: `🗞️ Newsletter Update: Member Removal\n\nUser @${number} has been removed from the group by admin.`
-        };
-
-        const msg = {
-            text: `✅ Successfully removed @${number}\n\n_This action was performed via CASEYRHODES-XMD Newsletter integration_`,
-            mentions: [jid, m.sender],
+        // Combined image + text message
+        await conn.sendMessage(from, {
+            image: { url: `https://files.catbox.moe/y3j3kl.jpg` },
+            caption: `✅ Successfully removed @${number}\n\n- Action by admin`,
+            mentions: [jid],
             contextInfo: {
-                forwardingNewsletterInfo: {
-                    newsletterJid: '120363302677217436@g.us',
-                    newsletterName: 'CASEYRHODES-XMD Newsletter',
-                    newsletterServerId: 143,
-                    newsletterType: 0
-                },
+                mentionedJid: [jid],
+                forwardingScore: 999,
                 isForwarded: true,
-                forwardCount: 1,
-                forwardedNewsletterMessage: newsletterMessage
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
+                    serverMessageId: 143
+                }
             }
-        };
-
-        await conn.sendMessage(from, msg, { quoted: mek });
-
+        }, { quoted: mek });
+        
     } catch (error) {
         console.error("Remove command error:", error);
-        reply("❌ Failed to remove the member. Error: " + error.message);
+        reply("❌ Failed to remove the member.");
     }
 });
