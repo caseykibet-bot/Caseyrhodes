@@ -1,19 +1,19 @@
 const settingsManager = require('../lib/settingsmanager'); // Path to your settings manager
 const { cmd } = require('../command'); // Command registration
 
-// Quoted contact card to be used in replies
-const quotedContact = {
-  key: {
-    fromMe: false,
-    participant: "0@s.whatsapp.net",
-    remoteJid: "status@broadcast"
-  },
-  message: {
-    contactMessage: {
-      displayName: "⚙️ Shadow-Xtech | Verified ✅",
-      vcard: "BEGIN:VCARD\nVERSION:3.0\nFN:SCIFI\nORG:Shadow-Xtech BOT;\nTEL;type=CELL;type=VOICE;waid=254700000001:+254 700 000001\nEND:VCARD"
+// Contact message for verified context
+const verifiedContact = {
+    key: {
+        fromMe: false,
+        participant: `0@s.whatsapp.net`,
+        remoteJid: "status@broadcast"
+    },
+    message: {
+        contactMessage: {
+            displayName: "CASEYRHODES VERIFIED ✅",
+            vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
+        }
     }
-  }
 };
 
 cmd({
@@ -86,12 +86,12 @@ To turn Off:
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363369453603973@newsletter',
-                    newsletterName: "𝐒ʜᴀᴅᴏᴡ-𝐗ᴛᴇᴄʜ",
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: "𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇",
                     serverMessageId: 143
                 }
             }
-        }, { quoted: quotedContact });
+        }, { quoted: verifiedContact });
 
     } catch (e) {
         console.error("Error in anticall command:", e);
