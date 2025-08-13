@@ -47,7 +47,6 @@ cmd({
           
           totalCommands++;
           
-          // Add aliases if they exist
           if (cmdObj.alias) {
             const aliases = Array.isArray(cmdObj.alias) ? cmdObj.alias : [cmdObj.alias];
             aliases.forEach(alias => {
@@ -72,16 +71,8 @@ cmd({
     let menuSections = [];
     for (const [category, data] of Object.entries(categories)) {
       let section = `╭───『 ${data.name} 』───\n`;
-      
-      // Sort commands alphabetically
       data.commands.sort((a, b) => a.name.localeCompare(b.name));
-      
-      section += data.commands.map(cmd => {
-        let commandText = `│ • ${cmd.name}`;
-        if (cmd.desc) commandText += ` - ${cmd.desc}`;
-        return commandText;
-      }).join('\n');
-      
+      section += data.commands.map(cmd => `│ • ${cmd.name} - ${cmd.desc}`).join('\n');
       section += `\n╰─────────────────`;
       menuSections.push(section);
     }
@@ -97,7 +88,6 @@ ${menuSections.join('\n\n')}
 │
 ╰───◇ *Powered by CASEYRHODES TECH* ◇───`;
 
-    // Send the message with newsletter information
     await Void.sendMessage(m.chat, {
       image: { 
         url: "https://files.catbox.moe/y3j3kl.jpg",
@@ -123,14 +113,28 @@ ${menuSections.join('\n\n')}
     }, { quoted: m });
 
   } catch (err) {
-    console.error('❌ Menu Error:', err);
+    console.error('❌ Menu Generation Error:', err);
+    
+    // Send a single error message with proper formatting
+    const errorMessage = `╭───◇ *ERROR NOTIFICATION* ◇───
+│
+│ 🚫 *CASEYRHODES TECH Support*
+│
+│ An error occurred while generating the menu.
+│ Please try again later.
+│
+│ ⏰ *Time:* ${moment().tz('Africa/Nairobi').format('HH:mm:ss')}
+│
+╰───◇ *Powered by CASEYRHODES TECH* ◇───`;
+
     await Void.sendMessage(m.chat, {
-      text: '🚫 An error occurred while generating the menu. Please try again later.',
+      text: errorMessage,
       contextInfo: {
         externalAdReply: {
           title: "Error Notification",
           body: "CASEYRHODES TECH Support",
-          mediaType: 1
+          mediaType: 1,
+          thumbnail: await Void.getFile('https://files.catbox.moe/y3j3kl.jpg')
         }
       }
     });
