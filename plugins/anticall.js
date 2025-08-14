@@ -34,7 +34,7 @@ cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   }
 });
 
-// Fixed toggle command for config.js
+// Reliable toggle command
 cmd(
   {
     pattern: "anticall",
@@ -44,26 +44,42 @@ cmd(
   },
   async (client, message) => {
     try {
+      // Load fresh config to avoid caching issues
+      delete require.cache[require.resolve('../config')];
+      const freshConfig = require("../config");
+      
       // Toggle the value
-      const newValue = !config.ANTI_CALL;
-      config.ANTI_CALL = newValue;
+      const newValue = !freshConfig.ANTI_CALL;
+      freshConfig.ANTI_CALL = newValue;
 
-      // Update config file (for config.js format)
+      // Update config file
       const configPath = path.join(__dirname, '../config.js');
-      const configContent = fs.readFileSync(configPath, 'utf-8');
+      let configContent = fs.readFileSync(configPath, 'utf-8');
       
-      // Replace the ANTI_CALL line
-      const updatedContent = configContent.replace(
-        /ANTI_CALL: (true|false)/,
-        `ANTI_CALL: ${newValue}`
-      );
-      
+      // Handle different config formats
+      const updatedContent = configContent
+        .replace(
+          /ANTI_CALL: (true|false)/,
+          `ANTI_CALL: ${newValue}`
+        )
+        .replace(
+          /ANTI_CALL = (true|false)/,
+          `ANTI_CALL = ${newValue}`
+        )
+        .replace(
+          /ANTI_CALL: ["'](true|false)["']/,
+          `ANTI_CALL: ${newValue}`
+        );
+
       fs.writeFileSync(configPath, updatedContent);
+
+      // Update in-memory config
+      config.ANTI_CALL = newValue;
 
       await client.sendMessage(
         message.chat,
         {
-          text: `📞 Call rejection is now *${newValue ? "ENABLED" : "DISABLED"}*`
+          text: `📞 Call rejection is now *${newValue ? "ENABLED ✅" : "DISABLED ❌"}*`
         },
         { quoted: message }
       );
@@ -73,7 +89,7 @@ cmd(
       await client.sendMessage(
         message.chat,
         {
-          text: `⚠️ Failed to update settings: ${error.message}\n\nCurrent status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}`
+          text: `⚠️ Error updating settings: ${error.message}\n\nCurrent status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}\n\nPlease check your config.js file format.`
         },
         { quoted: message }
       );
