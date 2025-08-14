@@ -25,69 +25,64 @@ cmd({
     react: "⚡",
     filename: __filename
 },
-async (conn, mek, m, { from, quoted, sender, reply }) => {
+async (Void, citel, text, { from }) => {
     try {
-        const start = new Date().getTime();
-
-        const reactionEmojis = ['🔥', '⚡', '🚀', '💨', '🎯', '🎉', '🌟', '💥', '🕐', '🔹'];
-        const textEmojis = ['💎', '🏆', '⚡️', '🚀', '🎶', '🌠', '🌀', '🔱', '🛡️', '✨'];
-
-        const reactionEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
-        let textEmoji = textEmojis[Math.floor(Math.random() * textEmojis.length)];
-
-        while (textEmoji === reactionEmoji) {
-            textEmoji = textEmojis[Math.floor(Math.random() * textEmojis.length)];
-        }
-
-        await conn.sendMessage(from, {
-            react: { text: textEmoji, key: mek.key }
+        const start = Date.now();
+        
+        // Reaction emojis
+        await Void.sendMessage(citel.chat, {
+            react: {
+                text: "⚡",
+                key: citel.key
+            }
         });
 
-        const end = new Date().getTime();
+        const end = Date.now();
         const responseTime = (end - start) / 1000;
-
-        // Current timestamp
+        
+        // Get current time HH:MM format
         const now = new Date();
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         const timestamp = `${hours}:${minutes}`;
 
-        await conn.sendMessage(from, {
+        // Main ping response
+        await Void.sendMessage(citel.chat, {
             text: `*CASEYRHODES-XMD: ${responseTime.toFixed(2)}ms*\n${timestamp}`,
             contextInfo: {
-                mentionedJid: [sender],
-                forwardingScore: 999,
                 isForwarded: true,
-                // Newsletter info (shows "View channel")
+                forwardingScore: 999,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363302677217436@newsletter',
                     newsletterName: "CASEYRHODES-XMD",
                     serverMessageId: 143
                 },
-                // Verified Business header
                 externalAdReply: {
                     title: "Verified Business",
                     body: "CASEYRHODES-TECH",
-                    thumbnail: 'https://files.catbox.moe/y3j3kl.jpg', // Your logo image
+                    thumbnail: config.image,
                     mediaType: 2,
-                    mediaUrl: '',
-                    sourceUrl: '',
-                    showAdAttribution: true,
-                    renderLargerThumbnail: false
+                    showAdAttribution: true
                 }
             }
-        }, { quoted: mek });
+        }, { quoted: citel });
 
-        // Send verified contact separately
-        await conn.sendMessage(from, {
+        // Send verified contact
+        await Void.sendMessage(citel.chat, {
             contacts: {
                 displayName: "CASEYRHODES",
                 contacts: [verifiedContact]
             }
         });
 
-    } catch (e) {
-        console.error("Error in ping command:", e);
-        reply(`An error occurred: ${e.message}`);
+    } catch (error) {
+        console.error("Ping command error:", error);
+        await Void.sendMessage(citel.chat, {
+            text: `An error occurred: ${error.message}`,
+            contextInfo: {
+                forwardingScore: 999,
+                isForwarded: true
+            }
+        }, { quoted: citel });
     }
 });
