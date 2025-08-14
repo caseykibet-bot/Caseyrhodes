@@ -1,5 +1,5 @@
-const settingsManager = require('../lib/settingsmanager'); // Path to your settings manager
-const { cmd } = require('../command'); // Command registration
+const config = require('../config');
+const { cmd } = require('../command');
 
 // Contact message for verified context
 const verifiedContact = {
@@ -23,15 +23,15 @@ cmd({
     category: "owner",
     react: "📞",
     filename: __filename,
-    fromMe: true // Only accessible by bot itself
+    fromMe: true
 },
 async (conn, mek, m, { isOwner, reply, from, sender, args, prefix }) => {
     try {
         if (!isOwner) {
-            return reply("🚫 This command is for the bot owner only.");
+            return await reply("🚫 This command is for the bot owner only.");
         }
 
-        let currentStatus = settingsManager.getSetting('ANTICALL');
+        let currentStatus = config.getSetting('ANTICALL') || false;
         const arg = args[0] ? args[0].toLowerCase() : '';
 
         let replyText;
@@ -42,7 +42,7 @@ async (conn, mek, m, { isOwner, reply, from, sender, args, prefix }) => {
                 replyText = `📞 Anti-call feature is already *enabled*.`;
                 finalReactionEmoji = 'ℹ️';
             } else {
-                settingsManager.setSetting('ANTICALL', true);
+                config.setSetting('ANTICALL', true);
                 replyText = `📞 Anti-call feature has been *enabled*!`;
                 finalReactionEmoji = '✅';
             }
@@ -51,7 +51,7 @@ async (conn, mek, m, { isOwner, reply, from, sender, args, prefix }) => {
                 replyText = `📞 Anti-call feature is already *disabled*.`;
                 finalReactionEmoji = 'ℹ️';
             } else {
-                settingsManager.setSetting('ANTICALL', false);
+                config.setSetting('ANTICALL', false);
                 replyText = `📞 Anti-call feature has been *disabled*!`;
                 finalReactionEmoji = '❌';
             }
@@ -78,7 +78,7 @@ To turn Off:
             react: { text: finalReactionEmoji, key: mek.key }
         });
 
-        // Send the status/help reply with quoted contact
+        // Send the status/help reply with newsletter context
         await conn.sendMessage(from, {
             text: replyText,
             contextInfo: {
@@ -89,12 +89,20 @@ To turn Off:
                     newsletterJid: '120363302677217436@newsletter',
                     newsletterName: "𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇",
                     serverMessageId: 143
+                },
+                externalAdReply: {
+                    title: "CASEYRHODES TECH",
+                    body: "Anti-Call Manager",
+                    thumbnail: config.get("BOT_LOGO"),
+                    mediaType: 1,
+                    mediaUrl: "",
+                    sourceUrl: config.get("WEBSITE") || "https://github.com/caseyrhodes-tech"
                 }
             }
         }, { quoted: verifiedContact });
 
     } catch (e) {
         console.error("Error in anticall command:", e);
-        reply(`An error occurred while managing anti-call: ${e.message}`);
+        await reply(`❌ An error occurred: ${e.message}`);
     }
 });
