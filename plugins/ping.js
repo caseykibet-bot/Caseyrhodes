@@ -64,7 +64,7 @@ async (conn, mek, m, { from, quoted, sender, reply }) => {
                 externalAdReply: {
                     title: "Verified Business",
                     body: "CASEYRHODES-TECH",
-                    thumbnail: "https://files.catbox.moe/y3j3kl.jpg", // Use your config image
+                    thumbnail: config.MENU_IMAGE_URL, // Use your config image
                     mediaType: 2,
                     mediaUrl: '',
                     sourceUrl: '',
