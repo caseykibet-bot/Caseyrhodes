@@ -9,7 +9,7 @@ const recentCallers = new Set();
 cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   try {
     client.ev.on("call", async (callData) => {
-      if (config.ANTI_CALL !== true) return; // Changed to boolean check
+      if (!config.ANTI_CALL) return;
 
       for (const call of callData) {
         if (call.status === 'offer' && !call.isGroup) {
@@ -34,7 +34,7 @@ cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   }
 });
 
-// Improved toggle command with better config handling
+// Fixed toggle command for config.js
 cmd(
   {
     pattern: "anticall",
@@ -48,15 +48,17 @@ cmd(
       const newValue = !config.ANTI_CALL;
       config.ANTI_CALL = newValue;
 
-      // Update config file
-      const configPath = path.join(__dirname, '../config.json'); // Changed to .json
-      let configFile = require(configPath);
-      configFile.ANTI_CALL = newValue;
+      // Update config file (for config.js format)
+      const configPath = path.join(__dirname, '../config.js');
+      const configContent = fs.readFileSync(configPath, 'utf-8');
       
-      fs.writeFileSync(
-        configPath,
-        JSON.stringify(configFile, null, 2) // Proper formatting
+      // Replace the ANTI_CALL line
+      const updatedContent = configContent.replace(
+        /ANTI_CALL: (true|false)/,
+        `ANTI_CALL: ${newValue}`
       );
+      
+      fs.writeFileSync(configPath, updatedContent);
 
       await client.sendMessage(
         message.chat,
