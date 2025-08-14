@@ -34,7 +34,7 @@ cmd({
       if (matches) {
         const extracted = matches.map(x => x.split(':')[1].replace(/["'`,]/g, '').trim());
         totalCommands += extracted.length;
-        commandList.push(`📁 *${file}*\n${extracted.map(cmd => `⦿ ${cmd}`).join('\n')}`);
+        commandList.push(`📁 *${file}*\n${extracted.map(cmd => `🌟 ${cmd}`).join('\n')}`);
       }
     }
 
@@ -42,16 +42,20 @@ cmd({
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
 
     const caption = `
-╭━━〔 *CASEYRHODES-XMD* 〕━━⬣
-┃ 👑 *Total Commands:* ${totalCommands}
-┃ 📅 *Date:* ${date}
-┃ ⏰ *Time:* ${time}
-┃ 🤖 *Prefix:* ${prefix}
-╰━━━━━━━━━━━━━━━━━━━━⬣\n\n${commandList.join('\n\n')}`;
+╭━━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》━━━┈⊷
+┃❍╭──────────────
+┃❍│▸  Usᴇʀ : Caseyrhodes Tech 🌟
+┃❍│▸  ʙᴀɪʟᴇʏs : 𝐌𝐮𝐥𝐭𝐢 𝐝𝐞𝐯𝐢𝐜𝐞
+┃❍│▸  ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : *${totalCommands}*
+┃❍⁠│▸  𝖳ʏᴘᴇ : 𝐍𝐨𝐝𝐞𝐣𝐬
+┃❍│▸  ᴘʟᴀᴛғᴏʀᴍ : 𝐇𝐞𝐫𝐨𝐤𝐮
+┃❍⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎
+┃❍╰──────────────
+╰━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n${commandList.join('\n\n')}`;
 
-    await Void.sendMessage(m.chat, {
+    const messageOptions = {
       image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
-      caption,
+      caption: caption,
       contextInfo: {
         forwardingScore: 999,
         isForwarded: true,
@@ -64,10 +68,14 @@ cmd({
         externalAdReply: {
           title: "CASEYRHODES TECH",
           body: `ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`,
-          mediaType: 1
+          mediaType: 1,
+          thumbnailUrl: "https://files.catbox.moe/y3j3kl.jpg",
+          sourceUrl: "https://github.com/CASEYRHODES-TECH/CASEYRHODES-XMD"
         }
       }
-    }, { quoted: m });
+    };
+
+    await Void.sendMessage(m.chat, messageOptions, { quoted: m });
   } catch (err) {
     console.error(err);
     await m.reply('❌ Error: Could not fetch the command list.');
