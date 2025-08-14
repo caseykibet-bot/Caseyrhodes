@@ -1,108 +1,70 @@
-const config = require('../config');
-const { cmd } = require('../command');
+const { cmd } = require("../command");
+const config = require("../config");
+const fs = require('fs');
+const path = require('path');
 
-// Contact message for verified context
-const verifiedContact = {
-    key: {
-        fromMe: false,
-        participant: `0@s.whatsapp.net`,
-        remoteJid: "status@broadcast"
-    },
-    message: {
-        contactMessage: {
-            displayName: "CASEYRHODES VERIFIED ✅",
-            vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
+const recentCallers = new Set();
+
+// Anti-call handler (same as before but with better variable names)
+cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
+  try {
+    client.ev.on("call", async (callData) => {
+      if (config.ANTI_CALL !== "true") return;
+
+      for (const call of callData) {
+        if (call.status === 'offer' && !call.isGroup) {
+          await client.rejectCall(call.id, call.from);
+          
+          if (!recentCallers.has(call.from)) {
+            recentCallers.add(call.from);
+            
+            await client.sendMessage(call.from, {
+              text: "```Hii this is CASEYRHODES-XMD a Personal Assistant!! Sorry for now, we cannot receive calls, whether in a group or personal if you need help or request features please chat owner``` ⚠️",
+              mentions: [call.from]
+            });
+            
+            setTimeout(() => recentCallers.delete(call.from), 600000);
+          }
         }
-    }
-};
-
-cmd({
-    pattern: "anticall",
-    alias: ["callblock", "togglecall"],
-    desc: "Manages the anti-call feature. Use: .anticall [on/off]",
-    category: "owner",
-    react: "📞",
-    filename: __filename,
-    fromMe: true
-},
-async (conn, mek, m, { isOwner, reply, from, sender, args, prefix }) => {
-    try {
-        if (!isOwner) {
-            return await reply("🚫 This command is for the bot owner only.");
-        }
-
-        let currentStatus = config.getSetting('ANTICALL') || false;
-        const arg = args[0] ? args[0].toLowerCase() : '';
-
-        let replyText;
-        let finalReactionEmoji = '📞';
-
-        if (arg === 'on') {
-            if (currentStatus) {
-                replyText = `📞 Anti-call feature is already *enabled*.`;
-                finalReactionEmoji = 'ℹ️';
-            } else {
-                config.setSetting('ANTICALL', true);
-                replyText = `📞 Anti-call feature has been *enabled*!`;
-                finalReactionEmoji = '✅';
-            }
-        } else if (arg === 'off') {
-            if (!currentStatus) {
-                replyText = `📞 Anti-call feature is already *disabled*.`;
-                finalReactionEmoji = 'ℹ️';
-            } else {
-                config.setSetting('ANTICALL', false);
-                replyText = `📞 Anti-call feature has been *disabled*!`;
-                finalReactionEmoji = '❌';
-            }
-        } else if (arg === '') {
-            const statusEmoji = currentStatus ? '✅ ON' : '❌ OFF';
-            replyText = `
-*📞 Anti-Call Feature Manager*
-
-Current Status: *${statusEmoji}*
-
-To turn On:
-  \`\`\`${prefix}anticall on\`\`\`
-To turn Off:
-  \`\`\`${prefix}anticall off\`\`\`
-            `.trim();
-            finalReactionEmoji = '❓';
-        } else {
-            replyText = `❌ Invalid argument. Please use \`${prefix}anticall on\`, \`${prefix}anticall off\`, or just \`${prefix}anticall\` for help.`;
-            finalReactionEmoji = '❓';
-        }
-
-        // React to the command message
-        await conn.sendMessage(from, {
-            react: { text: finalReactionEmoji, key: mek.key }
-        });
-
-        // Send the status/help reply with newsletter context
-        await conn.sendMessage(from, {
-            text: replyText,
-            contextInfo: {
-                mentionedJid: [sender],
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: "𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇",
-                    serverMessageId: 143
-                },
-                externalAdReply: {
-                    title: "CASEYRHODES TECH",
-                    body: "Anti-Call Manager",
-                    thumbnail: config.get("BOT_LOGO"),
-                    mediaType: 1,
-                    mediaUrl: "",
-                    sourceUrl: config.get("WEBSITE") || "https://github.com/caseyrhodes-tech"
-                }
-            }
-        }, { quoted: verifiedContact });
-
-    } catch (e) {
-        console.error("Error in anticall command:", e);
-        await reply(`❌ An error occurred: ${e.message}`);
-    }
+      }
+    });
+  } catch (error) {
+    console.error("Call rejection error:", error);
+    await client.sendMessage(sender, { text: "⚠️ Error: " + error.message }, { quoted: chat });
+  }
 });
+
+// New command to toggle anti-call
+cmd(
+  {
+    pattern: "anticall",
+    desc: "Toggle anti-call feature",
+    category: "config",
+    fromMe: true // Only bot owner can use this
+  },
+  async (client, message, match) => {
+    try {
+      // Toggle the value
+      config.ANTI_CALL = config.ANTI_CALL === "true" ? "false" : "true";
+      
+      // Save to config file
+      const configPath = path.join(__dirname, '../config.js');
+      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const updatedContent = configContent.replace(
+        /ANTI_CALL: ".*"/,
+        `ANTI_CALL: "${config.ANTI_CALL}"`
+      );
+      fs.writeFileSync(configPath, updatedContent);
+      
+      await client.sendMessage(message.chat, {
+        text: `Anti-call feature is now *${config.ANTI_CALL === "true" ? "ENABLED" : "DISABLED"}*`
+      }, { quoted: message });
+      
+    } catch (error) {
+      console.error("Error toggling anti-call:", error);
+      await client.sendMessage(message.chat, {
+        text: "⚠️ Error toggling anti-call: " + error.message
+      }, { quoted: message });
+    }
+  }
+);
