@@ -25,7 +25,7 @@ async (conn, mek, m, { from, quoted, sender, reply }) => {
             textEmoji = textEmojis[Math.floor(Math.random() * textEmojis.length)];
         }
 
-        // Send reaction using conn.sendMessage()
+        // Send reaction
         await conn.sendMessage(from, {
             react: { text: textEmoji, key: mek.key }
         });
@@ -33,19 +33,22 @@ async (conn, mek, m, { from, quoted, sender, reply }) => {
         const end = new Date().getTime();
         const responseTime = (end - start) / 1000;
 
-        const text = `> *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃: ${responseTime.toFixed(2)}ms ${reactionEmoji}*`;
-
         await conn.sendMessage(from, {
-            text,
+            text: `*CASEYRHODES-XMD: ${responseTime.toFixed(2)}ms*`,
             contextInfo: {
                 mentionedJid: [sender],
                 forwardingScore: 999,
                 isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: "CASEYRHODES-XMD",
+                    serverMessageId: Math.floor(Math.random() * 1000)
+                },
                 externalAdReply: {
-                    title: "ᴄᴀsᴇʏʀʜᴏᴅᴅᴇs-xᴍᴅ 👻",
+                    title: "CASEYRHODES-XMD",
                     body: "The Ultimate WhatsApp Bot",
                     mediaType: 1,
-                    thumbnailUrl: "https://files.catbox.moe/y3j3kl.jpg",
+                    thumbnailUrl: "https://i.imgur.com/3Jf7Z2Q.jpeg",
                     mediaUrl: "",
                     sourceUrl: "https://github.com/CaseyRhodess",
                     showAdAttribution: true
