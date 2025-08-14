@@ -1,3 +1,4 @@
+
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -57,7 +58,7 @@ const clearTempDir = () => {
     for (const file of files) {
       fs.unlink(path.join(tempDir, file), err => {
         if (err) throw err
-      }
+      })
     }
   })
 }
@@ -726,29 +727,6 @@ Meet CASEYRHODES-XMD WhatsApp Bot
         { quoted },
       )
     }
-    // anti-call 
-
-conn.ev.on('call', async (calls) => {
-  try {
-    if (config.ANTI_CALL !== 'true') return;
-
-    for (const call of calls) {
-      if (call.status !== 'offer') continue; // Only respond on call offer
-
-      const id = call.id;
-      const from = call.from;
-
-      await conn.rejectCall(id, from);
-      await conn.sendMessage(from, {
-        text: config.REJECT_MSG || '*📞 ᴄαℓℓ ɴσт αℓℓσωє∂ ιɴ тнιѕ ɴᴜмвєʀ уσυ ∂σɴт нανє ᴘєʀмιѕѕισɴ 📵*'
-      });
-      console.log(`Call rejected and message sent to ${from}`);
-    }
-  } catch (err) {
-    console.error("Anti-call error:", err);
-  }
-});
-
     // Status aka brio
     conn.setStatus = status => {
       conn.query({
