@@ -52,6 +52,7 @@ async (client, message, m, { isOwner, reply, from, sender, args, prefix }) => {
         const action = args[0] ? args[0].toLowerCase() : 'status';
         let replyText;
         let reaction;
+        let status;
 
         switch (action) {
             case 'on':
@@ -60,11 +61,10 @@ async (client, message, m, { isOwner, reply, from, sender, args, prefix }) => {
                     reaction = "ℹ️";
                 } else {
                     config.ANTI_CALL = true;
-                    // Save config if you have a config saving function
-                    // saveConfig();
                     replyText = "📞 Anti-call has been *enabled*! Calls will be automatically rejected.";
                     reaction = "✅";
                 }
+                status = "Anti-call Status: ✅ *ENABLED*";
                 break;
                 
             case 'off':
@@ -73,15 +73,15 @@ async (client, message, m, { isOwner, reply, from, sender, args, prefix }) => {
                     reaction = "ℹ️";
                 } else {
                     config.ANTI_CALL = false;
-                    // saveConfig();
                     replyText = "📞 Anti-call has been *disabled*! Calls will be accepted.";
                     reaction = "❌";
                 }
+                status = "Anti-call Status: ❌ *DISABLED*";
                 break;
                 
             case 'status':
             default:
-                const status = config.ANTI_CALL ? "✅ *ENABLED*" : "❌ *DISABLED*";
+                status = config.ANTI_CALL ? "✅ *ENABLED*" : "❌ *DISABLED*";
                 replyText = `📞 Anti-call Status: ${status}\n\n`
                          + `Usage:\n`
                          + `  ${prefix}anticall on - Enable call blocking\n`
@@ -101,9 +101,28 @@ async (client, message, m, { isOwner, reply, from, sender, args, prefix }) => {
             text: replyText,
             mentions: [sender]
         }, { quoted: message });
+        
+        // Send image with caption and newsletter info
+        await client.sendMessage(from, { 
+            image: { url: `https://i.ibb.co/wN6Gw0ZF/lordcasey.jpg` },  
+            caption: status,
+            contextInfo: {
+                mentionedJid: [sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
+                    serverMessageId: 143
+                }
+            }
+        }, { quoted: message });
 
     } catch (error) {
         console.error("Anti-call command error:", error);
-        reply(`⚠️ Error: ${error.message}`);
+        await client.sendMessage(from, {
+            text: `⚠️ Error: ${error.message}`,
+            mentions: [sender]
+        }, { quoted: message });
     }
 });
