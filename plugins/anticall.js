@@ -5,7 +5,7 @@ const path = require('path');
 
 const recentCallers = new Set();
 
-// Anti-call handler
+// Anti-call handler (unchanged)
 cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   try {
     client.ev.on("call", async (callData) => {
@@ -34,7 +34,7 @@ cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   }
 });
 
-// Corrected toggle command with proper status reporting
+// FINAL FIXED TOGGLE COMMAND
 cmd(
   {
     pattern: "anticall",
@@ -44,18 +44,18 @@ cmd(
   },
   async (client, message) => {
     try {
-      // Get current value before toggling
-      const currentStatus = config.ANTI_CALL;
+      // Clear cache and reload config
+      delete require.cache[require.resolve('../config')];
+      const freshConfig = require("../config");
       
       // Toggle the value
-      const newValue = !currentStatus;
-      config.ANTI_CALL = newValue;
-
+      const newValue = !freshConfig.ANTI_CALL;
+      
       // Update config file
       const configPath = path.join(__dirname, '../config.js');
       let configContent = fs.readFileSync(configPath, 'utf-8');
       
-      // Handle different config formats
+      // Handle all possible config formats
       const updatedContent = configContent
         .replace(
           /ANTI_CALL: (true|false)/,
@@ -71,11 +71,17 @@ cmd(
         );
 
       fs.writeFileSync(configPath, updatedContent);
+      
+      // Update in-memory config
+      config.ANTI_CALL = newValue;
 
+      // Send CORRECT status message
       await client.sendMessage(
         message.chat,
         {
-          text: `📞 Call rejection is now *${newValue ? "ENABLED ✅" : "DISABLED ❌"}*`
+          text: `📞 Call rejection is now *${newValue ? "ENABLED ✅" : "DISABLED ❌"}*\n\n` +
+                `Actual status: ${newValue}\n` +
+                `Previous status: ${!newValue}`
         },
         { quoted: message }
       );
@@ -85,7 +91,9 @@ cmd(
       await client.sendMessage(
         message.chat,
         {
-          text: `⚠️ Error updating settings: ${error.message}\nCurrent status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}`
+          text: `⚠️ Error updating settings: ${error.message}\n\n` +
+                `Current status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}\n` +
+                `Config path: ${path.join(__dirname, '../config.js')}`
         },
         { quoted: message }
       );
