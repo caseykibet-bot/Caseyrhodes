@@ -34,7 +34,7 @@ cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   }
 });
 
-// Reliable toggle command
+// Corrected toggle command with proper status reporting
 cmd(
   {
     pattern: "anticall",
@@ -44,13 +44,12 @@ cmd(
   },
   async (client, message) => {
     try {
-      // Load fresh config to avoid caching issues
-      delete require.cache[require.resolve('../config')];
-      const freshConfig = require("../config");
+      // Get current value before toggling
+      const currentStatus = config.ANTI_CALL;
       
       // Toggle the value
-      const newValue = !freshConfig.ANTI_CALL;
-      freshConfig.ANTI_CALL = newValue;
+      const newValue = !currentStatus;
+      config.ANTI_CALL = newValue;
 
       // Update config file
       const configPath = path.join(__dirname, '../config.js');
@@ -73,9 +72,6 @@ cmd(
 
       fs.writeFileSync(configPath, updatedContent);
 
-      // Update in-memory config
-      config.ANTI_CALL = newValue;
-
       await client.sendMessage(
         message.chat,
         {
@@ -89,7 +85,7 @@ cmd(
       await client.sendMessage(
         message.chat,
         {
-          text: `⚠️ Error updating settings: ${error.message}\n\nCurrent status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}\n\nPlease check your config.js file format.`
+          text: `⚠️ Error updating settings: ${error.message}\nCurrent status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}`
         },
         { quoted: message }
       );
