@@ -10,7 +10,7 @@ const verifiedContact = {
     },
     message: {
         contactMessage: {
-            displayName: "CASEYRHODES VERIFIED",
+            displayName: "CASEYRHODES VERIFIED ✅",
             vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:CASEYRHODES\nORG:Verified Business;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD`
         }
     }
@@ -25,64 +25,61 @@ cmd({
     react: "⚡",
     filename: __filename
 },
-async (Void, citel, text, { from }) => {
+async (conn, mek, m, { from, quoted, sender, reply }) => {
     try {
-        const start = Date.now();
-        
-        // Reaction emojis
-        await Void.sendMessage(citel.chat, {
-            react: {
-                text: "⚡",
-                key: citel.key
-            }
+        const start = new Date().getTime();
+
+        const reactionEmojis = ['🔥', '⚡', '🚀', '💨', '🎯', '🎉', '🌟', '💥', '🕐', '🔹'];
+        const textEmojis = ['💎', '🏆', '⚡️', '🚀', '🎶', '🌠', '🌀', '🔱', '🛡️', '✨'];
+
+        const reactionEmoji = reactionEmojis[Math.floor(Math.random() * reactionEmojis.length)];
+        let textEmoji = textEmojis[Math.floor(Math.random() * textEmojis.length)];
+
+        while (textEmoji === reactionEmoji) {
+            textEmoji = textEmojis[Math.floor(Math.random() * textEmojis.length)];
+        }
+
+        await conn.sendMessage(from, {
+            react: { text: textEmoji, key: mek.key }
         });
 
-        const end = Date.now();
+        const end = new Date().getTime();
         const responseTime = (end - start) / 1000;
-        
-        // Get current time HH:MM format
-        const now = new Date();
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const timestamp = `${hours}:${minutes}`;
 
-        // Main ping response
-        await Void.sendMessage(citel.chat, {
-            text: `*CASEYRHODES-XMD: ${responseTime.toFixed(2)}ms*\n${timestamp}`,
+        const text = `> *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃: ${responseTime.toFixed(2)}ms ${reactionEmoji}*`;
+
+        await conn.sendMessage(from, {
+            text,
             contextInfo: {
-                isForwarded: true,
+                mentionedJid: [sender],
                 forwardingScore: 999,
+                isForwarded: true,
+                // Newsletter info
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: "CASEYRHODES-XMD",
+                    newsletterName: "ᴄᴀsᴇʏʀʜᴏᴅᴇs-xᴍᴅ 👻",
                     serverMessageId: 143
                 },
+                // Verified contact reference
                 externalAdReply: {
                     title: "Verified Business",
                     body: "CASEYRHODES-TECH",
-                    thumbnail: config.image,
+                    thumbnail: "https://files.catbox.moe/y3j3kl.jpg", // Use your config image
                     mediaType: 2,
-                    showAdAttribution: true
+                    mediaUrl: '',
+                    sourceUrl: '',
+                    showAdAttribution: true,
+                    renderLargerThumbnail: false
                 }
-            }
-        }, { quoted: citel });
-
-        // Send verified contact
-        await Void.sendMessage(citel.chat, {
+            },
             contacts: {
                 displayName: "CASEYRHODES",
                 contacts: [verifiedContact]
             }
-        });
+        }, { quoted: mek });
 
-    } catch (error) {
-        console.error("Ping command error:", error);
-        await Void.sendMessage(citel.chat, {
-            text: `An error occurred: ${error.message}`,
-            contextInfo: {
-                forwardingScore: 999,
-                isForwarded: true
-            }
-        }, { quoted: citel });
+    } catch (e) {
+        console.error("Error in ping command:", e);
+        reply(`An error occurred: ${e.message}`);
     }
 });
