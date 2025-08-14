@@ -88,7 +88,7 @@ async (client, message, m, { isOwner, from, sender, args, prefix }) => {
         // Send the combined message with image and newsletter info
         await client.sendMessage(from, {
             image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
-            caption: `${statusText}\n\n${additionalInfo}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`,
+            caption: `${statusText}\n\n${additionalInfo}\n\n_ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ_`,
             contextInfo: {
                 mentionedJid: [sender],
                 forwardingScore: 999,
