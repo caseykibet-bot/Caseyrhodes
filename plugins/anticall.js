@@ -5,7 +5,7 @@ const path = require('path');
 
 const recentCallers = new Set();
 
-// Anti-call handler (unchanged)
+// Anti-call handler
 cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   try {
     client.ev.on("call", async (callData) => {
@@ -34,69 +34,76 @@ cmd({ on: "body" }, async (client, message, chat, { from: sender }) => {
   }
 });
 
-// FINAL FIXED TOGGLE COMMAND
-cmd(
-  {
+cmd({
     pattern: "anticall",
-    desc: "Toggle call rejection feature",
-    category: "config",
+    alias: ["callblock", "togglecall"],
+    desc: "Manages the anti-call feature. Use: .anticall [on/off/status]",
+    category: "owner",
+    react: "📞",
+    filename: __filename,
     fromMe: true
-  },
-  async (client, message) => {
+},
+async (client, message, m, { isOwner, reply, from, sender, args, prefix }) => {
     try {
-      // Clear cache and reload config
-      delete require.cache[require.resolve('../config')];
-      const freshConfig = require("../config");
-      
-      // Toggle the value
-      const newValue = !freshConfig.ANTI_CALL;
-      
-      // Update config file
-      const configPath = path.join(__dirname, '../config.js');
-      let configContent = fs.readFileSync(configPath, 'utf-8');
-      
-      // Handle all possible config formats
-      const updatedContent = configContent
-        .replace(
-          /ANTI_CALL: (true|false)/,
-          `ANTI_CALL: ${newValue}`
-        )
-        .replace(
-          /ANTI_CALL = (true|false)/,
-          `ANTI_CALL = ${newValue}`
-        )
-        .replace(
-          /ANTI_CALL: ["'](true|false)["']/,
-          `ANTI_CALL: ${newValue}`
-        );
+        if (!isOwner) {
+            return reply("🚫 This command is for the bot owner only.");
+        }
 
-      fs.writeFileSync(configPath, updatedContent);
-      
-      // Update in-memory config
-      config.ANTI_CALL = newValue;
+        const action = args[0] ? args[0].toLowerCase() : 'status';
+        let replyText;
+        let reaction;
 
-      // Send CORRECT status message
-      await client.sendMessage(
-        message.chat,
-        {
-          text: `📞 Call rejection is now *${newValue ? "ENABLED ✅" : "DISABLED ❌"}*\n\n` +
-                `Actual status: ${newValue}\n` +
-                `Previous status: ${!newValue}`
-        },
-        { quoted: message }
-      );
+        switch (action) {
+            case 'on':
+                if (config.ANTI_CALL) {
+                    replyText = "📞 Anti-call is already *enabled*!";
+                    reaction = "ℹ️";
+                } else {
+                    config.ANTI_CALL = true;
+                    // Save config if you have a config saving function
+                    // saveConfig();
+                    replyText = "📞 Anti-call has been *enabled*! Calls will be automatically rejected.";
+                    reaction = "✅";
+                }
+                break;
+                
+            case 'off':
+                if (!config.ANTI_CALL) {
+                    replyText = "📞 Anti-call is already *disabled*!";
+                    reaction = "ℹ️";
+                } else {
+                    config.ANTI_CALL = false;
+                    // saveConfig();
+                    replyText = "📞 Anti-call has been *disabled*! Calls will be accepted.";
+                    reaction = "❌";
+                }
+                break;
+                
+            case 'status':
+            default:
+                const status = config.ANTI_CALL ? "✅ *ENABLED*" : "❌ *DISABLED*";
+                replyText = `📞 Anti-call Status: ${status}\n\n`
+                         + `Usage:\n`
+                         + `  ${prefix}anticall on - Enable call blocking\n`
+                         + `  ${prefix}anticall off - Disable call blocking\n`
+                         + `  ${prefix}anticall status - Show current status`;
+                reaction = "📞";
+                break;
+        }
+
+        // Send reaction to the command message
+        await client.sendMessage(from, {
+            react: { text: reaction, key: message.key }
+        });
+
+        // Send the reply message
+        await client.sendMessage(from, {
+            text: replyText,
+            mentions: [sender]
+        }, { quoted: message });
 
     } catch (error) {
-      console.error("Config update error:", error);
-      await client.sendMessage(
-        message.chat,
-        {
-          text: `⚠️ Error updating settings: ${error.message}\n\n` +
-                `Current status: ${config.ANTI_CALL ? "ENABLED" : "DISABLED"}\n` +
-                `Config path: ${path.join(__dirname, '../config.js')}`
-        },
-        { quoted: message }
-      );
+        console.error("Anti-call command error:", error);
+        reply(`⚠️ Error: ${error.message}`);
     }
-  }
-);
+});
