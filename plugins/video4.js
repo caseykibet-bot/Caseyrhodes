@@ -1,140 +1,158 @@
-const config = require('../config');
-const { cmd } = require('../command');
-const ytsr = require('yt-search');
-const fetch = require('node-fetch'); // Make sure to install node-fetch if not already present
+const { cmd } = require("../command");
+const { ytsearch } = require("@dark-yasiya/yt-dl.js");
 
-// Video download command
-cmd({ 
-    pattern: "vid", 
-    alias: ["ytdl", "vid"], 
-    react: "🎬", 
-    desc: "Download YouTube video", 
-    category: "main", 
-    use: '.video < Yt url or Name >', 
-    filename: __filename 
-}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
-    try { 
-        if (!q) return await reply("Please provide a YouTube URL or video name.");
-        
-        const yt = await ytsearch(q);
-        if (yt.results.length < 1) return reply("No results found!");
-        
-        let yts = yt.results[0];  
-        let apiUrl = `https://api.giftedtech.co.ke/api/download/ytmp4?apikey=gifted&url=${encodeURIComponent(yts.url)}`;
-        
-        let response = await fetch(apiUrl);
-        let data = await response.json();
-        
-        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
-            return reply("Failed to fetch the video. Please try again later.");
-        }
-        
-        let ytmsg = `🎬 *Video Details*
-📹 *Title:* ${yts.title}
-⏳ *Duration:* ${yts.timestamp}
-👀 *Views:* ${yts.views}
-👤 *Author:* ${yts.author.name}
-🔗 *Link:* ${yts.url}
+// Video Downloader 1
+const video1 = {
+  pattern: "mp5",
+  alias: ["video"],
+  react: "🐦‍🔥",
+  desc: "Download YouTube video",
+  category: "main",
+  use: ".song <Yt url or Name>",
+  filename: __filename
+};
 
-*Choose download format:*
-1. 📁 Video as Document (High Quality)
-2. � Video as Normal Message
-3. 🎧 Audio Only (MP3)
-
-_Reply with 1, 2 or 3 to this message to download the format you prefer._`;
-        
-        let contextInfo = {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
-                newsletterName: 'CASEYRHODES-TECH',
-                serverMessageId: 143
-            }
-        };
-        
-        // Send thumbnail with caption only
-        const vidmsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
-
-        conn.ev.on("messages.upsert", async (msgUpdate) => {
-            const vidChoice = msgUpdate.messages[0];
-            if (!vidChoice.message || !vidChoice.message.extendedTextMessage) return;
-
-            const selectedOption = vidChoice.message.extendedTextMessage.text.trim();
-
-            if (
-                vidChoice.message.extendedTextMessage.contextInfo &&
-                vidChoice.message.extendedTextMessage.contextInfo.stanzaId === vidmsg.key.id
-            ) {
-                await conn.sendMessage(from, { react: { text: "⬇️", key: vidChoice.key } });
-
-                switch (selectedOption) {
-                    case "1":   
-                        // Video as document
-                        await conn.sendMessage(
-                            from, 
-                            { 
-                                document: { url: data.result.downloadUrl }, 
-                                mimetype: "video/mp4", 
-                                fileName: `${yts.title}.mp4`, 
-                                contextInfo 
-                            }, 
-                            { quoted: vidChoice }
-                        );
-                        break;
-                        
-                    case "2":   
-                        // Normal video message
-                        await conn.sendMessage(
-                            from, 
-                            { 
-                                video: { url: data.result.downloadUrl }, 
-                                caption: `📹 *${yts.title}*`, 
-                                contextInfo 
-                            }, 
-                            { quoted: vidChoice }
-                        );
-                        break;
-                        
-                    case "3":   
-                        // Audio only
-                        await conn.sendMessage(
-                            from, 
-                            { 
-                                audio: { url: data.result.downloadUrl }, 
-                                mimetype: "audio/mpeg", 
-                                fileName: `${yts.title}.mp3`,
-                                contextInfo 
-                            }, 
-                            { quoted: vidChoice }
-                        );
-                        break;
-
-                    default:
-                        await conn.sendMessage(
-                            from,
-                            {
-                                text: "*Invalid selection! Please reply with 1, 2 or 3* 🔴",
-                            },
-                            { quoted: vidChoice }
-                        );
-                }
-            }
-        });
-           
-    } catch (e) {
-        console.log(e);
-        reply("An error occurred. Please try again later.");
+cmd(video1, async (client, message, args, { from, prefix, quoted, q, reply }) => {
+  try {
+    if (!q) {
+      return await reply("Please provide a YouTube URL or video name.");
     }
+
+    const searchResults = await ytsearch(q);
+    if (searchResults.results.length < 1) {
+      return reply("No results found!");
+    }
+
+    let video = searchResults.results[0];
+    let apiUrl = "https://apis.davidcyriltech.my.id/download/ytmp4?url=" + encodeURIComponent(video.url);
+    let response = await fetch(apiUrl);
+    let data = await response.json();
+
+    if (data.status !== 200 || !data.success || !data.result.download_url) {
+      return reply("Failed to fetch the video. Please try again later.");
+    }
+
+    let caption = `🎬 *CASEYRHODES XMD VIDEO DOWNLOADER* 🎬\n\n📌 *Title:* ${video.title}\n⏱️ *Duration:* ${video.timestamp}\n👁️ *Views:* ${video.views}\n👤 *Author:* ${video.author.name}\n🔗 *Link:* ${video.url}`;
+
+    await client.sendMessage(from, {
+      image: { url: data.result.thumbnail || '' },
+      caption: caption
+    }, { quoted: message });
+
+    await client.sendMessage(from, {
+      video: { url: data.result.download_url },
+      mimetype: "video/mp4"
+    }, { quoted: message });
+
+  } catch (error) {
+    console.error(error);
+    reply("An error occurred. Please try again later.");
+  }
 });
 
-async function ytsearch(query) {
-    try {
-        const res = await ytsr(query);
-        return res;
-    } catch (error) {
-        console.error('YouTube search error:', error);
-        return { results: [] };
+// Video Downloader 2
+const video2 = {
+  pattern: "video2",
+  alias: ["video3", "video5"],
+  react: "🤩",
+  desc: "Download YouTube video",
+  category: "main",
+  use: ".song <Yt url or Name>",
+  filename: __filename
+};
+
+cmd(video2, async (client, message, args, { from, prefix, quoted, q, reply }) => {
+  try {
+    if (!q) {
+      return await reply("❌ *Please provide a YouTube URL or video name.*");
     }
-}
+
+    const searchResults = await ytsearch(q);
+    if (searchResults.results.length < 1) {
+      return reply("⚠️ *No results found!*");
+    }
+
+    let video = searchResults.results[0];
+    let apiUrl = "https://api.siputzx.my.id/api/d/ytmp4?url=" + encodeURIComponent(video.url);
+    let response = await fetch(apiUrl);
+    let data = await response.json();
+
+    if (!data.status || !data.data || !data.data.dl) {
+      return reply("❌ *Failed to fetch the video. Please try again later.*");
+    }
+
+    let caption = `🎥 *CASEYRHODES-XMD VIDEO DOWNLOADER* 🎥\n\n📌 *Title:* ${data.data.title}\n🌐 *Source:* YouTube\n🔗 *Link:* ${video.url}\n\n💾 *Downloading your video... Please wait!*`;
+
+    await client.sendMessage(from, {
+      image: { url: video.thumbnail },
+      caption: caption
+    }, { quoted: message });
+
+    await client.sendMessage(from, {
+      video: { url: data.data.dl },
+      mimetype: "video/mp4"
+    }, { quoted: message });
+
+  } catch (error) {
+    console.error(error);
+    reply("⚠️ *An unexpected error occurred. Please try again later.*");
+  }
+});
+
+// Audio Downloader
+const audio = {
+  pattern: "mp3",
+  alias: ["play2", "play"],
+  react: "🎶",
+  desc: "Download YouTube song",
+  category: "main",
+  use: ".song <Yt url or Name>",
+  filename: __filename
+};
+
+cmd(audio, async (client, message, args, { from, prefix, quoted, q, reply }) => {
+  try {
+    if (!q) {
+      return await reply("❌ Please provide a YouTube URL or song name.");
+    }
+
+    await reply("🎶 Downloading Audio... Please wait for *cαѕєчrhσdєѕ хmd* user!");
+
+    const searchResults = await ytsearch(q);
+    if (searchResults.results.length < 1) {
+      return reply("❌ No results found!");
+    }
+
+    let video = searchResults.results[0];
+    let apiUrl = "https://ditzdevs-ytdl-api.hf.space/api/ytmp3?url=" + encodeURIComponent(video.url);
+    console.log("🔗 API URL:", apiUrl);
+    
+    let response = await fetch(apiUrl);
+    let data = await response.json();
+    console.log("📥 API Response:", data);
+
+    if (!data.status || !data.download || !data.download.downloadUrl) {
+      return reply("❌ Failed to fetch the audio. Please try again later.");
+    }
+
+    let caption = `🎶 *CASEYRHODES-XMD MUSIC DOWNLOADER* 🎶\n\n📀 *Title:* ${data.download.title}\n⏳ *Duration:* ${data.result.duration} sec\n🔗 *YouTube Link:* ${video.url}\n🕒 *Expires In:* ${data.download.expiresIn}\n\n> *© pσwєrєd вч cαѕєчrhσdєѕ tєch ♡*`;
+
+    await client.sendMessage(from, {
+      image: { url: video.thumbnail },
+      caption: caption
+    }, { quoted: message });
+
+    console.log("🎼 Sending audio from URL:", data.download.downloadUrl);
+    
+    await client.sendMessage(from, {
+      audio: { url: data.download.downloadUrl },
+      mimetype: "audio/mpeg"
+    }, { quoted: message });
+
+    console.log("✅ Audio sent successfully!");
+
+  } catch (error) {
+    console.error("❌ Error:", error);
+    reply("❌ An error occurred. Please try again later.");
+  }
+});
