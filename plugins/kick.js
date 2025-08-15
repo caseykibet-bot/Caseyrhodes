@@ -9,19 +9,23 @@ cmd({
     filename: __filename
 },
 async (conn, mek, m, {
-    from, q, isGroup, isBotAdmins, reply, quoted, senderNumber
+    from, q, isGroup, isBotAdmins, reply, quoted, senderNumber, groupMetadata
 }) => {
     // Check if the command is used in a group
     if (!isGroup) return reply("❌ This command can only be used in groups.");
 
-    // Get the bot owner's number dynamically from conn.user.id
-    const botOwner = conn.user.id.split(":")[0];
-    if (senderNumber !== botOwner) {
-        return reply("❌ Only the bot owner can use this command.");
-    }
-
     // Check if the bot is an admin
     if (!isBotAdmins) return reply("❌ I need to be an admin to use this command.");
+
+    // Get group metadata to check admin status
+    const metadata = groupMetadata || await conn.groupMetadata(from);
+    const participants = metadata.participants;
+    
+    // Check if sender is admin
+    const senderJid = m.sender;
+    const isAdmin = participants.find(p => p.id === senderJid)?.admin;
+    
+    if (!isAdmin) return reply("❌ Only group admins can use this command.");
 
     let number;
     if (m.quoted) {
