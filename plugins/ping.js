@@ -3,15 +3,6 @@ const { cmd, commands } = require('../command');
 
 const whatsappChannelLink = 'https://whatsapp.com/channel/0029VasHgfG4tRrwjAUyTs10';
 
-// Define missing arrays
-const loadingMessages = [
-  "Calculating response time...",
-  "Measuring system performance...",
-  "Checking network latency...",
-  "Analyzing bot speed...",
-  "Running diagnostics..."
-];
-
 const speedLatencyQuotes = [
   "Speed matters in the digital world!",
   "Efficiency is doing better what is already being done.",
@@ -52,10 +43,7 @@ cmd({
     const moderateEmojis = ['🟡', '🌀', '⚠️', '🔁', '📡'];
     const slowEmojis = ['🔴', '🐌', '❗', '🚨', '💤'];
 
-    const randomLoadingMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
     const randomQuote = speedLatencyQuotes[Math.floor(Math.random() * speedLatencyQuotes.length)];
-
-    await conn.sendMessage(from, { text: randomLoadingMessage });
 
     const end = Date.now();
     const latencyMs = end - start;
