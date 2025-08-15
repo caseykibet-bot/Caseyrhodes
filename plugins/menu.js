@@ -120,7 +120,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         const audioUrls = [
             'https://files.catbox.moe/m0xfku.mp3',
             'https://files.catbox.moe/8stziq.mp3',
-            'https://files.catbox.moe/3au05j.m4a',
+            'https://files.catbox.moe/ikshu9.mp3',
             'https://files.catbox.moe/dcxfi1.mp3',
             'https://files.catbox.moe/ebkzu5.mp3',
             'https://files.catbox.moe/xsa1ig.mp3',
