@@ -40,9 +40,7 @@ STICKER_NAME: process.env.STICKER_NAME || "CASEYRHODES",
 CUSTOM_REACT: process.env.CUSTOM_REACT || "false",
 // make this true for custum emoji react    
 CUSTOM_REACT_EMOJIS: process.env.CUSTOM_REACT_EMOJIS || "💝,💖,💗,❤️‍🩹,❤️,🧡,💛,💚,💙,💜,🤎,🖤,🤍",
-// chose custom react emojis by yourself 
-DELETE_LINKS: process.env.DELETE_LINKS || "true",
-// automatic delete links witho remove member 
+// chose custom react emojis by yourself
 OWNER_NUMBER: process.env.OWNER_NUMBER || "254112192119",
 // add your bot owner number
 OWNER_NAME: process.env.OWNER_NAME || "CASEYRHODES-TECH",
@@ -60,9 +58,7 @@ AUTO_REACT: process.env.AUTO_REACT || "false",
 ANTI_BAD: process.env.ANTI_BAD || "false",
 // false or true for anti bad words  
 MODE: process.env.MODE || "public",
-// make bot public-private-inbox-group 
-ANTI_LINK_KICK: process.env.ANTI_LINK_KICK || "false",
-// make anti link true,false for groups 
+// make bot public-private-inbox
 AUTO_STICKER: process.env.AUTO_STICKER || "false",
 // make true for automatic stickers 
 AUTO_REPLY: process.env.AUTO_REPLY || "false",
