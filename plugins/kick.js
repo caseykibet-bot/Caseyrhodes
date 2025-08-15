@@ -8,58 +8,58 @@ cmd({
     react: "❌",
     filename: __filename
 },
-async (conn, mek, m, {
-    from, q, isGroup, isBotAdmins, reply, quoted, senderNumber, groupMetadata
+async (Void, msg, {
+    from, args, isGroup, isBotAdmin, reply, quoted, sender, groupMetadata
 }) => {
     // Check if the command is used in a group
-    if (!isGroup) return reply("❌ This command can only be used in groups.");
+    if (!isGroup) return await reply("❌ This command can only be used in groups.");
 
     // Check if the bot is an admin
-    if (!isBotAdmins) return reply("❌ I need to be an admin to use this command.");
+    if (!isBotAdmin) return await reply("❌ I need to be an admin to use this command.");
 
-    // Get group metadata to check admin status
-    const metadata = groupMetadata || await conn.groupMetadata(from);
-    const participants = metadata.participants;
-    
+    // Get group metadata
+    const metadata = await Void.groupMetadata(from).catch(() => null);
+    if (!metadata) return await reply("❌ Failed to fetch group info.");
+
     // Check if sender is admin
-    const senderJid = m.sender;
-    const isAdmin = participants.find(p => p.id === senderJid)?.admin;
-    
-    if (!isAdmin) return reply("❌ Only group admins can use this command.");
+    const participant = metadata.participants.find(p => p.id === sender);
+    if (!participant?.admin) return await reply("❌ Only group admins can use this command.");
 
-    let number;
-    if (m.quoted) {
-        number = m.quoted.sender.split("@")[0]; // If replying to a message, get the sender's number
-    } else if (q && q.includes("@")) {
-        number = q.replace(/[@\s]/g, ''); // If mentioning a user
+    let userJid;
+    if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
+        // If user is mentioned
+        userJid = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
+    } else if (quoted?.sender) {
+        // If replying to a message
+        userJid = quoted.sender;
+    } else if (args && args.match(/^\d+$/)) {
+        // If phone number is provided
+        userJid = args + '@s.whatsapp.net';
     } else {
-        return reply("❌ Please reply to a message or mention a user to remove.");
+        return await reply("❌ Please reply to a message, mention a user, or provide a phone number.");
     }
 
-    const jid = number + "@s.whatsapp.net";
+    // Validate the JID
+    if (!userJid.includes('@s.whatsapp.net')) {
+        userJid = userJid.replace('@', '') + '@s.whatsapp.net';
+    }
 
     try {
-        await conn.groupParticipantsUpdate(from, [jid], "remove");
+        // Remove the participant
+        await Void.groupParticipantsUpdate(from, [userJid], 'remove');
         
-        // Combined image + text message
-        await conn.sendMessage(from, {
+        // Get the user's number without @s.whatsapp.net
+        const userNumber = userJid.split('@')[0];
+        
+        // Send success message with mention
+        await Void.sendMessage(from, {
             image: { url: `https://files.catbox.moe/y3j3kl.jpg` },
-            caption: `✅ Successfully removed @${number}\n\n- Action by admin`,
-            mentions: [jid],
-            contextInfo: {
-                mentionedJid: [jid],
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
-                    serverMessageId: 143
-                }
-            }
-        }, { quoted: mek });
+            caption: `✅ Successfully removed @${userNumber}\n\n- Action by admin`,
+            mentions: [userJid]
+        }, { quoted: msg });
         
     } catch (error) {
         console.error("Remove command error:", error);
-        reply("❌ Failed to remove the member.");
+        await reply(`❌ Failed to remove the member. Error: ${error.message}`);
     }
 });
