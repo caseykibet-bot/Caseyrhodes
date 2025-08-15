@@ -13,24 +13,24 @@ const loadingMessages = [
 ];
 
 const speedLatencyQuotes = [
-  "Speed is the essence of war!",
-  "Latency matters in the digital realm!",
-  "A millisecond can make all the difference!",
-  "Performance is key to success!",
-  "Efficiency is doing better what is already being done!"
+  "Speed matters in the digital world!",
+  "Efficiency is doing better what is already being done.",
+  "In the race against time, every millisecond counts.",
+  "Performance isn't accidental, it's designed.",
+  "The faster the response, the smoother the experience."
 ];
 
-// Contact used for quoting the reply
-const quotedContact = {
+// Contact message for verified context
+const verifiedContact = {
   key: {
     fromMe: false,
-    participant: "0@s.whatsapp.net",
+    participant: `0@s.whatsapp.net`,
     remoteJid: "status@broadcast"
   },
   message: {
     contactMessage: {
-      displayName: "⚙️ Latency-Check | Verified ✅",
-      vcard: "BEGIN:VCARD\nVERSION:3.0\nFN:SCIFI\nORG:Shadow-Xtech BOT;\nTEL;type=CELL;type=VOICE;waid=254700000001:+254 700 000001\nEND:VCARD"
+      displayName: "CASEYRHODES VERIFIED ✅",
+      vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
     }
   }
 };
@@ -62,22 +62,24 @@ cmd({
 
     let stabilityEmoji = '';
     let stabilityText = '';
+    let reactionEmoji = '⚡';
 
     if (latencyMs > 1000) {
       stabilityText = "Slow 🔴";
       stabilityEmoji = slowEmojis[Math.floor(Math.random() * slowEmojis.length)];
+      reactionEmoji = '🐢';
     } else if (latencyMs > 500) {
       stabilityText = "Moderate 🟡";
       stabilityEmoji = moderateEmojis[Math.floor(Math.random() * moderateEmojis.length)];
+      reactionEmoji = '🔄';
     } else {
       stabilityText = "Stable 🟢";
       stabilityEmoji = stableEmojis[Math.floor(Math.random() * stableEmojis.length)];
+      reactionEmoji = '⚡';
     }
 
     const stylishText = `
-  ◉ Time Sync    » *${new Date().toLocaleTimeString()}*
- ⌬━━━━━━━━━━━━━━━━━━━⌬
- ➤ *${randomQuote}*
+> *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃: ${latencyMs}ms ${reactionEmoji}*
     `.trim();
 
     await conn.sendMessage(from, {
@@ -87,20 +89,20 @@ cmd({
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363369453603973@newsletter',
-          newsletterName: "𝐒ʜᴀᴅᴏᴡ 𝐗ᴛᴇᴄʜ",
+          newsletterJid: '120363302677217436@newsletter',
+          newsletterName: "𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇",
           serverMessageId: 143
         },
         externalAdReply: {
-          title: "⚙️ Shadow-Xtech | System Pulse",
+          title: "𝐂𝐚𝐬𝐞𝐲𝐫𝐡𝐨𝐝𝐞𝐬 | 𝐩𝐢𝐧𝐠 𝐫𝐞𝐬𝐩𝐨𝐧𝐬𝐞🚀",
           body: "Speed • Stability • Sync",
-          thumbnailUrl: 'https://files.catbox.moe/3l3qgq.jpg',
+          thumbnailUrl: 'https://files.catbox.moe/y3j3kl.jpg',
           sourceUrl: whatsappChannelLink,
           mediaType: 1,
           renderLargerThumbnail: false,
         }
       }
-    }, { quoted: quotedContact });
+    }, { quoted: verifiedContact });
 
   } catch (e) {
     console.error("Error in ping command:", e);
