@@ -27,26 +27,29 @@ cmd({
       return reply("❌ No results found for your query. Please try with a different keyword.");
     }
 
-    // Get up to 5 results for cleaner display
+    // Get up to 5 results for horizontal display
     const results = data.result.slice(0, 5);
     
-    // Format results horizontally
-    let resultText = `🌸 *TikTok Results for "${query}"*\n\n`;
-    
-    results.forEach((video, index) => {
-      resultText += 
-        `*${index + 1}.* ${video.title.substring(0, 40)}${video.title.length > 40 ? '...' : ''}\n` +
-        `👤 @${video.author?.username || 'unknown'}` +
-        ` | ❤️ ${video.stats?.like || 0}` +
-        ` | ⏱️ ${video.duration || 0}s\n` +
-        `🔗 https://www.tiktok.com/@${video.author?.username}/video/${video.video_id}\n\n`;
-    });
+    // Send each video horizontally (sequentially)
+    for (const video of results) {
+      const caption = 
+        `🎬 *${video.title}*\n` +
+        `👤 @${video.author?.username || 'unknown'}\n` +
+        `❤️ ${video.stats?.like || 0} likes | ⏱️ ${video.duration || 0}s\n` +
+        `🔗 https://www.tiktok.com/@${video.author?.username}/video/${video.video_id}`;
 
-    resultText += `\n*Total Results:* ${results.length}`;
-
-    await conn.sendMessage(from, { 
-      text: resultText 
-    }, { quoted: m });
+      if (video.media?.no_watermark) {
+        await conn.sendMessage(from, {
+          video: { url: video.media.no_watermark },
+          caption: caption
+        }, { quoted: m });
+      } else {
+        await reply(`❌ Couldn't retrieve video: ${video.title}\n${caption}`);
+      }
+      
+      // Small delay between sends
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 
     await store.react('✅');
   } catch (error) {
