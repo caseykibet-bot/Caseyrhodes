@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-//          Black-Tappy  
+//          𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟
 //---------------------------------------------------------------------------
 //  ⚠️ DO NOT MODIFY THIS FILE ⚠️  
 //---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ const path = require('path');
 // Helper function to send responses with newsletter info
 async function sendResponse(conn, from, replyText, quotedMsg) {
     await conn.sendMessage(from, { 
-        image: { url: `https://i.ibb.co/wN6Gw0ZF/lordcasey.jpg` },  
+        image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
         caption: replyText,
         contextInfo: {
             mentionedJid: [quotedMsg.sender],
@@ -22,7 +22,7 @@ async function sendResponse(conn, from, replyText, quotedMsg) {
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363302677217436@newsletter',
-                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
+                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
                 serverMessageId: 143
             }
         }
@@ -135,7 +135,7 @@ async (conn, mek, m, { from, args, isCreator, reply }) => {
 });
 
 cmd({
-    pattern: "mention-reply",
+    pattern: "mentionreply",
     alias: ["menetionreply", "mee"],
     description: "Set bot status to always online or offline.",
     category: "settings",
@@ -203,7 +203,7 @@ async (conn, mek, m, { from, args, isCreator, reply }) => {
 });
 
 cmd({
-    pattern: "auto-seen",
+    pattern: "autoseen",
     alias: ["autostatusview"],
     desc: "Enable or disable auto-viewing of statuses",
     category: "settings",
