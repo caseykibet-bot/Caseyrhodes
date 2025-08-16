@@ -1,53 +1,89 @@
-const { cmd } = require("../command");
-const yts = require('yt-search');
+const config = require('../config');
+const { cmd, commands } = require('../command');
+const ytdl = require('ytdl-core');
+const fs = require('fs-extra');
+const { getBuffer, getRandom, isUrl, runtime, sleep, fetchJson } = require('../lib/functions');
 
-cmd({
-  'pattern': "yts",
-  'alias': ['ytsearch'],
-  'use': ".yts query",
-  'react': '🎶',
-  'desc': "Search and get details from YouTube",
-  'category': 'search',
-  'filename': __filename
-}, async (message, client, match) => {
-  try {
-    if (!match) return await message.reply("*Please provide a search query!*\nExample: .yts Never Gonna Give You Up");
-
-    // Search YouTube
-    const searchResults = await yts(match);
-    if (!searchResults.all || searchResults.all.length === 0) {
-      return await message.reply("*No results found for your query!*");
-    }
-
-    // Format results
-    let resultText = "🎵 *YouTube Search Results* 🎵\n\n";
-    searchResults.all.slice(0, 5).forEach((video, index) => {
-      resultText += `*${index + 1}. ${video.title}*\n`;
-      resultText += `🔗 ${video.url}\n`;
-      resultText += `⏱️ ${video.timestamp || 'N/A'}\n`;
-      resultText += `👀 ${video.views || 'N/A'} views\n\n`;
-    });
-
-    // Add newsletter reference
-    resultText += "\n📩 *Stay updated with our newsletter: 𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟*";
-
-    // Send message with newsletter context
-    await client.sendMessage(message.chat, {
-      text: resultText,
-      contextInfo: {
-        mentionedJid: [message.sender],
-        forwardingScore: 999,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363302677217436@newsletter',
-          newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
-          serverMessageId: 143
+// Contact message for verified context
+const verifiedContact = {
+    key: {
+        fromMe: false,
+        participant: `0@s.whatsapp.net`,
+        remoteJid: "status@broadcast"
+    },
+    message: {
+        contactMessage: {
+            displayName: "CASEYRHODES VERIFIED ✅",
+            vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=254112192119:+254112192119\nEND:VCARD"
         }
-      }
-    }, { quoted: message });
+    }
+};
 
-  } catch (error) {
-    console.error('YouTube search error:', error);
-    await message.reply("*An error occurred while searching YouTube. Please try again later.*");
-  }
+// YouTube search command
+cmd({
+    pattern: 'yts',
+    alias: ['ytsearch'],
+    use: '<search query>',
+    react: '🔎',
+    desc: 'Search for YouTube videos',
+    category: 'search',
+    filename: __filename
+}, async (m, sock, msg, { from, l, quoted, body, isCmd, args, q, isGroup, sender, reply }) => {
+    try {
+        if (!q) {
+            return await m.reply(msg.chat, {
+                text: 'Please provide a search query. Example: .yts hello world',
+                contextInfo: {
+                    mentionedJid: [msg.sender],
+                    forwardingScore: 999,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363302677217436@newsletters',
+                        newsletterName: 'CASEYRHODES TECH',
+                        serverMessageId: 143
+                    }
+                }
+            }, { quoted: verifiedContact });
+        }
+
+        // Perform YouTube search
+        let yts;
+        try {
+            yts = require('yt-search');
+            var searchResults = await yts(q);
+        } catch (err) {
+            l.error(err);
+            return await m.reply(from, {
+                text: '*Error!!* Failed to perform search. Please try again later.'
+            }, { quoted: msg });
+        }
+
+        // Format search results
+        let resultText = '';
+        searchResults.videos.forEach(video => {
+            resultText += `*${video.title}*\n`;
+            resultText += `⏱️ Duration: ${video.duration}\n`;
+            resultText += `👀 Views: ${video.views}\n`;
+            resultText += `🔗 URL: ${video.url}\n\n`;
+        });
+
+        // Send results with newsletter context
+        await m.reply(from, {
+            text: resultText,
+            contextInfo: {
+                mentionedJid: [msg.sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletters',
+                    newsletterName: 'CASEYRHODES TECH',
+                    serverMessageId: 143
+                }
+            }
+        }, { quoted: verifiedContact });
+
+    } catch (error) {
+        l.error(error);
+        reply('*Error!!* Something went wrong. Please try again later.');
+    }
 });
