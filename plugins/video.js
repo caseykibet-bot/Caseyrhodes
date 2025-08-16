@@ -27,12 +27,12 @@ cmd({
     const video = searchResults.results[0];
     const videoUrl = video.url;
     
-    // List of API endpoints for video download
+    // List of API endpoints for video download (without URL encoding)
     const apis = [
-      `https://xploader-api.vercel.app/ytmp4?url=${encodeURIComponent(videoUrl)}`,
-      `https://apis.davidcyriltech.my.id/youtube/mp4?url=${encodeURIComponent(videoUrl)}`,
-      `https://api.ryzendesu.vip/api/downloader/ytmp4?url=${encodeURIComponent(videoUrl)}`,
-      `https://api.dreaded.site/api/ytdl/video?url=${encodeURIComponent(videoUrl)}`
+      `https://xploader-api.vercel.app/ytmp3?url=${videoUrl}`,
+      `https://apis.davidcyriltech.my.id/youtube/mp3?url=${videoUrl}`,
+      `https://api.ryzendesu.vip/api/downloader/ytmp4?url=${videoUrl}`,
+      `https://api.dreaded.site/api/ytdl/audio?url=${videoUrl}`
     ];
 
     let downloadUrl;
