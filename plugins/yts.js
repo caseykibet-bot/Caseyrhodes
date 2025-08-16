@@ -28,10 +28,12 @@ cmd({
       resultText += `👀 ${video.views || 'N/A'} views\n\n`;
     });
 
-    // Send message with image and newsletter info
+    // Add newsletter reference
+    resultText += "\n📩 *Stay updated with our newsletter: 𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟*";
+
+    // Send message with newsletter context
     await client.sendMessage(message.chat, {
-      image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
-      caption: resultText + "\n📩 *Subscribe to our newsletter for updates!*",
+      text: resultText,
       contextInfo: {
         mentionedJid: [message.sender],
         forwardingScore: 999,
