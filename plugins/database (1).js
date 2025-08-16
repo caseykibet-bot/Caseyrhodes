@@ -11,6 +11,24 @@ const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, sleep, fetchJson
 const { writeFileSync } = require('fs');
 const path = require('path');
 
+// Helper function to send responses with newsletter info
+async function sendResponse(conn, from, replyText, quotedMsg) {
+    await conn.sendMessage(from, { 
+        image: { url: `https://i.ibb.co/wN6Gw0ZF/lordcasey.jpg` },  
+        caption: replyText,
+        contextInfo: {
+            mentionedJid: [quotedMsg.sender],
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363302677217436@newsletter',
+                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
+                serverMessageId: 143
+            }
+        }
+    }, { quoted: quotedMsg });
+}
+
 cmd({
     pattern: "adminevents",
     alias: ["adminevents"],
@@ -19,17 +37,17 @@ cmd({
     filename: __filename
 },
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     const status = args[0]?.toLowerCase();
     if (status === "on") {
         config.ADMIN_EVENTS = "true";
-        return reply("✅ Admin event notifications are now enabled.");
+        return await sendResponse(conn, from, "✅ Admin event notifications are now enabled.", m);
     } else if (status === "off") {
         config.ADMIN_EVENTS = "false";
-        return reply("❌ Admin event notifications are now disabled.");
+        return await sendResponse(conn, from, "❌ Admin event notifications are now disabled.", m);
     } else {
-        return reply(`Example: .admin-events on`);
+        return await sendResponse(conn, from, `Example: .admin-events on`, m);
     }
 });
 
@@ -41,17 +59,17 @@ cmd({
     filename: __filename
 },
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     const status = args[0]?.toLowerCase();
     if (status === "on") {
         config.WELCOME = "true";
-        return reply("✅ Welcome messages are now enabled.");
+        return await sendResponse(conn, from, "✅ Welcome messages are now enabled.", m);
     } else if (status === "off") {
         config.WELCOME = "false";
-        return reply("❌ Welcome messages are now disabled.");
+        return await sendResponse(conn, from, "❌ Welcome messages are now disabled.", m);
     } else {
-        return reply(`Example: .welcome on`);
+        return await sendResponse(conn, from, `Example: .welcome on`, m);
     }
 });
 
@@ -63,15 +81,13 @@ cmd({
     category: "settings",
     filename: __filename,
 }, async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 Only the owner can use this command!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 Only the owner can use this command!*", m);
 
-    const newPrefix = args[0]; // Get the new prefix from the command arguments
-    if (!newPrefix) return reply("❌ Please provide a new prefix. Example: `.setprefix !`");
+    const newPrefix = args[0];
+    if (!newPrefix) return await sendResponse(conn, from, "❌ Please provide a new prefix. Example: `.setprefix !`", m);
 
-    // Update the prefix in memory
     config.PREFIX = newPrefix;
-
-    return reply(`✅ Prefix successfully changed to *${newPrefix}*`);
+    return await sendResponse(conn, from, `✅ Prefix successfully changed to *${newPrefix}*`, m);
 });
 
 cmd({
@@ -82,23 +98,21 @@ cmd({
     category: "settings",
     filename: __filename,
 }, async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 Only the owner can use this command!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 Only the owner can use this command!*", m);
 
-    // Si aucun argument n'est fourni, afficher le mode actuel et l'usage
     if (!args[0]) {
-        return reply(`📌 Current mode: *${config.MODE}*\n\nUsage: .mode private OR .mode public`);
+        return await sendResponse(conn, from, `📌 Current mode: *${config.MODE}*\n\nUsage: .mode private OR .mode public`, m);
     }
 
     const modeArg = args[0].toLowerCase();
-
     if (modeArg === "private") {
         config.MODE = "private";
-        return reply("✅ Bot mode is now set to *PRIVATE*.");
+        return await sendResponse(conn, from, "✅ Bot mode is now set to *PRIVATE*.", m);
     } else if (modeArg === "public") {
         config.MODE = "public";
-        return reply("✅ Bot mode is now set to *PUBLIC*.");
+        return await sendResponse(conn, from, "✅ Bot mode is now set to *PUBLIC*.", m);
     } else {
-        return reply("❌ Invalid mode. Please use `.mode private` or `.mode public`.");
+        return await sendResponse(conn, from, "❌ Invalid mode. Please use `.mode private` or `.mode public`.", m);
     }
 });
 
@@ -109,19 +123,16 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     const status = args[0]?.toLowerCase();
     if (!["on", "off"].includes(status)) {
-        return reply("*🫟 ᴇxᴀᴍᴘʟᴇ:  .ᴀᴜᴛᴏ-ᴛʏᴘɪɴɢ ᴏɴ*");
+        return await sendResponse(conn, from, "*🫟 ᴇxᴀᴍᴘʟᴇ:  .ᴀᴜᴛᴏ-ᴛʏᴘɪɴɢ ᴏɴ*", m);
     }
 
     config.AUTO_TYPING = status === "on" ? "true" : "false";
-    return reply(`Auto typing has been turned ${status}.`);
+    return await sendResponse(conn, from, `Auto typing has been turned ${status}.`, m);
 });
-
-//mention reply 
-
 
 cmd({
     pattern: "mention-reply",
@@ -131,25 +142,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.MENTION_REPLY = "true";
-        return reply("Mention Reply feature is now enabled.");
+        return await sendResponse(conn, from, "Mention Reply feature is now enabled.", m);
     } else if (args[0] === "off") {
         config.MENTION_REPLY = "false";
-        return reply("Mention Reply feature is now disabled.");
+        return await sendResponse(conn, from, "Mention Reply feature is now disabled.", m);
     } else {
-        return reply(`_example:  .mee on_`);
+        return await sendResponse(conn, from, `_example:  .mee on_`, m);
     }
 });
 
-
-//--------------------------------------------
-// ALWAYS_ONLINE COMMANDS
-//--------------------------------------------
 cmd({
     pattern: "alwaysonline",
     alias: ["alwaysonline"],
@@ -158,23 +163,20 @@ cmd({
     filename: __filename
 },
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     const status = args[0]?.toLowerCase();
     if (status === "on") {
         config.ALWAYS_ONLINE = "true";
-        await reply("*✅ always online mode is now enabled.*");
+        await sendResponse(conn, from, "*✅ always online mode is now enabled.*", m);
     } else if (status === "off") {
         config.ALWAYS_ONLINE = "false";
-        await reply("*❌ always online mode is now disabled.*");
+        await sendResponse(conn, from, "*❌ always online mode is now disabled.*", m);
     } else {
-        await reply(`*🛠️ ᴇxᴀᴍᴘʟᴇ: .ᴀʟᴡᴀʏs-ᴏɴʟɪɴᴇ ᴏɴ*`);
+        await sendResponse(conn, from, `*🛠️ ᴇxᴀᴍᴘʟᴇ: .ᴀʟᴡᴀʏs-ᴏɴʟɪɴᴇ ᴏɴ*`, m);
     }
 });
 
-//--------------------------------------------
-//  AUTO_RECORDING COMMANDS
-//--------------------------------------------
 cmd({
     pattern: "autorecording",
     alias: ["autorecoding"],
@@ -183,25 +185,23 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     const status = args[0]?.toLowerCase();
     if (!["on", "off"].includes(status)) {
-        return reply("*🫟 ᴇxᴀᴍᴘʟᴇ: .ᴀᴜᴛᴏ-ʀᴇᴄᴏʀᴅɪɴɢ ᴏɴ*");
+        return await sendResponse(conn, from, "*🫟 ᴇxᴀᴍᴘʟᴇ: .ᴀᴜᴛᴏ-ʀᴇᴄᴏʀᴅɪɴɢ ᴏɴ*", m);
     }
 
     config.AUTO_RECORDING = status === "on" ? "true" : "false";
     if (status === "on") {
         await conn.sendPresenceUpdate("recording", from);
-        return reply("Auto recording is now enabled. Bot is recording...");
+        return await sendResponse(conn, from, "Auto recording is now enabled. Bot is recording...", m);
     } else {
         await conn.sendPresenceUpdate("available", from);
-        return reply("Auto recording has been disabled.");
+        return await sendResponse(conn, from, "Auto recording has been disabled.", m);
     }
 });
-//--------------------------------------------
-// AUTO_VIEW_STATUS COMMANDS
-//--------------------------------------------
+
 cmd({
     pattern: "auto-seen",
     alias: ["autostatusview"],
@@ -210,23 +210,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Default value for AUTO_VIEW_STATUS is "false"
     if (args[0] === "on") {
         config.AUTO_STATUS_SEEN = "true";
-        return reply("Auto-viewing of statuses is now enabled.");
+        return await sendResponse(conn, from, "Auto-viewing of statuses is now enabled.", m);
     } else if (args[0] === "off") {
         config.AUTO_STATUS_SEEN = "false";
-        return reply("Auto-viewing of statuses is now disabled.");
+        return await sendResponse(conn, from, "Auto-viewing of statuses is now disabled.", m);
     } else {
-        return reply(`*🫟 ᴇxᴀᴍᴘʟᴇ:  .ᴀᴜᴛᴏ-sᴇᴇɴ ᴏɴ*`);
+        return await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ:  .ᴀᴜᴛᴏ-sᴇᴇɴ ᴏɴ*`, m);
     }
 }); 
-//--------------------------------------------
-// AUTO_LIKE_STATUS COMMANDS
-//--------------------------------------------
+
 cmd({
     pattern: "statusreact",
     alias: ["autostatusreact"],
@@ -235,24 +231,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Default value for AUTO_LIKE_STATUS is "false"
     if (args[0] === "on") {
         config.AUTO_STATUS_REACT = "true";
-        return reply("Auto-liking of statuses is now enabled.");
+        return await sendResponse(conn, from, "Auto-liking of statuses is now enabled.", m);
     } else if (args[0] === "off") {
         config.AUTO_STATUS_REACT = "false";
-        return reply("Auto-liking of statuses is now disabled.");
+        return await sendResponse(conn, from, "Auto-liking of statuses is now disabled.", m);
     } else {
-        return reply(`Example: . status-react on`);
+        return await sendResponse(conn, from, `Example: . status-react on`, m);
     }
 });
 
-//--------------------------------------------
-//  READ-MESSAGE COMMANDS
-//--------------------------------------------
 cmd({
     pattern: "readmessage",
     alias: ["autoread"],
@@ -261,22 +252,18 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.READ_MESSAGE = "true";
-        return reply("readmessage feature is now enabled.");
+        return await sendResponse(conn, from, "readmessage feature is now enabled.", m);
     } else if (args[0] === "off") {
         config.READ_MESSAGE = "false";
-        return reply("readmessage feature is now disabled.");
+        return await sendResponse(conn, from, "readmessage feature is now disabled.", m);
     } else {
-        return reply(`_example:  .readmessage on_`);
+        return await sendResponse(conn, from, `_example:  .readmessage on_`, m);
     }
 });
-
-// AUTO_VOICE
 
 cmd({
     pattern: "autovoice",
@@ -286,25 +273,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.AUTO_VOICE = "true";
-        return reply("AUTO_VOICE feature is now enabled.");
+        return await sendResponse(conn, from, "AUTO_VOICE feature is now enabled.", m);
     } else if (args[0] === "off") {
         config.AUTO_VOICE = "false";
-        return reply("AUTO_VOICE feature is now disabled.");
+        return await sendResponse(conn, from, "AUTO_VOICE feature is now disabled.", m);
     } else {
-        return reply(`_example:  .autovoice on_`);
+        return await sendResponse(conn, from, `_example:  .autovoice on_`, m);
     }
 });
 
-
-//--------------------------------------------
-//  ANI-BAD COMMANDS
-//--------------------------------------------
 cmd({
     pattern: "antibad",
     alias: ["antibadword"],
@@ -313,23 +294,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ �ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.ANTI_BAD_WORD = "true";
-        return reply("*anti bad word is now enabled.*");
+        return await sendResponse(conn, from, "*anti bad word is now enabled.*", m);
     } else if (args[0] === "off") {
         config.ANTI_BAD_WORD = "false";
-        return reply("*anti bad word feature is now disabled*");
+        return await sendResponse(conn, from, "*anti bad word feature is now disabled*", m);
     } else {
-        return reply(`_example:  .antibad on_`);
+        return await sendResponse(conn, from, `_example:  .antibad on_`, m);
     }
 });
-//--------------------------------------------
-//  AUTO-STICKER COMMANDS
-//--------------------------------------------
+
 cmd({
     pattern: "autosticker",
     alias: ["autosticker"],
@@ -338,23 +315,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.AUTO_STICKER = "true";
-        return reply("auto-sticker feature is now enabled.");
+        return await sendResponse(conn, from, "auto-sticker feature is now enabled.", m);
     } else if (args[0] === "off") {
         config.AUTO_STICKER = "false";
-        return reply("auto-sticker feature is now disabled.");
+        return await sendResponse(conn, from, "auto-sticker feature is now disabled.", m);
     } else {
-        return reply(`_example:  .auto-sticker on_`);
+        return await sendResponse(conn, from, `_example:  .auto-sticker on_`, m);
     }
 });
-//--------------------------------------------
-//  AUTO-REPLY COMMANDS
-//--------------------------------------------
+
 cmd({
     pattern: "autoreply",
     alias: ["autoreply"],
@@ -363,24 +336,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.AUTO_REPLY = "true";
-        return reply("*auto-reply  is now enabled.*");
+        return await sendResponse(conn, from, "*auto-reply  is now enabled.*", m);
     } else if (args[0] === "off") {
         config.AUTO_REPLY = "false";
-        return reply("auto-reply feature is now disabled.");
+        return await sendResponse(conn, from, "auto-reply feature is now disabled.", m);
     } else {
-        return reply(`*🫟 ᴇxᴀᴍᴘʟᴇ: . ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴏɴ*`);
+        return await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ: . ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴏɴ*`, m);
     }
 });
 
-//--------------------------------------------
-//   AUTO-REACT COMMANDS
-//--------------------------------------------
 cmd({
     pattern: "autoreact",
     alias: ["autoreact"],
@@ -389,23 +357,19 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.AUTO_REACT = "true";
-        await reply("*autoreact feature is now enabled.*");
+        await sendResponse(conn, from, "*autoreact feature is now enabled.*", m);
     } else if (args[0] === "off") {
         config.AUTO_REACT = "false";
-        await reply("autoreact feature is now disabled.");
+        await sendResponse(conn, from, "autoreact feature is now disabled.", m);
     } else {
-        await reply(`*🫟 ᴇxᴀᴍᴘʟᴇ: .ᴀᴜᴛᴏ-ʀᴇᴀᴄᴛ ᴏɴ*`);
+        await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ: .ᴀᴜᴛᴏ-ʀᴇᴀᴄᴛ ᴏɴ*`, m);
     }
 });
-//--------------------------------------------
-//  STATUS-REPLY COMMANDS
-//--------------------------------------------
+
 cmd({
     pattern: "statusreply",
     alias: ["autostatusreply"],
@@ -414,24 +378,18 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return reply("*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*");
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
-    const status = args[0]?.toLowerCase();
-    // Check the argument for enabling or disabling the anticall feature
     if (args[0] === "on") {
         config.AUTO_STATUS_REPLY = "true";
-        return reply("status-reply feature is now enabled.");
+        return await sendResponse(conn, from, "status-reply feature is now enabled.", m);
     } else if (args[0] === "off") {
         config.AUTO_STATUS_REPLY = "false";
-        return reply("status-reply feature is now disabled.");
+        return await sendResponse(conn, from, "status-reply feature is now disabled.", m);
     } else {
-        return reply(`*🫟 ᴇxᴀᴍᴘʟᴇ:  .sᴛᴀᴛᴜs-ʀᴇᴘʟʏ ᴏɴ*`);
+        return await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ:  .sᴛᴀᴛᴜs-ʀᴇᴘʟʏ ᴏɴ*`, m);
     }
 });
-
-//--------------------------------------------
-//  ANTILINK COMMANDS
-//--------------------------------------------
 
 cmd({
   pattern: "antilink",
@@ -440,23 +398,23 @@ cmd({
   category: "group",
   react: "🚫",
   filename: __filename
-}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, reply }) => {
+}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, from, reply }) => {
   try {
-    if (!isGroup) return reply('This command can only be used in a group.');
-    if (!isBotAdmins) return reply('Bot must be an admin to use this command.');
-    if (!isAdmins) return reply('You must be an admin to use this command.');
+    if (!isGroup) return await sendResponse(conn, from, 'This command can only be used in a group.', m);
+    if (!isBotAdmins) return await sendResponse(conn, from, 'Bot must be an admin to use this command.', m);
+    if (!isAdmins) return await sendResponse(conn, from, 'You must be an admin to use this command.', m);
 
     if (args[0] === "on") {
       config.ANTI_LINK = "true";
-      reply("✅ ANTI_LINK has been enabled.");
+      await sendResponse(conn, from, "✅ ANTI_LINK has been enabled.", m);
     } else if (args[0] === "off") {
       config.ANTI_LINK = "false";
-      reply("❌ ANTI_LINK has been disabled.");
+      await sendResponse(conn, from, "❌ ANTI_LINK has been disabled.", m);
     } else {
-      reply("Usage: *.antilink on/off*");
+      await sendResponse(conn, from, "Usage: *.antilink on/off*", m);
     }
   } catch (e) {
-    reply(`Error: ${e.message}`);
+    await sendResponse(conn, from, `Error: ${e.message}`, m);
   }
 });
 
@@ -467,26 +425,25 @@ cmd({
   category: "group",
   react: "⚠️",
   filename: __filename
-}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, reply }) => {
+}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, from, reply }) => {
   try {
-    if (!isGroup) return reply('This command can only be used in a group.');
-    if (!isBotAdmins) return reply('Bot must be an admin to use this command.');
-    if (!isAdmins) return reply('You must be an admin to use this command.');
+    if (!isGroup) return await sendResponse(conn, from, 'This command can only be used in a group.', m);
+    if (!isBotAdmins) return await sendResponse(conn, from, 'Bot must be an admin to use this command.', m);
+    if (!isAdmins) return await sendResponse(conn, from, 'You must be an admin to use this command.', m);
 
     if (args[0] === "on") {
       config.ANTI_LINK_KICK = "true";
-      reply("✅ ANTI_LINK_KICK has been enabled.");
+      await sendResponse(conn, from, "✅ ANTI_LINK_KICK has been enabled.", m);
     } else if (args[0] === "off") {
       config.ANTI_LINK_KICK = "false";
-      reply("❌ ANTI_LINK_KICK has been disabled.");
+      await sendResponse(conn, from, "❌ ANTI_LINK_KICK has been disabled.", m);
     } else {
-      reply("Usage: *.antilinkkick on/off*");
+      await sendResponse(conn, from, "Usage: *.antilinkkick on/off*", m);
     }
   } catch (e) {
-    reply(`Error: ${e.message}`);
+    await sendResponse(conn, from, `Error: ${e.message}`, m);
   }
 });
-
 
 cmd({
   pattern: "deletelink",
@@ -495,22 +452,22 @@ cmd({
   category: "group",
   react: "❌",
   filename: __filename
-}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, reply }) => {
+}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, from, reply }) => {
   try {
-    if (!isGroup) return reply('This command can only be used in a group.');
-    if (!isBotAdmins) return reply('Bot must be an admin to use this command.');
-    if (!isAdmins) return reply('You must be an admin to use this command.');
+    if (!isGroup) return await sendResponse(conn, from, 'This command can only be used in a group.', m);
+    if (!isBotAdmins) return await sendResponse(conn, from, 'Bot must be an admin to use this command.', m);
+    if (!isAdmins) return await sendResponse(conn, from, 'You must be an admin to use this command.', m);
 
     if (args[0] === "on") {
       config.DELETE_LINKS = "true";
-      reply("✅ DELETE_LINKS is now enabled.");
+      await sendResponse(conn, from, "✅ DELETE_LINKS is now enabled.", m);
     } else if (args[0] === "off") {
       config.DELETE_LINKS = "false";
-      reply("❌ DELETE_LINKS is now disabled.");
+      await sendResponse(conn, from, "❌ DELETE_LINKS is now disabled.", m);
     } else {
-      reply("Usage: *.deletelink on/off*");
+      await sendResponse(conn, from, "Usage: *.deletelink on/off*", m);
     }
   } catch (e) {
-    reply(`Error: ${e.message}`);
+    await sendResponse(conn, from, `Error: ${e.message}`, m);
   }
 });
