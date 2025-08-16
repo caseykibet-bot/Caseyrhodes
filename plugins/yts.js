@@ -1,80 +1,39 @@
-const {
-  cmd,
-  commands
-} = require("../command");
-const {
-  getBuffer,
-  getGroupAdmins,
-  getRandom,
-  h2k,
-  isUrl,
-  Json,
-  runtime,
-  sleep,
-  fetchJson
-} = require('../lib/functions');
+const { cmd } = require("../command");
+const yts = require('yt-search');
 
 cmd({
   'pattern': "yts",
   'alias': ['ytsearch'],
-  'use': ".yts jawad bahi",
+  'use': ".yts query",
   'react': '🎶',
-  'desc': "Search and get details from youtube.",
+  'desc': "Search and get details from YouTube",
   'category': 'search',
   'filename': __filename
-}, async (m, sock, _, {
-  from,
-  l,
-  quoted,
-  body,
-  isCmd,
-  umarmd,
-  args,
-  q,
-  isGroup,
-  sender,
-  senderNumber,
-  botNumber2,
-  botNumber,
-  pushname,
-  isMe,
-  isOwner,
-  groupMetadata,
-  groupName,
-  participants,
-  groupAdmins,
-  isBotAdmins,
-  isAdmins,
-  reply
-}) => {
+}, async (message, client, match) => {
   try {
-    if (!q) {
-      return reply("*Please give me words to search*");
+    if (!match) return await message.reply("*Please provide a search query!*\nExample: .yts Never Gonna Give You Up");
+
+    // Search YouTube
+    const searchResults = await yts(match);
+    if (!searchResults.all || searchResults.all.length === 0) {
+      return await message.reply("*No results found for your query!*");
     }
-    
-    try {
-      let yts = require('yt-search');
-      var searchResults = await yts(q);
-    } catch (err) {
-      l(err);
-      return await m.sendMessage(from, {
-        'text': "*Error occurred while searching!*"
-      }, {
-        'quoted': sock
-      });
-    }
-    
-    var resultText = '';
-    searchResults.all.map(item => {
-      resultText += `🎵 *${item.title}*\n🔗 ${item.url}\n\n`;
+
+    // Format results
+    let resultText = "🎵 *YouTube Search Results* 🎵\n\n";
+    searchResults.all.slice(0, 5).forEach((video, index) => {
+      resultText += `*${index + 1}. ${video.title}*\n`;
+      resultText += `🔗 ${video.url}\n`;
+      resultText += `⏱️ ${video.timestamp || 'N/A'}\n`;
+      resultText += `👀 ${video.views || 'N/A'} views\n\n`;
     });
 
-    // Send the YouTube search results along with newsletter info
-    await sock.sendMessage(from, { 
-      image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
-      caption: `*YouTube Search Results*\n\n${resultText}\n\n_🔔 𝐂𝐚𝐬𝐞𝐲𝐫𝐡𝐨𝐝𝐞𝐬 𝐭𝐞𝐜𝐡_`,
+    // Send message with image and newsletter info
+    await client.sendMessage(message.chat, {
+      image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
+      caption: resultText + "\n📩 *Subscribe to our newsletter for updates!*",
       contextInfo: {
-        mentionedJid: [quoted?.sender || sender],
+        mentionedJid: [message.sender],
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
@@ -83,10 +42,10 @@ cmd({
           serverMessageId: 143
         }
       }
-    }, { quoted: sock });
+    }, { quoted: message });
 
   } catch (error) {
-    l(error);
-    reply("*An error occurred while processing your request*");
+    console.error('YouTube search error:', error);
+    await message.reply("*An error occurred while searching YouTube. Please try again later.*");
   }
 });
