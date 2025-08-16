@@ -140,9 +140,7 @@ Meet CASEYRHODES-XMD WhatsApp Bot
 *Thanks for using CASEYRHODES MD* 
 *Join WhatsApp Channel :- ⤵️*
 > https://whatsapp.com/channel/0029VakUEfb4o7qVdkwPk83E
-
-ʏᴏᴜʀ 𝖯ʀᴇғɪx : [${config.PREFIX}]
-
+*ʏᴏᴜʀ ᴘʀᴇғɪx : _${config.PREFIX}*
 *Dont forget to give star to repo ⬇️*🌟
 > https://github.com/caseyweb/CASEYRHODES-XMD
 
