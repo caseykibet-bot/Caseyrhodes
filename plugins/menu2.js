@@ -104,17 +104,18 @@ fσr mσrє ínfσ tчpє *.ownєr*
                 serverMessageId: 143
             }
         };
-
+        
         const audioUrls = [
-            'https://files.catbox.moe/m0xfku.mp3',
-            'https://files.catbox.moe/8stziq.mp3',
-            'https://files.catbox.moe/3au05j.m4a',
+            'https://files.catbox.moe/60ta0f.mp3',
+            'https://files.catbox.moe/43ddir.m4a',
+            'https://files.catbox.moe/hgi1ay.mp3',
             'https://files.catbox.moe/dcxfi1.mp3',
             'https://files.catbox.moe/ebkzu5.mp3',
             'https://files.catbox.moe/xsa1ig.mp3',
-            'https://files.catbox.moe/iq4ouj.mp3',
-            'https://files.catbox.moe/wtux78.mp3'
+            'https://files.catbox.moe/e3m7nj.mp3',
+            'https://files.catbox.moe/zn5rcs.mp3'
         ];
+
         const randomAudioUrl = audioUrls[Math.floor(Math.random() * audioUrls.length)];
 
         // Send image first
