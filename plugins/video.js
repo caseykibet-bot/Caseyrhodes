@@ -8,10 +8,10 @@ const {
 cmd({
   'pattern': "videomp4",
   'alias': ["mp4v", "videomp4"],
-  'react': '🎬',  // Changed from music note to video camera emoji
+  'react': '🎬',
   'desc': "Download YouTube video",
   'category': "main",
-  'use': ".video <query>",  // Changed from .song to .video
+  'use': ".video <query>",
   'filename': __filename
 }, async (message, match, client, { from, sender, reply, q }) => {
   try {
@@ -25,18 +25,46 @@ cmd({
     }
     
     const video = searchResults.results[0];
-    const apiUrl = "https://apis.davidcyriltech.my.id/youtube/mp4?url=" + encodeURIComponent(video.url);  // Changed from mp3 to mp4
+    const videoUrl = video.url;
     
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    
-    if (!data?.result?.downloadUrl) {
-      return reply("Download failed. Try again later.");
+    // List of API endpoints for video download
+    const apis = [
+      `https://xploader-api.vercel.app/ytmp4?url=${encodeURIComponent(videoUrl)}`,
+      `https://apis.davidcyriltech.my.id/youtube/mp4?url=${encodeURIComponent(videoUrl)}`,
+      `https://api.ryzendesu.vip/api/downloader/ytmp4?url=${encodeURIComponent(videoUrl)}`,
+      `https://api.dreaded.site/api/ytdl/video?url=${encodeURIComponent(videoUrl)}`
+    ];
+
+    let downloadUrl;
+    let lastError;
+
+    // Try each API endpoint until one succeeds
+    for (const api of apis) {
+      try {
+        const response = await fetch(api);
+        const data = await response.json();
+        
+        if (data?.result?.downloadUrl || data?.downloadUrl || data?.url) {
+          downloadUrl = data.result?.downloadUrl || data.downloadUrl || data.url;
+          break;
+        }
+      } catch (error) {
+        lastError = error;
+        console.error(`API ${api} failed:`, error);
+        continue;
+      }
+    }
+
+    if (!downloadUrl) {
+      console.error('All APIs failed', lastError);
+      return reply("Download failed. All servers are busy, please try again later.");
     }
     
     let caption = `\n╭━━━━━━━━━━━━━━━━⊷
 ┊ ┏────────────⊷
 ┊ ┊ 🎬 Title: *${video.title}*
+┊ ┊ ⏱️ Duration: ${video.duration || 'N/A'}
+┊ ┊ 👁️ Views: ${video.views || 'N/A'}
 ┊ ┗────────────⊷
 ╰┬━━━━━━━━━━━━⊷⳹
 ┌┤ *📥(Automatic video download)*
@@ -56,7 +84,7 @@ cmd({
     // Send the video
     await message.sendMessage(from, {
       'video': {
-        'url': data.result.downloadUrl
+        'url': downloadUrl
       },
       'mimetype': "video/mp4",
       'caption': video.title
