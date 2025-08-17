@@ -607,7 +607,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
             },
             '15': {
                 title: "CODE MENU",
-                content: `*╭───❍CODR MENU❍*──
+                content: `*╭───❍CODE MENU❍*──
 ‎*├⬡ .ɢɪᴛsᴛᴀʟᴋ*
 ‎*├⬡ .ᴛᴇʀᴍɪɴᴀᴛᴇ*
 ‎*├⬡ .ᴜɴʙᴀsᴇ
