@@ -71,6 +71,8 @@ cmd({
 ‎*├⬡ 11.sᴇᴛᴛɪɴɢs ᴍᴇɴᴜ*
 ‎*├⬡ 12.ᴍ-ᴘᴇsᴀ ᴍᴇɴᴜ*
 ‎*├⬡ 13.ʟᴏɢᴏ ᴍᴇɴᴜ*
+‎*├⬡ 14.ʙɪʙʟᴇ ʟɪsᴛ*
+‎*├⬡ 15.ᴄᴏᴅᴇ ᴍᴇɴᴜ*
 ‎*╰────────────────┈⊷*
 _*ʀᴇᴘʟʏ ᴡɪᴛʜ ᴀɴʏ ɴᴜᴍʙᴇʀ ᴀʙᴏᴠᴇ ᴛᴏ ᴀᴄᴄᴇss ᴍᴇɴᴜ ᴏᴘᴛɪᴏɴ*_
 
@@ -309,7 +311,6 @@ fσr mσrє ínfσ tчpє *.ownєr*
 ┃★│ • blackbox [query]
 ┃★│ • luma [query]
 ┃★│ • dj [query]
-┃★│ • khan [query]
 ┃★╰──────────────
 ╰━━━━━━━━━━━━━━━┈⊷
 > ${config.DESCRIPTION}`,
@@ -487,7 +488,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
 ‎*├⬡ .ᴀɪʀᴛᴇʟᴍᴏɴᴇʏ*
 ‎*├⬡ .ᴍᴘᴇsᴀ
 ‎*╰───────────────❍
- ${config.DESCRIPTION}`,
+> ${config.DESCRIPTION}`,
                 image: true
             },
             '13': {
@@ -525,11 +526,95 @@ fσr mσrє ínfσ tчpє *.ownєr*
 ‎*├⬡ .ᴛʏᴘᴏɢʀᴀᴘʜʏ*
 ‎*├⬡ .ʙɪʀᴛʜᴅᴀʏ*
 ‎*╰───────────────❍*
- ${config.DESCRIPTION}`,
-                image: true
-            }
-        };
+> ${config.DESCRIPTION}`,
+                  image: true
+            },
+            '14': {
+                title: "BIBLE LIST",
+                content:`
+📜 *Old Testament*:
+1. Genesis
+2. Exodus
+3. Leviticus
+4. Numbers
+5. Deuteronomy
+6. Joshua
+7. Judges
+8. Ruth
+9. 1 Samuel
+10. 2 Samuel
+11. 1 Kings
+12. 2 Kings
+13. 1 Chronicles
+14. 2 Chronicles
+15. Ezra
+16. Nehemiah
+17. Esther
+18. Job
+19. Psalms
+20. Proverbs
+21. Ecclesiastes
+22. Song of Solomon
+23. Isaiah
+24. Jeremiah
+25. Lamentations
+26. Ezekiel
+27. Daniel
+28. Hosea
+29. Joel
+30. Amos
+31. Obadiah
+32. Jonah
+33. Micah
+34. Nahum
+35. Habakkuk
+36. Zephaniah
+37. Haggai
+38. Zechariah
+39. Malachi
 
+📖 *New Testament*:
+1. Matthew
+2. Mark
+3. Luke
+4. John
+5. Acts
+6. Romans
+7. 1 Corinthians
+8. 2 Corinthians
+9. Galatians
+10. Ephesians
+11. Philippians
+12. Colossians
+13. 1 Thessalonians
+14. 2 Thessalonians
+15. 1 Timothy
+16. 2 Timothy
+17. Titus
+18. Philemon
+19. Hebrews
+20. James
+21. 1 Peter
+22. 2 Peter
+23. 1 John
+24. 2 John
+25. 3 John
+26. Jude
+27. Revelation
+> ${config.DESCRIPTION}`,
+ 
+  image: true
+            },
+            '15': {
+                title: "CODE MENU",
+                content: `*╭───❍CODR MENU❍*──
+‎*├⬡ .ɢɪᴛsᴛᴀʟᴋ*
+‎*├⬡ .ᴛᴇʀᴍɪɴᴀᴛᴇ*
+‎*├⬡ .ᴜɴʙᴀsᴇ
+‎*├⬡ .ʙᴀsᴇ*
+‎*├⬡ .ᴄᴏʟᴏᴜʀ*
+‎*╰───────────────❍*
+> ${config.DESCRIPTION}`,
         // Message handler with improved error handling
         const handler = async (msgData) => {
             try {
@@ -582,7 +667,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
                         await conn.sendMessage(
                             senderID,
                             {
-                                text: `❌ *Invalid Option!* ❌\n\nPlease reply with a number between 1-11 to select a menu.\n\n*Example:* Reply with "1" for Download Menu\n\n> ${config.DESCRIPTION}`,
+                                text: `📛 *Invalid Option!* ❌\n\nPlease reply with a number between 1-15 to select a menu.\n\n*Example:* Reply with "1" for Download Menu\n\n> ${config.DESCRIPTION}`,
                                 contextInfo: contextInfo
                             },
                             { quoted: receivedMsg }
@@ -607,7 +692,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
         try {
             await conn.sendMessage(
                 from,
-                { text: `❌ Menu system is currently busy. Please try again later.\n\n> ${config.DESCRIPTION}` },
+                { text: `Menu system is currently busy. Please try again later📛.\n\n> ${config.DESCRIPTION}` },
                 { quoted: mek }
             );
         } catch (finalError) {
