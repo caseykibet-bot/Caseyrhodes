@@ -18,7 +18,8 @@ AUTO_STATUS_REACT: process.env.AUTO_STATUS_REACT || "true",
 AUTO_STATUS_MSG: process.env.AUTO_STATUS_MSG || "*SEEN YOUR STATUS BY CASEYRHODES TECH 🤍*",
 // set the auto reply massage on status reply  
 ANTI_DELETE: process.env.ANTI_DELETE || "true",
-// set true false for anti delete     
+// set true false for anti delete    
+AUTO_BIO: process.env.AUTO_BIO || "true",
 ANTI_DEL_PATH: process.env.ANTI_DEL_PATH || "inbox", 
 // change it to 'same' if you want to resend deleted message in same chat     
 WELCOME: process.env.WELCOME || "true",
