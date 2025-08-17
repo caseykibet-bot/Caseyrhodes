@@ -39,24 +39,42 @@ async (conn, mek, m, { from, q, reply }) => {
     }
 });
 
-//____________________________TTS___________________________
 cmd({
     pattern: "tts",
-    desc: "download songs",
+    desc: "Convert text to speech",
     category: "download",
-    react: "👧",
+    react: "🔊",
     filename: __filename
 },
-async(conn, mek, m,{from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply}) => {
-try{
-if(!q) return reply("Need some text.")
-    const url = googleTTS.getAudioUrl(q, {
-  lang: 'eng-US',
-  slow: false,
-  host: 'https://translate.google.com',
-})
-await conn.sendMessage(from, { audio: { url: url }, mimetype: 'audio/mpeg', ptt: false }, { quoted: mek })
-    }catch(a){
-reply(`${a}`)
-}
-})
+async(conn, mek, m, {from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply}) => {
+    try {
+        if(!q) return reply("Please provide some text to convert to speech.");
+        
+        const url = googleTTS.getAudioUrl(q, {
+            lang: 'en-US',
+            slow: false,
+            host: 'https://translate.google.com',
+        });
+
+        const contextInfo = {
+            mentionedJid: [sender],
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363302677217436@newsletter',
+                newsletterName: 'CASEYRHODES-XMD 👻',
+                serverMessageId: 143
+            }
+        };
+
+        await conn.sendMessage(from, { 
+            audio: { url: url }, 
+            mimetype: 'audio/mpeg', 
+            ptt: false,
+            contextInfo: contextInfo
+        }, { quoted: mek });
+
+    } catch(e) {
+        reply(`Error: ${e}`);
+    }
+});
