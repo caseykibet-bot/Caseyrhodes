@@ -10,72 +10,86 @@ cmd({
     use: '<on/off> | <text> | <interval in minutes>'
 }, async (Void, citel, text) => {
     try {
-        if (!text) return citel.reply("❌ Please provide arguments.\nUsage: .autobio on | your bio text | 10\nOr: .autobio off");
+        if (!text) return citel.reply("❌ Please provide arguments.\nUsage: .autobio on | your bio text | minutes\nExample: .autobio on | Coding life | 30");
+
+        // Split by | but ignore empty splits
+        const args = text.split("|").map(arg => arg.trim()).filter(arg => arg);
         
-        const args = text.split("|").map(arg => arg.trim());
+        if (args.length < 1) return citel.reply("❌ Invalid command format");
+        
         const action = args[0].toLowerCase();
         
         if (action === "on") {
-            if (args.length < 3) return citel.reply("❌ Missing arguments.\nUsage: .autobio on | your bio text | 10\nExample: .autobio on | Coding my life away | 30");
+            if (args.length < 3) return citel.reply("❌ Missing arguments.\nUsage: .autobio on | your bio text | minutes\nExample: .autobio on | Hello World | 15");
             
             const bioText = args[1];
-            const interval = parseInt(args[2]);
+            const intervalInput = args[2];
             
-            if (isNaN(interval) || interval < 1) return citel.reply("❌ Please provide a valid interval in minutes (minimum 1)");
+            // Check if interval is in HH:MM format and convert to minutes
+            let intervalMinutes;
+            if (intervalInput.includes(":")) {
+                const [hours, mins] = intervalInput.split(":").map(Number);
+                if (isNaN(hours) || isNaN(mins)) {
+                    return citel.reply("❌ Invalid time format. Use either minutes (30) or HH:MM (1:30)");
+                }
+                intervalMinutes = hours * 60 + mins;
+            } else {
+                intervalMinutes = parseInt(intervalInput);
+            }
             
-            // Initialize AUTO_BIO if it doesn't exist
+            if (isNaN(intervalMinutes) || intervalMinutes < 1) {
+                return citel.reply("❌ Interval must be a positive number (minutes) or HH:MM format");
+            }
+
+            // Initialize if doesn't exist
             if (!config.AUTO_BIO) config.AUTO_BIO = {};
             
-            // Store the settings
+            // Store settings
             config.AUTO_BIO = {
                 enabled: true,
                 text: bioText,
-                interval: interval * 60 * 1000, // Convert minutes to milliseconds
+                interval: intervalMinutes * 60 * 1000, // Convert to milliseconds
                 lastChanged: 0
             };
             
-            // Start the bio rotation
+            // Start rotation
             startBioRotation(Void, citel);
             
-            return citel.reply(`✅ Auto-bio enabled!\nBio: "${bioText}"\nWill update every ${interval} minutes.`);
+            return citel.reply(`✅ Auto-bio enabled!\n"${bioText}"\nUpdating every ${intervalMinutes} minutes`);
             
         } else if (action === "off") {
-            if (config.AUTO_BIO?.enabled === true) {
+            if (config.AUTO_BIO?.enabled) {
                 config.AUTO_BIO.enabled = false;
-                return citel.reply("✅ Auto-bio disabled.");
-            } else {
-                return citel.reply("ℹ️ Auto-bio wasn't enabled.");
+                return citel.reply("✅ Auto-bio disabled");
             }
+            return citel.reply("ℹ️ Auto-bio wasn't enabled");
         } else {
-            return citel.reply("❌ Invalid action. Use 'on' or 'off'.\nUsage: .autobio on | text | interval\nOr: .autobio off");
+            return citel.reply("❌ Invalid action. Use 'on' or 'off'");
         }
     } catch (error) {
-        console.error("Error in autobio command:", error);
-        return citel.reply("❌ An error occurred. Please check the command format and try again.");
+        console.error("Autobio error:", error);
+        return citel.reply("❌ Command failed. Please check format:\n.autobio on | text | minutes\nOr: .autobio off");
     }
 });
 
-// Function to handle bio rotation
+// Bio rotation function
 function startBioRotation(Void, citel) {
-    if (!config.AUTO_BIO || config.AUTO_BIO.enabled !== true) return;
+    if (!config.AUTO_BIO?.enabled) return;
     
     const now = Date.now();
     if (now - config.AUTO_BIO.lastChanged < config.AUTO_BIO.interval) {
-        setTimeout(() => startBioRotation(Void, citel), config.AUTO_BIO.interval - (now - config.AUTO_BIO.lastChanged));
+        setTimeout(() => startBioRotation(Void, citel), 
+                  config.AUTO_BIO.interval - (now - config.AUTO_BIO.lastChanged));
         return;
     }
     
-    const bioText = config.AUTO_BIO.text;
-    Void.updateProfileStatus(bioText)
+    Void.updateProfileStatus(config.AUTO_BIO.text)
         .then(() => {
-            config.AUTO_BIO.lastChanged = Date.now();
-            // Don't reply on every update to avoid spam
-            // citel.reply(`Bio updated to: ${bioText}`);
-            
+            config.AUTO_BIO.lastChanged = now;
             setTimeout(() => startBioRotation(Void, citel), config.AUTO_BIO.interval);
         })
-        .catch(error => {
-            console.error("Error updating bio:", error);
-            setTimeout(() => startBioRotation(Void, citel), 60000);
+        .catch(err => {
+            console.error("Bio update failed:", err);
+            setTimeout(() => startBioRotation(Void, citel), 60000); // Retry in 1 minute
         });
 }
