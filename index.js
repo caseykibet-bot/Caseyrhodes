@@ -197,14 +197,34 @@ async function connectToWA() {
         await conn.readMessages([mek.key])  // Mark message as read
         console.log(`Marked message from ${mek.key.remoteJid} as read.`)
       }
-      
+
+      // 🔄 Auto Set Bio 🔄
+if (config.AUTO_BIO === 'true') {
+    // Function to format uptime
+    function runtime(seconds) {
+        seconds = Math.floor(seconds);
+        const days = Math.floor(seconds / (3600 * 24));
+        const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        
+        return `${days}d ${hours}h ${minutes}m ${secs}s`;
+    }
+    
+    // Update bio periodically
+    setInterval(() => {
+        conn.updateProfileStatus(`🔰 ${botname} is Live! �\n\n🕒 Uptime: Running For ${runtime(process.uptime())} ⏳\n\n${botname}`)
+            .catch(err => console.error('Failed to update bio:', err));
+    }, 60000); // Update every 60 seconds
+    
+    // Initial update
+    conn.updateProfileStatus(`🔰 ${botname} is Live! 🎉\n\n🕒 Uptime: Running For ${runtime(process.uptime())} ⏳\n\n${botname}`)
+        .catch(err => console.error('Failed to update bio:', err));
+}
       if(mek.message.viewOnceMessageV2) {
         mek.message = (getContentType(mek.message) === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
       }
-      // 🔄 Auto Set Bio 🔄
-	if (config.AUTO_BIO === 'true') {
-            conn.updateProfileStatus(`🔰 ${botname} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())} ⏳\n\n   ${botname}`);
-      
+   
       if (mek.key && mek.key.remoteJid === 'status@broadcast' && config.AUTO_STATUS_SEEN === "true") {
         await conn.readMessages([mek.key])
       }
