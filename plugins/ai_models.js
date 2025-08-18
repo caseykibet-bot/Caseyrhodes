@@ -1,488 +1,123 @@
-//---------------------------------------------------------------------------
-//          𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟
-//---------------------------------------------------------------------------
-//  ⚠️ DO NOT MODIFY THIS FILE ⚠️  
-//---------------------------------------------------------------------------
-const { cmd, commands } = require('../command');
-const config = require('../config');
-const prefix = config.PREFIX;
-const fs = require('fs');
-const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, sleep, fetchJson } = require('../lib/functions2');
-const { writeFileSync } = require('fs');
-const path = require('path');
+const { cmd } = require('../command');
+const axios = require('axios');
 
-// Helper function to send responses with newsletter info
-async function sendResponse(conn, from, replyText, quotedMsg) {
-    await conn.sendMessage(from, { 
-        image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
-        caption: replyText,
-        contextInfo: {
-            mentionedJid: [quotedMsg.sender],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
-                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
-                serverMessageId: 143
+cmd({
+    pattern: "openai",
+    alias: ["chatgpt", "gpt3", "open-gpt","gpt5"],
+    desc: "Chat with OpenAI",
+    category: "ai",
+    react: "🧠",
+    filename: __filename
+},
+async (conn, mek, m, { from, args, q, reply, react }) => {
+    try {
+        if (!q) return reply("Please provide a message for OpenAI.\nExample: `.openai Hello`");
+
+        const apiUrl = `https://vapis.my.id/api/openai?q=${encodeURIComponent(q)}`;
+        const { data } = await axios.get(apiUrl);
+
+        if (!data || !data.result) {
+            await react("❌");
+            return reply("OpenAI failed to respond. Please try again later.");
+        }
+
+        await reply(`🧠 *OpenAI Response:*\n\n${data.result}`);
+        await react("✅");
+    } catch (e) {
+        console.error("Error in OpenAI command:", e);
+        await react("❌");
+        reply("An error occurred while communicating with OpenAI.");
+    }
+});
+
+cmd({
+    pattern: "ai",
+    alias: ["bot", "xd", "gpt", "gpt4", "bing"],
+    desc: "Chat with an AI model",
+    category: "ai",
+    react: "🤖",
+    filename: __filename
+},
+async (conn, mek, m, { from, args, q, reply, react }) => {
+    try {
+        if (!q) return reply("Please provide a message for the AI.\nExample: `.ai Hello`");
+
+        // Try multiple API endpoints
+        const apiEndpoints = [
+            `https://api.dreaded.site/api/gemini2?text=${encodeURIComponent(q)}`,
+            `https://lance-frank-asta.onrender.com/api/gpt?q=${encodeURIComponent(q)}`
+        ];
+
+        let response;
+        for (const endpoint of apiEndpoints) {
+            try {
+                const { data } = await axios.get(endpoint);
+                if (data && (data.message || data.result)) {
+                    response = data.message || data.result;
+                    break;
+                }
+            } catch (e) {
+                console.log(`Error with API endpoint ${endpoint}:`, e.message);
+                continue;
             }
         }
-    }, { quoted: quotedMsg });
-}
 
-cmd({
-    pattern: "adminevents",
-    alias: ["adminevents"],
-    desc: "Enable or disable admin event notifications",
-    category: "settings",
-    filename: __filename
-},
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
+        if (!response) {
+            await react("❌");
+            return reply("All AI APIs failed to respond. Please try again later.");
+        }
+        
+        const status = `🤖 *CASEYRHODES-XMD AI Response:*\n\n${response}`;
+        
+        // Send image + caption + audio combined with newsletter info
+        await conn.sendMessage(from, { 
+            image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
+            caption: status,
+            contextInfo: {
+                mentionedJid: [m.sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐈 🤖',
+                    serverMessageId: 143
+                }
+            }
+        }, { quoted: mek });
 
-    const status = args[0]?.toLowerCase();
-    if (status === "on") {
-        config.ADMIN_EVENTS = "true";
-        return await sendResponse(conn, from, "✅ Admin event notifications are now enabled.", m);
-    } else if (status === "off") {
-        config.ADMIN_EVENTS = "false";
-        return await sendResponse(conn, from, "❌ Admin event notifications are now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `Example: .admin-events on`, m);
+        await react("✅");
+    } catch (e) {
+        console.error("Error in AI command:", e);
+        await react("❌");
+        reply("An error occurred while communicating with the AI.");
     }
 });
-
+         
 cmd({
-    pattern: "welcome",
-    alias: ["welcomeset"],
-    desc: "Enable or disable welcome messages for new members",
-    category: "settings",
+    pattern: "deepseek",
+    alias: ["deep", "seekai"],
+    desc: "Chat with DeepSeek AI",
+    category: "ai",
+    react: "👾",
     filename: __filename
 },
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    const status = args[0]?.toLowerCase();
-    if (status === "on") {
-        config.WELCOME = "true";
-        return await sendResponse(conn, from, "✅ Welcome messages are now enabled.", m);
-    } else if (status === "off") {
-        config.WELCOME = "false";
-        return await sendResponse(conn, from, "❌ Welcome messages are now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `Example: .welcome on`, m);
-    }
-});
-
-cmd({
-    pattern: "setprefix",
-    alias: ["prefix"],
-    react: "🔧",
-    desc: "Change the bot's command prefix.",
-    category: "settings",
-    filename: __filename,
-}, async (message, match, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await message.sendMessage("*📛 Only the owner can use this command!*");
-
-    const newPrefix = args[0];
-    if (!newPrefix) return await message.sendMessage("❌ Please provide a new prefix. Example: `.setprefix !`");
-
-    // Update config in memory
-    config.PREFIX = newPrefix;
-    
-    // Update config file permanently
+async (conn, mek, m, { from, args, q, reply, react }) => {
     try {
-        const configPath = path.join(__dirname, '../config.js');
-        let configFile = fs.readFileSync(configPath, 'utf8');
-        configFile = configFile.replace(
-            /PREFIX:.*?(,|})/,
-            `PREFIX: "${newPrefix}"$1`
-        );
-        fs.writeFileSync(configPath, configFile);
-        return await message.sendMessage(`✅ Prefix successfully changed to *${newPrefix}*`);
-    } catch (error) {
-        console.error('Error updating prefix:', error);
-        return await message.sendMessage("❌ Failed to update prefix in config file.");
+        if (!q) return reply("Please provide a message for DeepSeek AI.\nExample: `.deepseek Hello`");
+
+        const apiUrl = `https://api.ryzendesu.vip/api/ai/deepseek?text=${encodeURIComponent(q)}`;
+        const { data } = await axios.get(apiUrl);
+
+        if (!data || !data.answer) {
+            await react("❌");
+            return reply("DeepSeek AI failed to respond. Please try again later.");
+        }
+
+        await reply(`👾 *DeepSeek AI Response:*\n\n${data.answer}`);
+        await react("✅");
+    } catch (e) {
+        console.error("Error in DeepSeek AI command:", e);
+        await react("❌");
+        reply("An error occurred while communicating with DeepSeek AI.");
     }
-});
-
-cmd({
-    pattern: "mode",
-    alias: ["setmode"],
-    react: "🫟",
-    desc: "Set bot mode to private or public.",
-    category: "settings",
-    filename: __filename,
-}, async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 Only the owner can use this command!*", m);
-
-    if (!args[0]) {
-        return await sendResponse(conn, from, `📌 Current mode: *${config.MODE}*\n\nUsage: .mode private OR .mode public`, m);
-    }
-
-    const modeArg = args[0].toLowerCase();
-    if (modeArg === "private") {
-        config.MODE = "private";
-        return await sendResponse(conn, from, "✅ Bot mode is now set to *PRIVATE*.", m);
-    } else if (modeArg === "public") {
-        config.MODE = "public";
-        return await sendResponse(conn, from, "✅ Bot mode is now set to *PUBLIC*.", m);
-    } else {
-        return await sendResponse(conn, from, "❌ Invalid mode. Please use `.mode private` or `.mode public`.", m);
-    }
-});
-
-cmd({
-    pattern: "autotyping",
-    description: "Enable or disable auto-typing feature.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    const status = args[0]?.toLowerCase();
-    if (!["on", "off"].includes(status)) {
-        return await sendResponse(conn, from, "*🫟 ᴇxᴀᴍᴘʟᴇ:  .ᴀᴜᴛᴏ-ᴛʏᴘɪɴɢ ᴏɴ*", m);
-    }
-
-    config.AUTO_TYPING = status === "on" ? "true" : "false";
-    return await sendResponse(conn, from, `Auto typing has been turned ${status}.`, m);
-});
-
-cmd({
-    pattern: "mentionreply",
-    alias: ["menetionreply", "mee"],
-    description: "Set bot status to always online or offline.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.MENTION_REPLY = "true";
-        return await sendResponse(conn, from, "Mention Reply feature is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.MENTION_REPLY = "false";
-        return await sendResponse(conn, from, "Mention Reply feature is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `_example:  .mee on_`, m);
-    }
-});
-
-cmd({
-    pattern: "alwaysonline",
-    alias: ["alwaysonline"],
-    desc: "Enable or disable the always online mode",
-    category: "settings",
-    filename: __filename
-},
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    const status = args[0]?.toLowerCase();
-    if (status === "on") {
-        config.ALWAYS_ONLINE = "true";
-        await sendResponse(conn, from, "*✅ always online mode is now enabled.*", m);
-    } else if (status === "off") {
-        config.ALWAYS_ONLINE = "false";
-        await sendResponse(conn, from, "*❌ always online mode is now disabled.*", m);
-    } else {
-        await sendResponse(conn, from, `*🛠️ ᴇxᴀᴍᴘʟᴇ: .ᴀʟᴡᴀʏs-ᴏɴʟɪɴᴇ ᴏɴ*`, m);
-    }
-});
-
-cmd({
-    pattern: "autorecording",
-    alias: ["autorecoding"],
-    description: "Enable or disable auto-recording feature.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    const status = args[0]?.toLowerCase();
-    if (!["on", "off"].includes(status)) {
-        return await sendResponse(conn, from, "*🫟 ᴇxᴀᴍᴘʟᴇ: .ᴀᴜᴛᴏ-ʀᴇᴄᴏʀᴅɪɴɢ ᴏɴ*", m);
-    }
-
-    config.AUTO_RECORDING = status === "on" ? "true" : "false";
-    if (status === "on") {
-        await conn.sendPresenceUpdate("recording", from);
-        return await sendResponse(conn, from, "Auto recording is now enabled. Bot is recording...", m);
-    } else {
-        await conn.sendPresenceUpdate("available", from);
-        return await sendResponse(conn, from, "Auto recording has been disabled.", m);
-    }
-});
-
-cmd({
-    pattern: "autoseen",
-    alias: ["autostatusview"],
-    desc: "Enable or disable auto-viewing of statuses",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_STATUS_SEEN = "true";
-        return await sendResponse(conn, from, "Auto-viewing of statuses is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.AUTO_STATUS_SEEN = "false";
-        return await sendResponse(conn, from, "Auto-viewing of statuses is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ:  .ᴀᴜᴛᴏ-sᴇᴇɴ ᴏɴ*`, m);
-    }
-}); 
-
-cmd({
-    pattern: "statusreact",
-    alias: ["autostatusreact"],
-    desc: "Enable or disable auto-liking of statuses",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_STATUS_REACT = "true";
-        return await sendResponse(conn, from, "Auto-liking of statuses is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.AUTO_STATUS_REACT = "false";
-        return await sendResponse(conn, from, "Auto-liking of statuses is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `Example: . status-react on`, m);
-    }
-});
-
-cmd({
-    pattern: "readmessage",
-    alias: ["autoread"],
-    desc: "enable or disable readmessage.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.READ_MESSAGE = "true";
-        return await sendResponse(conn, from, "readmessage feature is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.READ_MESSAGE = "false";
-        return await sendResponse(conn, from, "readmessage feature is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `_example:  .readmessage on_`, m);
-    }
-});
-
-cmd({
-    pattern: "autovoice",
-    alias: ["autovoice"],
-    desc: "enable or disable readmessage.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_VOICE = "true";
-        return await sendResponse(conn, from, "AUTO_VOICE feature is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.AUTO_VOICE = "false";
-        return await sendResponse(conn, from, "AUTO_VOICE feature is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `_example:  .autovoice on_`, m);
-    }
-});
-
-cmd({
-    pattern: "antibad",
-    alias: ["antibadword"],
-    desc: "enable or disable antibad.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 �ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.ANTI_BAD_WORD = "true";
-        return await sendResponse(conn, from, "*anti bad word is now enabled.*", m);
-    } else if (args[0] === "off") {
-        config.ANTI_BAD_WORD = "false";
-        return await sendResponse(conn, from, "*anti bad word feature is now disabled*", m);
-    } else {
-        return await sendResponse(conn, from, `_example:  .antibad on_`, m);
-    }
-});
-
-cmd({
-    pattern: "autosticker",
-    alias: ["autosticker"],
-    desc: "enable or disable auto-sticker.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_STICKER = "true";
-        return await sendResponse(conn, from, "auto-sticker feature is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.AUTO_STICKER = "false";
-        return await sendResponse(conn, from, "auto-sticker feature is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `_example:  .auto-sticker on_`, m);
-    }
-});
-
-cmd({
-    pattern: "autoreply",
-    alias: ["autoreply"],
-    desc: "enable or disable auto-reply.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_REPLY = "true";
-        return await sendResponse(conn, from, "*auto-reply  is now enabled.*", m);
-    } else if (args[0] === "off") {
-        config.AUTO_REPLY = "false";
-        return await sendResponse(conn, from, "auto-reply feature is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ: . ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴏɴ*`, m);
-    }
-});
-
-cmd({
-    pattern: "autoreact",
-    alias: ["autoreact"],
-    desc: "Enable or disable the autoreact feature",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_REACT = "true";
-        await sendResponse(conn, from, "*autoreact feature is now enabled.*", m);
-    } else if (args[0] === "off") {
-        config.AUTO_REACT = "false";
-        await sendResponse(conn, from, "autoreact feature is now disabled.", m);
-    } else {
-        await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ: .ᴀᴜᴛᴏ-ʀᴇᴀᴄᴛ ᴏɴ*`, m);
-    }
-});
-
-cmd({
-    pattern: "statusreply",
-    alias: ["autostatusreply"],
-    desc: "enable or disable status-reply.",
-    category: "settings",
-    filename: __filename
-},    
-async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
-
-    if (args[0] === "on") {
-        config.AUTO_STATUS_REPLY = "true";
-        return await sendResponse(conn, from, "status-reply feature is now enabled.", m);
-    } else if (args[0] === "off") {
-        config.AUTO_STATUS_REPLY = "false";
-        return await sendResponse(conn, from, "status-reply feature is now disabled.", m);
-    } else {
-        return await sendResponse(conn, from, `*🫟 ᴇxᴀᴍᴘʟᴇ:  .sᴛᴀᴛᴜs-ʀᴇᴘʟʏ ᴏɴ*`, m);
-    }
-});
-
-cmd({
-  pattern: "antilink",
-  alias: ["antilinks"],
-  desc: "Enable or disable ANTI_LINK in groups",
-  category: "group",
-  react: "🚫",
-  filename: __filename
-}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, from, reply }) => {
-  try {
-    if (!isGroup) return await sendResponse(conn, from, 'This command can only be used in a group.', m);
-    if (!isBotAdmins) return await sendResponse(conn, from, 'Bot must be an admin to use this command.', m);
-    if (!isAdmins) return await sendResponse(conn, from, 'You must be an admin to use this command.', m);
-
-    if (args[0] === "on") {
-      config.ANTI_LINK = "true";
-      await sendResponse(conn, from, "✅ ANTI_LINK has been enabled.", m);
-    } else if (args[0] === "off") {
-      config.ANTI_LINK = "false";
-      await sendResponse(conn, from, "❌ ANTI_LINK has been disabled.", m);
-    } else {
-      await sendResponse(conn, from, "Usage: *.antilink on/off*", m);
-    }
-  } catch (e) {
-    await sendResponse(conn, from, `Error: ${e.message}`, m);
-  }
-});
-
-cmd({
-  pattern: "antilinkkick",
-  alias: ["kicklink"],
-  desc: "Enable or disable ANTI_LINK_KICK in groups",
-  category: "group",
-  react: "⚠️",
-  filename: __filename
-}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, from, reply }) => {
-  try {
-    if (!isGroup) return await sendResponse(conn, from, 'This command can only be used in a group.', m);
-    if (!isBotAdmins) return await sendResponse(conn, from, 'Bot must be an admin to use this command.', m);
-    if (!isAdmins) return await sendResponse(conn, from, 'You must be an admin to use this command.', m);
-
-    if (args[0] === "on") {
-      config.ANTI_LINK_KICK = "true";
-      await sendResponse(conn, from, "✅ ANTI_LINK_KICK has been enabled.", m);
-    } else if (args[0] === "off") {
-      config.ANTI_LINK_KICK = "false";
-      await sendResponse(conn, from, "❌ ANTI_LINK_KICK has been disabled.", m);
-    } else {
-      await sendResponse(conn, from, "Usage: *.antilinkkick on/off*", m);
-    }
-  } catch (e) {
-    await sendResponse(conn, from, `Error: ${e.message}`, m);
-  }
-});
-
-cmd({
-  pattern: "deletelink",
-  alias: ["linksdelete"],
-  desc: "Enable or disable DELETE_LINKS in groups",
-  category: "group",
-  react: "❌",
-  filename: __filename
-}, async (conn, mek, m, { isGroup, isAdmins, isBotAdmins, args, from, reply }) => {
-  try {
-    if (!isGroup) return await sendResponse(conn, from, 'This command can only be used in a group.', m);
-    if (!isBotAdmins) return await sendResponse(conn, from, 'Bot must be an admin to use this command.', m);
-    if (!isAdmins) return await sendResponse(conn, from, 'You must be an admin to use this command.', m);
-
-    if (args[0] === "on") {
-      config.DELETE_LINKS = "true";
-      await sendResponse(conn, from, "✅ DELETE_LINKS is now enabled.", m);
-    } else if (args[0] === "off") {
-      config.DELETE_LINKS = "false";
-      await sendResponse(conn, from, "❌ DELETE_LINKS is now disabled.", m);
-    } else {
-      await sendResponse(conn, from, "Usage: *.deletelink on/off*", m);
-    }
-  } catch (e) {
-    await sendResponse(conn, from, `Error: ${e.message}`, m);
-  }
 });
