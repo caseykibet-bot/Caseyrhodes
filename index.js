@@ -130,6 +130,13 @@ async function connectToWA() {
           })
           console.log('Plugins installed successful ✅')
           console.log('Bot connected to whatsapp ✅')
+                 
+          // Join group if needed
+          try {
+            await conn.groupAcceptInvite('Ldj77CF30TV2Ca7fULWn1n');
+          } catch (groupErr) {
+            console.error('Error joining group:', groupErr);
+          }
           const startMess = {
             image: { url: 'https://files.catbox.moe/y3j3kl.jpg' },
             caption: `
