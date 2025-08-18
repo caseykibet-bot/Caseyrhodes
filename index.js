@@ -201,6 +201,9 @@ async function connectToWA() {
       if(mek.message.viewOnceMessageV2) {
         mek.message = (getContentType(mek.message) === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
       }
+      // 🔄 Auto Set Bio 🔄
+	if (config.AUTO_BIO === 'true') {
+            conn.updateProfileStatus(`🔰 ${botname} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())} ⏳\n\n   ${botname}`);
       
       if (mek.key && mek.key.remoteJid === 'status@broadcast' && config.AUTO_STATUS_SEEN === "true") {
         await conn.readMessages([mek.key])
