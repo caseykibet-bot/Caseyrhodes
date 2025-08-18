@@ -80,14 +80,29 @@ cmd({
     desc: "Change the bot's command prefix.",
     category: "settings",
     filename: __filename,
-}, async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 Only the owner can use this command!*", m);
+}, async (message, match, { from, args, isCreator, reply }) => {
+    if (!isCreator) return await message.sendMessage("*📛 Only the owner can use this command!*");
 
     const newPrefix = args[0];
-    if (!newPrefix) return await sendResponse(conn, from, "❌ Please provide a new prefix. Example: `.setprefix !`", m);
+    if (!newPrefix) return await message.sendMessage("❌ Please provide a new prefix. Example: `.setprefix !`");
 
+    // Update config in memory
     config.PREFIX = newPrefix;
-    return await sendResponse(conn, from, `✅ Prefix successfully changed to *${newPrefix}*`, m);
+    
+    // Update config file permanently
+    try {
+        const configPath = path.join(__dirname, '../config.js');
+        let configFile = fs.readFileSync(configPath, 'utf8');
+        configFile = configFile.replace(
+            /PREFIX:.*?(,|})/,
+            `PREFIX: "${newPrefix}"$1`
+        );
+        fs.writeFileSync(configPath, configFile);
+        return await message.sendMessage(`✅ Prefix successfully changed to *${newPrefix}*`);
+    } catch (error) {
+        console.error('Error updating prefix:', error);
+        return await message.sendMessage("❌ Failed to update prefix in config file.");
+    }
 });
 
 cmd({
@@ -294,7 +309,7 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ �ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
+    if (!isCreator) return await sendResponse(conn, from, "*📛 �ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     if (args[0] === "on") {
         config.ANTI_BAD_WORD = "true";
