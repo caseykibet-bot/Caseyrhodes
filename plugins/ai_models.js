@@ -42,32 +42,15 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
     try {
         if (!q) return reply("Please provide a message for the AI.\nExample: `.ai Hello`");
 
-        // Try multiple API endpoints
-        const apiEndpoints = [
-            `https://api.dreaded.site/api/gemini2?text=${encodeURIComponent(q)}`,
-            `https://lance-frank-asta.onrender.com/api/gpt?q=${encodeURIComponent(q)}`
-        ];
+        const apiUrl = `https://lance-frank-asta.onrender.com/api/gpt?q=${encodeURIComponent(q)}`;
+        const { data } = await axios.get(apiUrl);
 
-        let response;
-        for (const endpoint of apiEndpoints) {
-            try {
-                const { data } = await axios.get(endpoint);
-                if (data && (data.message || data.result)) {
-                    response = data.message || data.result;
-                    break;
-                }
-            } catch (e) {
-                console.log(`Error with API endpoint ${endpoint}:`, e.message);
-                continue;
-            }
-        }
-
-        if (!response) {
+        if (!data || !data.message) {
             await react("❌");
-            return reply("All AI APIs failed to respond. Please try again later.");
+            return reply("AI failed to respond. Please try again later.");
         }
         
-        const status = `🤖 *CASEYRHODES-XMD AI Response:*\n\n${response}`;
+        const status = `🤖 *CASEYRHODES-XMD AI Response:*\n\n${data.message}`;
         
         // Send image + caption + audio combined with newsletter info
         await conn.sendMessage(from, { 
