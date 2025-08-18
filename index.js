@@ -195,13 +195,7 @@ async function connectToWA() {
       if (config.READ_MESSAGE === 'true') {
         await conn.readMessages([mek.key])  // Mark message as read
         console.log(`Marked message from ${mek.key.remoteJid} as read.`)
-      }
-      
-      //🔵auto bio
-      if (config.AUTO_BIO === 'true') {
-        conn.updateProfileStatus(`${config.BOT_NAME} is Live! 🤔\n\n           🕒 🚀𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())}`)
-          .catch(err => console.error("Error updating status:", err))
-      }
+	  }
       
       if(mek.message.viewOnceMessageV2) {
         mek.message = (getContentType(mek.message) === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
