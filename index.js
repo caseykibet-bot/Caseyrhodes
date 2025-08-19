@@ -109,15 +109,7 @@ async function connectToWA() {
       const updateBio = () => {
         const date = new Date()
         const bioText = `📅 DATE/TIME: ${date.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })} | DAY: ${date.toLocaleString('en-US', { weekday: 'long', timeZone: 'Africa/Nairobi'})} | ᴄᴀsᴇʏʀʜᴏᴅᴇs xᴍᴅ ɪs ᴀʟɪᴠᴇ 🎉`
-        
-        conn.updateProfileStatus(bioText)
-          .then(() => console.log('Bio updated successfully'))
-          .catch(err => console.error('Error updating bio:', err))
-      }
 
-      // Update immediately and then every 10 seconds
-      updateBio()
-      bioInterval = setInterval(updateBio, 10 * 1000)
     }
 
     conn.ev.on('connection.update', async (update) => {
