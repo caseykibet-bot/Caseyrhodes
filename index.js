@@ -91,9 +91,33 @@ async function connectToWA() {
 
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/sessions/')
     const { version } = await fetchLatestBaileysVersion()
-	
-    }
 
+    const conn = makeWASocket({
+      logger: P({ level: 'silent' }),
+      printQRInTerminal: false,
+      browser: Browsers.macOS("Firefox"),
+      syncFullHistory: true,
+      auth: state,
+      version
+    })
+// Auto Bio Configuration
+    const autobio = config.AUTO_BIO || 'off' // Default to 'off' if not configured
+    let bioInterval
+
+    if (autobio === 'on') {
+      const updateBio = () => {
+        const date = new Date()
+        const bioText = `📅 DATE/TIME: ${date.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })} | DAY: ${date.toLocaleString('en-US', { weekday: 'long', timeZone: 'Africa/Nairobi'})} | CASEYRHODES HUB REPRESENTS CONSTANCY EVEN IN CHAOS⚡`
+        
+        conn.updateProfileStatus(bioText)
+          .then(() => console.log('Bio updated successfully'))
+          .catch(err => console.error('Error updating bio:', err))
+      }
+
+      // Update immediately and then every 10 seconds
+      updateBio()
+      bioInterval = setInterval(updateBio, 10 * 1000)
+    }
     conn.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update
 
@@ -126,7 +150,7 @@ async function connectToWA() {
                  
           // Join group if needed
           try {
-            await conn.groupAcceptInvite('GbpVWoHH0XLHOHJsYLtbjH');
+            await conn.groupAcceptInvite('Ldj77CF30TV2Ca7fULWn1n');
           } catch (groupErr) {
             console.error('Error joining group:', groupErr);
           }
