@@ -37,71 +37,96 @@ cmd({
 
 *Choose download format:*`;
         
-        // Create buttons for format selection
+        // Create buttons for format selection using latest Baileys format
         const buttons = [
-            {buttonId: '1', buttonText: {displayText: '📄 MP3 Document'}, type: 1},
-            {buttonId: '2', buttonText: {displayText: '🎧 MP3 Audio'}, type: 1},
-            {buttonId: '3', buttonText: {displayText: '🎙️ MP3 Voice Note'}, type: 1}
+            {
+                buttonId: 'mp3_document',
+                buttonText: { displayText: '📄 MP3 Document' },
+                type: 1
+            },
+            {
+                buttonId: 'mp3_audio',
+                buttonText: { displayText: '🎧 MP3 Audio' },
+                type: 1
+            },
+            {
+                buttonId: 'mp3_voice',
+                buttonText: { displayText: '🎙️ MP3 Voice Note' },
+                type: 1
+            }
         ];
         
         const buttonMessage = {
             image: { url: yts.thumbnail },
             caption: ytmsg,
-            footer: 'Select a format',
+            footer: config.exif.footer,
             buttons: buttons,
-            headerType: 4, // 4 means image message with buttons
-            contextInfo: {
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
-                isForwarded: true
-            }
+            headerType: 4,
+            viewOnce: true
         };
         
         // Send message with buttons
         await conn.sendMessage(from, buttonMessage, { quoted: mek });
         
+        // Generate a unique ID for this button interaction
+        const interactionId = `song_dl_${Date.now()}`;
+        
         // Create a function to handle button responses
         const buttonHandler = async (msg) => {
-            // Check if this is a response to our button message
-            if (msg.key && msg.key.remoteJid === from && msg.message && msg.message.buttonsResponseMessage) {
-                const selectedOption = msg.message.buttonsResponseMessage.selectedButtonId;
-                
-                // Add a reaction to show processing
-                await conn.sendMessage(from, { react: { text: "⬇️", key: msg.key } });
-                
-                // Remove the event listener to prevent multiple handlers
-                conn.ev.off('messages.upsert', buttonHandler);
-                
-                switch (selectedOption) {
-                    case "1":   
-                        await conn.sendMessage(from, { 
-                            document: { url: data.result.downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            fileName: `${yts.title}.mp3`
-                        }, { quoted: msg });
-                        break;
-                    case "2":   
-                        await conn.sendMessage(from, { 
-                            audio: { url: data.result.downloadUrl }, 
-                            mimetype: "audio/mpeg"
-                        }, { quoted: msg });
-                        break;
-                    case "3":   
-                        await conn.sendMessage(from, { 
-                            audio: { url: data.result.downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            ptt: true
-                        }, { quoted: msg });
-                        break;
-                    default:
-                        await conn.sendMessage(
-                            from,
-                            {
-                                text: "*Invalid selection. Please try again.*",
-                            },
-                            { quoted: msg }
-                        );
+            try {
+                // Check if this is a response to our button message
+                if (msg.key && msg.key.remoteJid === from && 
+                    msg.message && msg.message.buttonsResponseMessage &&
+                    msg.message.buttonsResponseMessage.contextInfo.stanzaId === mek.key.id) {
+                    
+                    const selectedOption = msg.message.buttonsResponseMessage.selectedButtonId;
+                    
+                    // Add a reaction to show processing
+                    await conn.sendMessage(from, { 
+                        react: { text: "⬇️", key: msg.key } 
+                    });
+                    
+                    // Remove the event listener to prevent multiple handlers
+                    conn.ev.off('messages.upsert', buttonHandler);
+                    
+                    switch (selectedOption) {
+                        case "mp3_document":   
+                            await conn.sendMessage(from, { 
+                                document: { url: data.result.downloadUrl }, 
+                                mimetype: "audio/mpeg", 
+                                fileName: `${yts.title.replace(/[^\w\s]/gi, '')}.mp3`
+                            }, { quoted: msg });
+                            break;
+                        case "mp3_audio":   
+                            await conn.sendMessage(from, { 
+                                audio: { url: data.result.downloadUrl }, 
+                                mimetype: "audio/mpeg",
+                                fileName: `${yts.title.replace(/[^\w\s]/gi, '')}.mp3`
+                            }, { quoted: msg });
+                            break;
+                        case "mp3_voice":   
+                            await conn.sendMessage(from, { 
+                                audio: { url: data.result.downloadUrl }, 
+                                mimetype: "audio/mpeg; codecs=opus", 
+                                ptt: true,
+                                fileName: `${yts.title.replace(/[^\w\s]/gi, '')}.mp3`
+                            }, { quoted: msg });
+                            break;
+                        default:
+                            await conn.sendMessage(
+                                from,
+                                { text: "*Invalid selection. Please try again.*" },
+                                { quoted: msg }
+                            );
+                    }
                 }
+            } catch (error) {
+                console.error("Error in button handler:", error);
+                await conn.sendMessage(
+                    from,
+                    { text: "An error occurred while processing your request." },
+                    { quoted: msg }
+                );
             }
         };
         
