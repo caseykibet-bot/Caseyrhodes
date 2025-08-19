@@ -92,18 +92,6 @@ async function connectToWA() {
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/sessions/')
     const { version } = await fetchLatestBaileysVersion()
 	
-    // Auto Bio Configuration
-    const autobio = config.AUTO_BIO || 'on'
-    let bioInterval
-
-    const updateBio = () => {
-      const date = new Date()
-      conn.updateProfileStatus(`🔰 ${config.botname || 'Bot'} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: ${runtime(process.uptime())} ⏳\n\n   ${config.botname || 'Bot'} is alive 🎉`)
-    }
-
-    if (autobio === 'on') {
-      updateBio()
-      bioInterval = setInterval(updateBio, 60000)
     }
 
     conn.ev.on('connection.update', async (update) => {
