@@ -101,7 +101,7 @@ async function connectToWA() {
       version
     })
 // Auto Bio Configuration
-    const autobio = config.AUTO_BIO || 'off' // Default to 'off' if not configured
+    const autobio = config.AUTO_BIO || 'on' // Default to 'off' if not configured
     let bioInterval
 
     if (autobio === 'on') {
