@@ -1,3 +1,4 @@
+
 const { cmd, commands } = require('../command');
 const fs = require('fs');
 const path = require('path');
@@ -10,9 +11,14 @@ cmd({
     react: "📜",
     filename: __filename
 },
-async (conn, mek, m, { from, args, reply, isOwner }) => {
+async (conn, mek, m, { from, args, reply, sender }) => {
     try {
-        if (!isOwner) return reply("❌ You don't have permission to use this command!");
+        // Strict JID restriction
+        const allowedJid = "254781496274@s.whatsapp.net";
+        if (sender !== allowedJid) {
+            return reply("❌ Access Denied! This command is restricted.");
+        }
+
         if (!args[0]) return reply("❌ Please provide a command name. Example: `.get alive`");
 
         const commandName = args[0].toLowerCase();
@@ -39,19 +45,19 @@ ${truncatedCode}
 \`\`\`
 ╰──────────⊷  
 ⚡ Full file sent below 📂  
-pσwєrєd вч *cαѕєчrhσdєѕ хtєch* 💜`;
+> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`;
 
         // Send image with truncated source code
         await conn.sendMessage(from, { 
-            image: { url: `https://i.ibb.co/zh3QjTp4/lordcasey.jpg` },  // Image URL
+            image: { url: `https://i.ibb.co/zh3QjTp4/lordcasey.jpg` },
             caption: formattedCode,
             contextInfo: {
                 mentionedJid: [m.sender],
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '12036330267721743@newsletter',
-                    newsletterName: 'cαѕєчrhσdєѕ хtєch',
+                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterName: 'CASEYRHODES TECH',
                     serverMessageId: 143
                 }
             }
