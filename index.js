@@ -104,7 +104,7 @@ async function connectToWA() {
     const autobio = config.AUTO_BIO || 'on' // Default to 'off' if not configured
     let bioInterval
 
-    if (autobio === 'on') {
+    if (autobio === 'off') {
       const updateBio = () => {
         const date = new Date()
         const bioText = `📅 DATE/TIME: ${date.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })} | DAY: ${date.toLocaleString('en-US', { weekday: 'long', timeZone: 'Africa/Nairobi'})} | CASEYRHODES HUB REPRESENTS CONSTANCY EVEN IN CHAOS⚡`
