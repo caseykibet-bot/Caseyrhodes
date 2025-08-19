@@ -108,7 +108,7 @@ async function connectToWA() {
     if (autobio === 'on') {
       const updateBio = () => {
         const date = new Date()
-        const bioText = `📅 DATE/TIME: ${date.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })} | DAY: ${date.toLocaleString('en-US', { weekday: 'long', timeZone: 'Africa/Nairobi'})} | CASEYRHODES HUB REPRESENTS CONSTANCY EVEN IN CHAOS⚡`
+        const bioText = `📅 DATE/TIME: ${date.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })} | DAY: ${date.toLocaleString('en-US', { weekday: 'long', timeZone: 'Africa/Nairobi'})} | ᴄᴀsᴇʏʀʜᴏᴅᴇs xᴍᴅ ɪs ᴀʟɪᴠᴇ 🎉`
         
         conn.updateProfileStatus(bioText)
           .then(() => console.log('Bio updated successfully'))
