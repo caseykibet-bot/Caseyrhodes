@@ -93,17 +93,19 @@ async function connectToWA() {
     const { version } = await fetchLatestBaileysVersion()
 	
     // Auto Bio Configuration
-    const autobio = config.AUTO_BIO || 'on' // Default to 'on' if not configured
+    const autobio = config.AUTO_BIO || 'on'
     let bioInterval
 
-    if (autobio === 'on') {
-      const updateBio = () => {
-        const date = new Date()
-        conn.updateProfileStatus(`🔰 ${config.botname || 'Bot'} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: �𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())} ⏳\n\n   ${config.botname || 'Bot'} is alive 🎉`)
-     
-      updateBio()
-      bioInterval = setInterval(updateBio, 60000) // Update every minute
+    const updateBio = () => {
+      const date = new Date()
+      conn.updateProfileStatus(`🔰 ${config.botname || 'Bot'} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: ${runtime(process.uptime())} ⏳\n\n   ${config.botname || 'Bot'} is alive 🎉`)
     }
+
+    if (autobio === 'on') {
+      updateBio()
+      bioInterval = setInterval(updateBio, 60000)
+    }
+
     conn.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update
 
