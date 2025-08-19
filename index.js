@@ -92,14 +92,8 @@ async function connectToWA() {
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/sessions/')
     const { version } = await fetchLatestBaileysVersion()
 
-    const conn = makeWASocket({
-      logger: P({ level: 'silent' }),
-      printQRInTerminal: false,
-      browser: Browsers.macOS("Firefox"),
-      syncFullHistory: true,
-      auth: state,
-      version
-    })
+
+
 	
     // Auto Bio Configuration
     const autobio = config.AUTO_BIO || 'on' // Default to 'on' if not configured
@@ -108,15 +102,11 @@ async function connectToWA() {
     if (autobio === 'on') {
       const updateBio = () => {
         const date = new Date()
-        // 🔄 Auto Set Bio 🔄
-        if (config.AUTO_BIO === 'true') {
-          conn.updateProfileStatus(`🔰 ${config.botname || 'Bot'} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())} ⏳\n\n   ${config.botname || 'Bot'} is alive 🎉`)
-        }
+        conn.updateProfileStatus(`🔰 ${config.botname || 'Bot'} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: �𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())} ⏳\n\n   ${config.botname || 'Bot'} is alive 🎉`)
       }
       updateBio()
       bioInterval = setInterval(updateBio, 60000) // Update every minute
     }
-
     conn.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update
 
