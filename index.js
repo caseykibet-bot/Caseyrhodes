@@ -102,14 +102,16 @@ async function connectToWA() {
     })
 	
     // Auto Bio Configuration
-    const autobio = config.AUTO_BIO || 'on' // Default to 'off' if not configured
+    const autobio = config.AUTO_BIO || 'on' // Default to 'on' if not configured
     let bioInterval
 
     if (autobio === 'on') {
       const updateBio = () => {
         const date = new Date()
-        const bioText = `📅 DATE/TIME: ${date.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' })} | DAY: ${date.toLocaleString('en-US', { weekday: 'long', timeZone: 'Africa/Nairobi'})} | ᴄᴀsᴇʏʀʜᴏᴅᴇs xᴍᴅ ɪs ᴀʟɪᴠᴇ 🎉`
-        conn.updateProfileStatus(bioText).catch(err => console.log('Error updating bio:', err))
+        // 🔄 Auto Set Bio 🔄
+        if (config.AUTO_BIO === 'true') {
+          conn.updateProfileStatus(`🔰 ${config.botname || 'Bot'} is Live! 🎉\n\n           🕒 𝙐𝙥𝙩𝙞𝙢𝙚: 𝘙𝘶𝘯𝘯𝘪𝘯𝘨 𝘍𝘰𝘳 ${runtime(process.uptime())} ⏳\n\n   ${config.botname || 'Bot'} is alive 🎉`)
+        }
       }
       updateBio()
       bioInterval = setInterval(updateBio, 60000) // Update every minute
