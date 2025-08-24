@@ -34,21 +34,31 @@ cmd({
     else if (mimeType.includes('image/png')) extension = '.png';
     else if (mimeType.includes('video')) extension = '.mp4';
     else if (mimeType.includes('audio')) extension = '.mp3';
+    else if (mimeType.includes('gif')) extension = '.gif';
+    else extension = '.bin'; // Default extension
     
     const fileName = `file${extension}`;
 
     // Prepare form data for Catbox
     const form = new FormData();
-    form.append('fileToUpload', fs.createReadStream(tempFilePath), fileName);
     form.append('reqtype', 'fileupload');
-
-    // Upload to Catbox
-    const response = await axios.post("https://catbox.moe/user/api.php", form, {
-      headers: form.getHeaders()
+    form.append('userhash', ''); // Empty userhash for anonymous upload
+    form.append('fileToUpload', fs.createReadStream(tempFilePath), {
+      filename: fileName,
+      contentType: mimeType
     });
 
-    if (!response.data) {
-      throw "Error uploading to Catbox";
+    // Upload to Catbox with proper headers
+    const response = await axios.post("https://catbox.moe/user/api.php", form, {
+      headers: {
+        ...form.getHeaders(),
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      timeout: 30000
+    });
+
+    if (!response.data || response.data.includes('error')) {
+      throw "Error uploading to Catbox: " + (response.data || 'No response');
     }
 
     const mediaUrl = response.data;
@@ -83,7 +93,7 @@ cmd({
     }, { quoted: message });
 
   } catch (error) {
-    console.error(error);
+    console.error('Upload error:', error);
     await reply(`Error: ${error.message || error}`);
   }
 });
