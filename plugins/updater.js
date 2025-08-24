@@ -15,23 +15,25 @@ cmd({
 }, async (conn, mek, m, { from, reply, isOwner }) => {
     if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
-    try {
-        // Newsletter configuration
-        const newsletterConfig = {
-            contextInfo: {
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐔𝐏𝐃𝐀𝐓𝐄𝐒',
-                    serverMessageId: 143
-                }
+    // Newsletter configuration
+    const newsletterConfig = {
+        contextInfo: {
+            mentionedJid: [m.sender],
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363302677217436@newsletter',
+                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐔𝐏𝐃𝐀𝐓𝐄𝐒',
+                serverMessageId: 143
             }
-        };
+        }
+    };
 
-        // Initial update check message with newsletter
-        await conn.sendMessage(from, {
+    let updateMessage = null;
+
+    try {
+        // Send initial message and store it for editing
+        updateMessage = await conn.sendMessage(from, {
             text: "🔍 *Checking for CASEYRHODES-XMD updates...*",
             ...newsletterConfig
         }, { quoted: mek });
@@ -42,17 +44,23 @@ cmd({
         const currentHash = await getCommitHash();
 
         if (latestCommitHash === currentHash) {
-            return await conn.sendMessage(from, {
+            await conn.sendMessage(from, {
                 text: "✅ *Your CASEYRHODES-XMD bot is already up-to-date!*",
                 ...newsletterConfig
             }, { quoted: mek });
+            return;
         }
 
-        // Update progress message
-        await conn.sendMessage(from, {
-            text: "🚀 *Updating CASEYRHODES-XMD Bot...*\n\n_This may take a few moments..._",
-            ...newsletterConfig
-        }, { quoted: mek });
+        // Update the message with progress
+        await conn.relayMessage(from, {
+            protocolMessage: {
+                key: updateMessage.key,
+                type: 14,
+                editedMessage: {
+                    conversation: "🚀 *Updating CASEYRHODES-XMD Bot...*\n\n_This may take a few moments..._"
+                }
+            }
+        }, {});
 
         // Download the latest code
         const zipPath = path.join(__dirname, "latest.zip");
@@ -64,22 +72,34 @@ cmd({
         });
         fs.writeFileSync(zipPath, zipData);
 
-        // Extract ZIP file
-        await conn.sendMessage(from, {
-            text: "📦 *Extracting the latest code...*",
-            ...newsletterConfig
-        }, { quoted: mek });
+        // Update message for extraction
+        await conn.relayMessage(from, {
+            protocolMessage: {
+                key: updateMessage.key,
+                type: 14,
+                editedMessage: {
+                    conversation: "📦 *Extracting the latest code...*"
+                }
+            }
+        }, {});
 
+        // Extract ZIP file
         const extractPath = path.join(__dirname, 'latest');
         const zip = new AdmZip(zipPath);
         zip.extractAllTo(extractPath, true);
 
-        // Copy updated files
-        await conn.sendMessage(from, {
-            text: "🔄 *Replacing files while preserving your config...*",
-            ...newsletterConfig
-        }, { quoted: mek });
+        // Update message for file replacement
+        await conn.relayMessage(from, {
+            protocolMessage: {
+                key: updateMessage.key,
+                type: 14,
+                editedMessage: {
+                    conversation: "🔄 *Replacing files while preserving your config...*"
+                }
+            }
+        }, {});
 
+        // Copy updated files
         const sourcePath = path.join(extractPath, "CASEYRHODES-XMD-main");
         const destinationPath = path.join(__dirname, '..');
         copyFolderSync(sourcePath, destinationPath);
@@ -91,24 +111,53 @@ cmd({
         fs.unlinkSync(zipPath);
         fs.rmSync(extractPath, { recursive: true, force: true });
 
-        // Final success message with image
+        // Final success message
+        await conn.relayMessage(from, {
+            protocolMessage: {
+                key: updateMessage.key,
+                type: 14,
+                editedMessage: {
+                    conversation: "✅ *Update complete!*\n\n_Restarting the bot to apply changes..._\n\n⚡ Powered by CASEYRHODES-TECH"
+                }
+            }
+        }, {});
+
+        // Send image separately
         await conn.sendMessage(from, {
             image: { 
                 url: "https://i.ibb.co/wN6Gw0ZF/lordcasey.jpg",
                 mimetype: "image/jpeg"
             },
-            caption: "✅ *Update complete!*\n\n_Restarting the bot to apply changes..._\n\n⚡ Powered by CASEYRHODES-TECH",
+            caption: "✅ *Update Complete!*",
             ...newsletterConfig
         }, { quoted: mek });
 
-        // Restart the bot
-        process.exit(0);
+        // Restart the bot after a short delay
+        setTimeout(() => {
+            process.exit(0);
+        }, 2000);
+
     } catch (error) {
         console.error("Update error:", error);
-        await conn.sendMessage(from, {
-            text: `❌ *Update failed!*\n\nError: ${error.message}\n\nPlease try manually or contact support.`,
-            ...newsletterConfig
-        }, { quoted: mek });
+        
+        // Edit the message to show error if it exists
+        if (updateMessage) {
+            await conn.relayMessage(from, {
+                protocolMessage: {
+                    key: updateMessage.key,
+                    type: 14,
+                    editedMessage: {
+                        conversation: `❌ *Update failed!*\n\nError: ${error.message}\n\nPlease try manually or contact support.`
+                    }
+                }
+            }, {});
+        } else {
+            // Fallback to sending a new message
+            await conn.sendMessage(from, {
+                text: `❌ *Update failed!*\n\nError: ${error.message}\n\nPlease try manually or contact support.`,
+                ...newsletterConfig
+            }, { quoted: mek });
+        }
     }
 });
 
