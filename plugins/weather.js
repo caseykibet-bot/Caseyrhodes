@@ -33,6 +33,10 @@ END:VCARD`;
         const response = await axios.get(url);
         const data = response.data;
 
+        // Generate weather image URL
+        const weatherIcon = data.weather[0].icon;
+        const imageUrl = `https://openweathermap.org/img/wn/${weatherIcon}@2x.png`;
+
         const weather = `
 > 🌍 *Weather for ${data.name}, ${data.sys.country}*  
 > 🌡️ *Temp:* ${data.main.temp}°C  
@@ -49,7 +53,8 @@ END:VCARD`;
 `;
 
         await conn.sendMessage(from, {
-            text: weather,
+            image: { url: imageUrl },
+            caption: weather,
             contextInfo: {
                 mentionedJid: [sender],
                 forwardingScore: 999,
@@ -70,4 +75,3 @@ END:VCARD`;
         return reply("⚠️ An error occurred while fetching the weather information. Please try again later.");
     }
 });
-                        
