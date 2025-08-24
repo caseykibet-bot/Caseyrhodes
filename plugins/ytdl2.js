@@ -1,21 +1,19 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const { ytsearch } = require('@dark-yasiya/yt-dl.js'); 
+const { ytsearch } = require('@dark-yasiya/yt-dl.js');
 
-// Store user choices temporarily
-const userChoices = new Map();
-
+// MP4 video download
 cmd({ 
-    pattern: "video", 
-    alias: ["video", "ytv"], 
+    pattern: "mp4", 
+    alias: ["videos"], 
     react: "🎥", 
-    desc: "Download Youtube video", 
+    desc: "Download YouTube video", 
     category: "main", 
-    use: '.video <Yt url or Name>', 
+    use: '.mp4 < Yt url or Name >', 
     filename: __filename 
-}, async (conn, mek, m, { from, prefix, quoted, q, reply, sender }) => { 
+}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
     try { 
-        if (!q) return await reply("*𝐏ℓєαʂє 𝐏ɼ๏νιɖє 𝐀 𝐘ʈ 𝐔ɼℓ ๏ɼ 𝐕ιɖє๏ 𝐍αмє..*");
+        if (!q) return await reply("Please provide a YouTube URL or song name.");
         
         const yt = await ytsearch(q);
         if (yt.results.length < 1) return reply("No results found!");
@@ -26,86 +24,107 @@ cmd({
         let response = await fetch(apiUrl);
         let data = await response.json();
         
-        if (data.status !== 200 || !data.success || !data.result.download_url) {
+        if (data.status !== 200 || !data.success || !data.result?.download_url) {
             return reply("Failed to fetch the video. Please try again later.");
         }
-        
-        // Store video data for this user
-        userChoices.set(sender, {
-            downloadUrl: data.result.download_url,
-            title: yts.title,
-            thumbnail: data.result.thumbnail || ''
-        });
-        
-        // Format message like in the image
-        let ytmsg = `*Vievo channel*\n\n` +
-                   `*Video ${yts.title}*\n` +
-                   `${yts.timestamp}\n\n` +
-                   `_Forwarded many times_\n` +
-                   `Get more info about this message. Search on web\n` +
-                   `*CASEYRHODES-TECH*\n` +
-                   `\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n` +
-                   `*casey*\n` +
-                   `- video ${yts.title}\n` +
-                   `\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n` +
-                   `*Video Details*\n` +
-                   `*Title:* ${yts.title}\n` +
-                   `*Duration:* ${yts.timestamp}\n\n` +
-                   `*Views:* ${yts.views}\n` +
-                   `*Author:* ${yts.author.name}\n` +
-                   `*Link:* ${yts.url}\n\n` +
-                   `*Choose download format:*\n` +
-                   `1. *Document* (no preview)\n` +
-                   `2. *Normal Video* (with preview)\n\n` +
-                   `Reply to this message with 1 or 2 to download.`;
-        
-        // Send video details with format options
-        await conn.sendMessage(from, { 
-            image: { url: data.result.thumbnail || '' }, 
-            caption: ytmsg 
+
+        let ytmsg = `📹 *Video Details*
+🎬 *Title:* ${yts.title}
+⏳ *Duration:* ${yts.timestamp}
+👀 *Views:* ${yts.views}
+👤 *Author:* ${yts.author.name}
+🔗 *Link:* ${yts.url}
+
+*Choose download format:*
+1. 📄 Document (no preview)
+2. ▶️ Normal Video (with preview)
+
+_Reply to this message with 1 or 2 to download._`;
+
+        let contextInfo = {
+            mentionedJid: [m.sender],
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363302677217436@newsletter',
+                newsletterName: 'CASEYRHODES-XMD',
+                serverMessageId: 143
+            }
+        };
+
+        // Send thumbnail with options
+        const videoMsg = await conn.sendMessage(from, { 
+            image: { url: yts.thumbnail }, 
+            caption: ytmsg, 
+            contextInfo 
         }, { quoted: mek });
 
-    } catch (e) {
-        console.log(e);
-        reply("An error occurred. Please try again later.");
-    }
-});
-
-// Handle user format selection
-cmd({
-    on: "text",
-    fromMe: false,
-    dontAddCommandList: true
-}, async (conn, mek, m, { from, sender, reply, quotedMsg }) => {
-    try {
-        // Check if this is a response to a video request
-        if (userChoices.has(sender) && quotedMsg) {
-            const choice = mek.text.trim();
-            const videoData = userChoices.get(sender);
-            
-            if (choice === '1' || choice === '2') {
-                // Remove user choice to prevent re-triggering
-                userChoices.delete(sender);
+        // Create a message listener for this specific interaction
+        const messageHandler = async (msgUpdate) => {
+            try {
+                if (!msgUpdate.messages || msgUpdate.messages.length === 0) return;
                 
-                if (choice === '1') {
-                    // Send as document
-                    await conn.sendMessage(from, { 
-                        document: { url: videoData.downloadUrl }, 
-                        mimetype: "video/mp4", 
-                        fileName: `${videoData.title.replace(/[^\w\s]/gi, '')}.mp4`, 
-                        caption: `📁 ${videoData.title}\n_© ᴘᴏᴡᴇʀᴇᴅ ʙʏ caseyrjodes_`
-                    }, { quoted: mek });
-                } else if (choice === '2') {
-                    // Send as normal video
-                    await conn.sendMessage(from, { 
-                        video: { url: videoData.downloadUrl }, 
+                const replyMsg = msgUpdate.messages[0];
+                if (!replyMsg.message || !replyMsg.message.extendedTextMessage) return;
+                
+                // Check if this is a reply to our video message
+                const contextInfo = replyMsg.message.extendedTextMessage.contextInfo;
+                if (!contextInfo || contextInfo.stanzaId !== videoMsg.key.id) return;
+                
+                const selected = replyMsg.message.extendedTextMessage.text.trim();
+                
+                // Remove listener to prevent multiple responses
+                conn.ev.off("messages.upsert", messageHandler);
+                
+                await conn.sendMessage(from, { react: { text: "⬇️", key: replyMsg.key } });
+
+                const replyContextInfo = {
+                    mentionedJid: [m.sender],
+                    forwardingScore: 999,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363302677217436@newsletter',
+                        newsletterName: 'CASEYRHODES-XMD',
+                        serverMessageId: 143
+                    }
+                };
+
+                if (selected === "1") {
+                    await conn.sendMessage(from, {
+                        document: { url: data.result.download_url },
                         mimetype: "video/mp4",
-                        caption: `🎥 ${videoData.title}\n_© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴇɪᴛʜ-ᴛᴇᴄʜ_`
-                    }, { quoted: mek });
+                        fileName: `${yts.title.replace(/[^\w\s]/gi, '')}.mp4`,
+                        contextInfo: replyContextInfo
+                    }, { quoted: replyMsg });
+                } else if (selected === "2") {
+                    await conn.sendMessage(from, {
+                        video: { url: data.result.download_url },
+                        mimetype: "video/mp4",
+                        caption: yts.title,
+                        contextInfo: replyContextInfo
+                    }, { quoted: replyMsg });
+                } else {
+                    await conn.sendMessage(
+                        from,
+                        { text: "*Please reply with 1 or 2 only* ❤️", contextInfo: replyContextInfo },
+                        { quoted: replyMsg }
+                    );
                 }
+            } catch (error) {
+                console.error("Error in message handler:", error);
             }
-        }
+        };
+
+        // Add timeout to remove listener if no response
+        setTimeout(() => {
+            conn.ev.off("messages.upsert", messageHandler);
+        }, 60000); // Remove after 1 minute
+
+        // Add the listener
+        conn.ev.on("messages.upsert", messageHandler);
+
     } catch (e) {
-        console.log(e);
+        console.error("Error in mp4 command:", e);
+        reply("An error occurred. Please try again later.");
     }
 });
