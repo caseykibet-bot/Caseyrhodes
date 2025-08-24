@@ -20,7 +20,7 @@ cmd({
   }
   
   const encodedTitle = encodeURIComponent(songTitle);
-  const apiUrl = "https://zenz.biz.id/tools/genius?query=" + encodedTitle;
+  const apiUrl = "https://api.giftedtech.co.ke/api/search/lyrics?apikey=gifted&query=" + encodedTitle;
   
   try {
     const response = await fetch(apiUrl);
