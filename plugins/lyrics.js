@@ -23,13 +23,6 @@ cmd({
   const apiUrl = "https://api.giftedtech.co.ke/api/search/lyrics?apikey=gifted&query=" + encodedTitle;
   
   try {
-    // Show waiting message
-    await message.sendMessage(message.chat, { 
-      text: "🔍 Searching for lyrics..." 
-    }, { 
-      quoted: message 
-    });
-    
     const response = await fetch(apiUrl);
     const data = await response.json();
     
@@ -42,11 +35,10 @@ cmd({
       artist: artistName,
       album: albumName,
       url: songUrl,
-      lyrics: lyricsData,
-      image: imageUrl // Check if API returns an image
+      lyrics: lyricsData
     } = data.result;
     
-    // Build lyrics text
+    // Build lyrics text with proper concatenation
     let lyricsText = "╔════════𝐋𝐘𝐑𝐈𝐂𝐒 📃═══════╗" +
       "\n\n" +
       "🎼 *Title:* " + songTitleResult + "  \n\n" +
@@ -67,29 +59,7 @@ cmd({
     
     lyricsText += "\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ";
     
-    // If we have an image URL from the API, send image with caption
-    if (imageUrl) {
-      try {
-        // Download the image
-        const imageResponse = await fetch(imageUrl);
-        const imageBuffer = await imageResponse.buffer();
-        
-        // Send image with lyrics as caption
-        await client.sendMessage(message.chat, {
-          image: imageBuffer,
-          caption: lyricsText.trim(),
-          mimetype: 'image/jpeg'
-        }, {
-          quoted: message
-        });
-        return;
-      } catch (imgError) {
-        console.error("Image error:", imgError);
-        // Fall back to text only if image fails
-      }
-    }
-    
-    // If no image or image failed, send text only
+    // Send the lyrics
     await client.sendMessage(message.chat, {
       text: lyricsText.trim()
     }, {
