@@ -52,6 +52,20 @@ _Reply to this message with 1 or 2 to download._`;
             }
         };
 
+// Contact message for verified context
+const verifiedContact = {
+  key: {
+    fromMe: false,
+    participant: `0@s.whatsapp.net`,
+    remoteJid: "status@broadcast"
+  },
+  message: {
+    contactMessage: {
+      displayName: "CASEYRHODES VERIFIED ✅",
+      vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+13135550002\nEND:VCARD"
+    }
+  }
+};
         // Send thumbnail with options
         const videoMsg = await conn.sendMessage(from, { 
             image: { url: yts.thumbnail }, 
