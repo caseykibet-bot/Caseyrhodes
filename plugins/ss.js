@@ -66,12 +66,14 @@ cmd({
 
     await sleep(1000);
 
+    // Download the image first
+    const screenshotUrl = `https://image.thum.io/get/fullpage/${url}`;
+    const response = await axios.get(screenshotUrl, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(response.data, 'binary');
+
     // Send the actual screenshot with newsletter context
     await conn.sendMessage(from, {
-        image: { 
-          url: `https://image.thum.io/get/fullpage/${url}`,
-          mimetype: "image/jpeg"
-        },
+        image: buffer,
         caption: "🖼️ *Screenshot Generated*\n\n" +
                 "🔗 *Website:* " + url + "\n\n" +
                 "⚡ *Powered by CASEYRHODES-TECH*",
