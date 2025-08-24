@@ -141,7 +141,7 @@ cmd({
 2. 🎧 MP3 as Audio (Play)
 3. 🎙️ MP3 as Voice Note (PTT)
 
-_Reply with 1, 2 or 3 to this message to download the format you prefer._`;
+> _ʀᴇᴘʟʏ ᴡɪᴛʜ 1,2 ᴏʀ 3 ᴛᴏ ᴛʜɪs ᴍᴇssᴀɢᴇ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴛʜᴇ ғᴏʀᴍᴀᴛ ʏᴏᴜ ᴘʀᴇғᴇʀ._`;
         
         let contextInfo = {
             mentionedJid: [m.sender],
