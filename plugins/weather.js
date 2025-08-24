@@ -13,23 +13,25 @@ async (conn, mek, m, { from, q, reply, sender }) => {
     try {
         if (!q) return reply("❗ Please provide a city name. Usage: .weather [city name]");
 
-        // ✅ Create fake verified contact
-        const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:CASEYRHODES-XMD Official ✅
-TEL;waid=${sender.split('@')[0]}:${sender.split('@')[0]}
-END:VCARD`;
-
-        const fakeContact = await conn.sendMessage(from, {
-            contacts: {
-                displayName: "CASEYRHODES Official ✅",
-                contacts: [{ vcard }]
+        // Verification contact message
+        const verifiedContact = {
+            key: {
+                fromMe: false,
+                participant: `0@s.whatsapp.net`,
+                remoteJid: "status@broadcast"
+            },
+            message: {
+                contactMessage: {
+                    displayName: "CASEYRHODES VERIFIED ✅",
+                    vcard: "BEGIN:VCARD\nVERSION:3.0\nFN:Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+13135550002\nEND:VCARD"
+                }
             }
-        });
+        };
 
         const apiKey = '2d61a72574c11c4f36173b627f8cb177'; 
-        const city = q;
-        const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        const city = encodeURIComponent(q);
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        
         const response = await axios.get(url);
         const data = response.data;
 
@@ -65,12 +67,16 @@ END:VCARD`;
                     serverMessageId: 100
                 }
             }
-        }, { quoted: fakeContact });
+        }, { quoted: verifiedContact });
 
     } catch (e) {
-        console.log(e);
+        console.error("Weather command error:", e);
         if (e.response && e.response.status === 404) {
             return reply("🚫 City not found. Please check the spelling and try again.");
+        } else if (e.response && e.response.status === 401) {
+            return reply("🔑 API key error. Please check the weather API configuration.");
+        } else if (e.code === 'ENOTFOUND') {
+            return reply("🌐 Network error. Please check your internet connection.");
         }
         return reply("⚠️ An error occurred while fetching the weather information. Please try again later.");
     }
