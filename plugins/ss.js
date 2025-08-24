@@ -64,18 +64,6 @@ cmd({
         }, {});
     }
 
-    // Final update before sending
-    await sleep(800);
-    await conn.relayMessage(from, {
-        protocolMessage: {
-            key: loadingMsg.key,
-            type: 14,
-            editedMessage: {
-                conversation: "✅ Screenshot Captured!\n✦ Sending now..."
-            }
-        }
-    }, {});
-
     await sleep(1000);
 
     // Send the actual screenshot with newsletter context
@@ -87,12 +75,6 @@ cmd({
         caption: "🖼️ *Screenshot Generated*\n\n" +
                 "🔗 *Website:* " + url + "\n\n" +
                 "⚡ *Powered by CASEYRHODES-TECH*",
-        ...newsletterConfig
-    }, { quoted: mek });
-
-    // Send newsletter update message (without image)
-    await conn.sendMessage(from, { 
-        text: "🌟 *CASEYRHODES TECH UPDATE* 🌟\n\nStay updated with our latest features!",
         ...newsletterConfig
     }, { quoted: mek });
 
