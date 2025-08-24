@@ -41,6 +41,21 @@ cmd({
 
 _Reply to this message with 1 or 2 to download._`;
 
+        // Verification contact message
+        const verifiedContact = {
+            key: {
+                fromMe: false,
+                participant: `0@s.whatsapp.net`,
+                remoteJid: "status@broadcast"
+            },
+            message: {
+                contactMessage: {
+                    displayName: "CASEYRHODES VERIFIED ✅",
+                    vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:CASEYRHODES VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313-555-0002\nEND:VCARD`
+                }
+            }
+        };
+
         let contextInfo = {
             mentionedJid: [m.sender],
             forwardingScore: 999,
@@ -49,23 +64,10 @@ _Reply to this message with 1 or 2 to download._`;
                 newsletterJid: '120363302677217436@newsletter',
                 newsletterName: 'CASEYRHODES-XMD',
                 serverMessageId: 143
-            }
+            },
+            externalAdReply: verifiedContact
         };
 
-// Contact message for verified context
-const verifiedContact = {
-  key: {
-    fromMe: false,
-    participant: `0@s.whatsapp.net`,
-    remoteJid: "status@broadcast"
-  },
-  message: {
-    contactMessage: {
-      displayName: "CASEYRHODES VERIFIED ✅",
-      vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+13135550002\nEND:VCARD"
-    }
-  }
-};
         // Send thumbnail with options
         const videoMsg = await conn.sendMessage(from, { 
             image: { url: yts.thumbnail }, 
@@ -85,6 +87,9 @@ const verifiedContact = {
                 const contextInfo = replyMsg.message.extendedTextMessage.contextInfo;
                 if (!contextInfo || contextInfo.stanzaId !== videoMsg.key.id) return;
                 
+                // Check if message is from the same user and chat
+                if (replyMsg.key.remoteJid !== from || (replyMsg.key.participant && replyMsg.key.participant !== m.sender)) return;
+                
                 const selected = replyMsg.message.extendedTextMessage.text.trim();
                 
                 // Remove listener to prevent multiple responses
@@ -100,7 +105,8 @@ const verifiedContact = {
                         newsletterJid: '120363302677217436@newsletter',
                         newsletterName: 'CASEYRHODES-XMD',
                         serverMessageId: 143
-                    }
+                    },
+                    externalAdReply: verifiedContact
                 };
 
                 if (selected === "1") {
@@ -129,13 +135,13 @@ const verifiedContact = {
             }
         };
 
+        // Add the listener
+        conn.ev.on("messages.upsert", messageHandler);
+
         // Add timeout to remove listener if no response
         setTimeout(() => {
             conn.ev.off("messages.upsert", messageHandler);
         }, 60000); // Remove after 1 minute
-
-        // Add the listener
-        conn.ev.on("messages.upsert", messageHandler);
 
     } catch (e) {
         console.error("Error in mp4 command:", e);
