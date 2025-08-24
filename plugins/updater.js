@@ -15,7 +15,7 @@ cmd({
 }, async (conn, mek, m, { from, reply, isOwner }) => {
     if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
-    // Newsletter configuration
+    // Newsletter configuration (only for success message)
     const newsletterConfig = {
         contextInfo: {
             mentionedJid: [m.sender],
@@ -34,8 +34,7 @@ cmd({
     try {
         // Send initial message and store it for editing
         updateMessage = await conn.sendMessage(from, {
-            text: "🔍 *Checking for CASEYRHODES-XMD updates...*",
-            ...newsletterConfig
+            text: "🔍 *Checking for CASEYRHODES-XMD updates...*"
         }, { quoted: mek });
 
         // Fetch the latest commit hash from GitHub
@@ -44,10 +43,15 @@ cmd({
         const currentHash = await getCommitHash();
 
         if (latestCommitHash === currentHash) {
-            await conn.sendMessage(from, {
-                text: "✅ *Your CASEYRHODES-XMD bot is already up-to-date!*",
-                ...newsletterConfig
-            }, { quoted: mek });
+            await conn.relayMessage(from, {
+                protocolMessage: {
+                    key: updateMessage.key,
+                    type: 14,
+                    editedMessage: {
+                        conversation: "✅ *Your CASEYRHODES-XMD bot is already up-to-date!*"
+                    }
+                }
+            }, {});
             return;
         }
 
@@ -111,7 +115,7 @@ cmd({
         fs.unlinkSync(zipPath);
         fs.rmSync(extractPath, { recursive: true, force: true });
 
-        // Final success message
+        // Final success message with newsletter (only here)
         await conn.relayMessage(from, {
             protocolMessage: {
                 key: updateMessage.key,
@@ -122,7 +126,7 @@ cmd({
             }
         }, {});
 
-        // Send image separately
+        // Send image with newsletter configuration
         await conn.sendMessage(from, {
             image: { 
                 url: "https://i.ibb.co/wN6Gw0ZF/lordcasey.jpg",
@@ -154,8 +158,7 @@ cmd({
         } else {
             // Fallback to sending a new message
             await conn.sendMessage(from, {
-                text: `❌ *Update failed!*\n\nError: ${error.message}\n\nPlease try manually or contact support.`,
-                ...newsletterConfig
+                text: `❌ *Update failed!*\n\nError: ${error.message}\n\nPlease try manually or contact support.`
             }, { quoted: mek });
         }
     }
