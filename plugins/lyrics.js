@@ -23,6 +23,13 @@ cmd({
   const apiUrl = "https://api.giftedtech.co.ke/api/search/lyrics?apikey=gifted&query=" + encodedTitle;
   
   try {
+    // Show waiting message
+    await message.sendMessage(message.chat, { 
+      text: "🔍 Searching for lyrics..." 
+    }, { 
+      quoted: message 
+    });
+    
     const response = await fetch(apiUrl);
     const data = await response.json();
     
@@ -31,29 +38,25 @@ cmd({
     }
     
     const {
-      title: songTitle,
+      title: songTitleResult,
       artist: artistName,
       album: albumName,
       url: songUrl,
-      lyrics: lyricsData
+      lyrics: lyricsData,
+      image: imageUrl // Check if API returns an image
     } = data.result;
     
-    // Generate image URL for the query
-    const imageQuery = encodeURIComponent(`${songTitle} ${artistName} album cover`);
-    const imageUrl = `https://source.unsplash.com/featured/300x300/?${imageQuery}`;
+    // Build lyrics text
+    let lyricsText = "╔════════𝐋𝐘𝐑𝐈𝐂𝐒 📃═══════╗" +
+      "\n\n" +
+      "🎼 *Title:* " + songTitleResult + "  \n\n" +
+      "🧖🏻‍♂ *Artist:* " + artistName + "  \n\n" +
+      "💾 *Album:* " + (albumName || "Unknown") + "  \n\n" +
+      "🔗 *Listen Here:* " + songUrl + "\n\n" +
+      "╟───────📃 *Lyrics:*───────╢" +
+      "\n\n";
     
-    let lyricsText = 
-      "╔════════𝐋𝐘𝐑𝐈𝐂𝐒 📃═══════╗"
-      + "\n\n"
-      + "🎼 *Title:* " + songTitle + "  \n\n"
-      + "🧖🏻‍♂ *Artist:* " + artistName + "  \n\n"
-      + "💾 *Album:* " + albumName + "  \n\n"
-      + "🔗 *Listen Here:* " + songUrl + "\n\n"
-      + "🖼 *Image:* " + imageUrl + "\n\n"
-      + "╟───────📃 *Lyrics:*───────╢"
-      + "\n\n\n\n"
-      + "> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ";
-    
+    // Process lyrics sections
     for (const lyricSection of lyricsData) {
       if (lyricSection.type === "header") {
         lyricsText += "\n\n*" + lyricSection.text + "*\n";
@@ -62,19 +65,35 @@ cmd({
       }
     }
     
-    await message.sendMessage(client.chat, {
-      'text': lyricsText.trim(),
-      'contextInfo': {
-        'forwardingScore': 999,
-        'isForwarded': true,
-        'forwardedNewsletterMessageInfo': {
-          'newsletterJid': '120363302677217436@newsletter',
-          'newsletterName': "𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐋𝐘𝐑𝐈𝐂𝐒📃",
-          'serverMessageId': 1
-        }
+    lyricsText += "\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ";
+    
+    // If we have an image URL from the API, send image with caption
+    if (imageUrl) {
+      try {
+        // Download the image
+        const imageResponse = await fetch(imageUrl);
+        const imageBuffer = await imageResponse.buffer();
+        
+        // Send image with lyrics as caption
+        await client.sendMessage(message.chat, {
+          image: imageBuffer,
+          caption: lyricsText.trim(),
+          mimetype: 'image/jpeg'
+        }, {
+          quoted: message
+        });
+        return;
+      } catch (imgError) {
+        console.error("Image error:", imgError);
+        // Fall back to text only if image fails
       }
+    }
+    
+    // If no image or image failed, send text only
+    await client.sendMessage(message.chat, {
+      text: lyricsText.trim()
     }, {
-      'quoted': client
+      quoted: message
     });
     
   } catch (error) {
