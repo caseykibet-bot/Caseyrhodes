@@ -1,10 +1,11 @@
 const { cmd } = require('../command');
 const axios = require('axios');
-const config = require('../config'); // Make sure you have config file with OWNER_NUMBER
+const config = require('../config'); // Make sure you have this config file
 
+// OpenAI command
 cmd({
     pattern: "openai",
-    alias: ["chatgpt", "gpt3", "open-gpt","gpt5"],
+    alias: ["chatgpt", "gpt3", "open-gpt", "gpt5"],
     desc: "Chat with OpenAI",
     category: "ai",
     react: "🧠",
@@ -31,6 +32,7 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
     }
 });
 
+// Main AI command with newsletter integration
 cmd({
     pattern: "ai",
     alias: ["bot", "xd", "gpt", "gpt4", "bing"],
@@ -54,7 +56,25 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
 
         if (ownerQuestions.includes(q.toLowerCase())) {
             const statusText = `🤖 My creator is CASEYRHODES-AI, a brilliant and unique programmer whose creativity brings me to life, writing code with precision and elegance, passionate about technology and innovation, inspiring others with his genius, and making every bot a reflection of his extraordinary skills. ☕\nContact: ${config.OWNER_NUMBER}`;
-            return await reply(statusText);
+            
+            // Send creator info with image and newsletter integration
+            await conn.sendMessage(from, { 
+                image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
+                caption: statusText,
+                contextInfo: {
+                    mentionedJid: [m.sender],
+                    forwardingScore: 999,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363302677217436@newsletter',
+                        newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐈 🤖',
+                        serverMessageId: 143
+                    }
+                }
+            }, { quoted: mek });
+            
+            await react("✅");
+            return;
         }
 
         const apiUrl = `https://lance-frank-asta.onrender.com/api/gpt?q=${encodeURIComponent(q)}`;
@@ -67,7 +87,7 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
         
         const status = `🤖 *CASEYRHODES-XMD AI Response:*\n\n${data.message}`;
         
-        // Send image + caption + audio combined with newsletter info
+        // Send image + caption with newsletter info
         await conn.sendMessage(from, { 
             image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
             caption: status,
@@ -90,7 +110,8 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
         reply("An error occurred while communicating with the AI.");
     }
 });
-         
+
+// DeepSeek AI command
 cmd({
     pattern: "deepseek",
     alias: ["deep", "seekai"],
