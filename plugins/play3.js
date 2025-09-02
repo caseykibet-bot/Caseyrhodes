@@ -3,7 +3,6 @@ const { cmd } = require('../command');
 const { ytsearch } = require('@dark-yasiya/yt-dl.js');
 
 // MP4 video download
-// MP4 video download with options
 cmd({ 
     pattern: "video", 
     alias: ["videos"], 
@@ -54,48 +53,79 @@ cmd({
         };
 
         // Send thumbnail with options
-        const videoMsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
+        const videoMsg = await conn.sendMessage(from, { 
+            image: { url: yts.thumbnail }, 
+            caption: ytmsg, 
+            contextInfo 
+        }, { quoted: mek });
 
-        conn.ev.on("messages.upsert", async (msgUpdate) => {
-            const replyMsg = msgUpdate.messages[0];
-            if (!replyMsg.message || !replyMsg.message.extendedTextMessage) return;
+        // Store the message info for later response handling
+        const messageId = videoMsg.key.id;
+        
+        // Create a response handler for this specific message
+        const responseHandler = async (msg) => {
+            if (!msg.message || !msg.message.extendedTextMessage) return;
+            
+            const replyContext = msg.message.extendedTextMessage.contextInfo;
+            if (!replyContext || replyContext.stanzaId !== messageId) return;
+            
+            const selected = msg.message.extendedTextMessage.text.trim();
+            
+            await conn.sendMessage(from, { react: { text: "⬇️", key: msg.key } });
 
-            const selected = replyMsg.message.extendedTextMessage.text.trim();
+            switch (selected) {
+                case "1":
+                    await conn.sendMessage(from, {
+                        document: { url: data.result.download_url },
+                        mimetype: "video/mp4",
+                        fileName: `${yts.title}.mp4`,
+                        contextInfo: {
+                            ...contextInfo,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: '120363302677217436@newsletter',
+                                newsletterName: 'CASEYRHODES-XMD',
+                                serverMessageId: 144
+                            }
+                        }
+                    }, { quoted: msg });
+                    break;
 
-            if (
-                replyMsg.message.extendedTextMessage.contextInfo &&
-                replyMsg.message.extendedTextMessage.contextInfo.stanzaId === videoMsg.key.id
-            ) {
-                await conn.sendMessage(from, { react: { text: "⬇️", key: replyMsg.key } });
+                case "2":
+                    await conn.sendMessage(from, {
+                        video: { url: data.result.download_url },
+                        mimetype: "video/mp4",
+                        caption: yts.title,
+                        contextInfo: {
+                            ...contextInfo,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: '120363302677217436@newsletter',
+                                newsletterName: 'CASEYRHODES-XMD',
+                                serverMessageId: 145
+                            }
+                        }
+                    }, { quoted: msg });
+                    break;
 
-                switch (selected) {
-                    case "1":
-                        await conn.sendMessage(from, {
-                            document: { url: data.result.download_url },
-                            mimetype: "video/mp4",
-                            fileName: `${yts.title}.mp4`,
-                            contextInfo
-                        }, { quoted: replyMsg });
-                        break;
-
-                    case "2":
-                        await conn.sendMessage(from, {
-                            video: { url: data.result.download_url },
-                            mimetype: "video/mp4",
-                            contextInfo
-                        }, { quoted: replyMsg });
-                        break;
-
-                    default:
-                        await conn.sendMessage(
-                            from,
-                            { text: "*Please Reply with ( 1 , 2 or 3) ❤️" },
-                            { quoted: replyMsg }
-                        );
-                        break;
-                }
+                default:
+                    await conn.sendMessage(
+                        from,
+                        { text: "*Please Reply with ( 1 or 2) ❤️*" },
+                        { quoted: msg }
+                    );
+                    return; // Don't remove listener for invalid response
             }
-        });
+            
+            // Remove the listener after successful handling
+            conn.ev.off('messages.upsert', responseHandler);
+        };
+
+        // Add the listener
+        conn.ev.on('messages.upsert', responseHandler);
+        
+        // Set timeout to remove listener after 2 minutes
+        setTimeout(() => {
+            conn.ev.off('messages.upsert', responseHandler);
+        }, 120000);
 
     } catch (e) {
         console.log(e);
@@ -103,7 +133,7 @@ cmd({
     }
 });
 
-// MP3 song download
+// MP3 song download - Fixed version
 cmd({ 
     pattern: "song", 
     alias: ["ytdl3", "play"], 
@@ -154,53 +184,91 @@ cmd({
             }
         };
         
-        // Send thumbnail with caption only
-  const songmsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
+        // Send thumbnail with caption
+        const songMsg = await conn.sendMessage(from, { 
+            image: { url: yts.thumbnail }, 
+            caption: ytmsg, 
+            contextInfo 
+        }, { quoted: mek });
 
-  
-     
-                     conn.ev.on("messages.upsert", async (msgUpdate) => {
+        const messageId = songMsg.key.id;
         
+        // Create response handler
+        const responseHandler = async (msg) => {
+            if (!msg.message || !msg.message.extendedTextMessage) return;
+            
+            const replyContext = msg.message.extendedTextMessage.contextInfo;
+            if (!replyContext || replyContext.stanzaId !== messageId) return;
+            
+            const selectedOption = msg.message.extendedTextMessage.text.trim();
+            
+            await conn.sendMessage(from, { react: { text: "⬇️", key: msg.key } });
 
-                const mp3msg = msgUpdate.messages[0];
-                if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
+            switch (selectedOption) {
+                case "1":   
+                    await conn.sendMessage(from, { 
+                        document: { url: data.result.downloadUrl }, 
+                        mimetype: "audio/mpeg", 
+                        fileName: `${yts.title}.mp3`, 
+                        contextInfo: {
+                            ...contextInfo,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: '120363302677217436@newsletter',
+                                newsletterName: 'CASEYRHODES-TECH',
+                                serverMessageId: 144
+                            }
+                        }
+                    }, { quoted: msg });   
+                    break;
+                case "2":   
+                    await conn.sendMessage(from, { 
+                        audio: { url: data.result.downloadUrl }, 
+                        mimetype: "audio/mpeg", 
+                        contextInfo: {
+                            ...contextInfo,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: '120363302677217436@newsletter',
+                                newsletterName: 'CASEYRHODES-TECH',
+                                serverMessageId: 145
+                            }
+                        }
+                    }, { quoted: msg });
+                    break;
+                case "3":   
+                    await conn.sendMessage(from, { 
+                        audio: { url: data.result.downloadUrl }, 
+                        mimetype: "audio/mpeg", 
+                        ptt: true, 
+                        contextInfo: {
+                            ...contextInfo,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: '120363302677217436@newsletter',
+                                newsletterName: 'CASEYRHODES-TECH',
+                                serverMessageId: 146
+                            }
+                        }
+                    }, { quoted: msg });
+                    break;
+                default:
+                    await conn.sendMessage(
+                        from,
+                        { text: "*Invalid selection please select between (1, 2 or 3) 🔴*" },
+                        { quoted: msg }
+                    );
+                    return; // Don't remove listener for invalid response
+            }
+            
+            // Remove the listener after successful handling
+            conn.ev.off('messages.upsert', responseHandler);
+        };
 
-                const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
-
-                if (
-                    mp3msg.message.extendedTextMessage.contextInfo &&
-                    mp3msg.message.extendedTextMessage.contextInfo.stanzaId === songmsg.key.id
-                ) {
-                
-                            
-                   await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
-
-                    switch (selectedOption) {
-case "1":   
-
-      
-      
-   await conn.sendMessage(from, { document: { url: data.result.downloadUrl }, mimetype: "audio/mpeg", fileName: `${yts.title}.mp3`, contextInfo }, { quoted: mp3msg });   
-      
-      
-break;
-case "2":   
-await conn.sendMessage(from, { audio: { url: data.result.downloadUrl }, mimetype: "audio/mpeg", contextInfo }, { quoted: mp3msg });
-break;
-case "3":   
-await conn.sendMessage(from, { audio: { url: data.result.downloadUrl }, mimetype: "audio/mpeg", ptt: true, contextInfo }, { quoted: mp3msg });
-break;
-
-
-default:
-                            await conn.sendMessage(
-                                from,
-                                {
-                                    text: "*invalid selection please select between ( 1 or 2 or 3) 🔴*",
-                                },
-                                { quoted: mp3msg }
-                            );
-             }}});
+        // Add the listener
+        conn.ev.on('messages.upsert', responseHandler);
+        
+        // Set timeout to remove listener after 2 minutes
+        setTimeout(() => {
+            conn.ev.off('messages.upsert', responseHandler);
+        }, 120000);
            
     } catch (e) {
         console.log(e);
