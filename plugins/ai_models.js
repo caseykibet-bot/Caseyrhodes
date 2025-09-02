@@ -1,5 +1,6 @@
 const { cmd } = require('../command');
 const axios = require('axios');
+const config = require('../config'); // Make sure you have config file with OWNER_NUMBER
 
 cmd({
     pattern: "openai",
@@ -41,6 +42,20 @@ cmd({
 async (conn, mek, m, { from, args, q, reply, react }) => {
     try {
         if (!q) return reply("Please provide a message for the AI.\nExample: `.ai Hello`");
+        
+        // Special case: user asks who is your creator
+        const ownerQuestions = [
+            "who is your creator",
+            "who is your owner",
+            "who owns you",
+            "who is your boss",
+            "who created you"
+        ];
+
+        if (ownerQuestions.includes(q.toLowerCase())) {
+            const statusText = `🤖 My creator is CASEYRHODES-AI, a brilliant and unique programmer whose creativity brings me to life, writing code with precision and elegance, passionate about technology and innovation, inspiring others with his genius, and making every bot a reflection of his extraordinary skills. ☕\nContact: ${config.OWNER_NUMBER}`;
+            return await reply(statusText);
+        }
 
         const apiUrl = `https://lance-frank-asta.onrender.com/api/gpt?q=${encodeURIComponent(q)}`;
         const { data } = await axios.get(apiUrl);
