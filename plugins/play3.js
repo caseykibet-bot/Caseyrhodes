@@ -133,7 +133,7 @@ cmd({
     }
 });
 
-// MP3 song download - Fixed version
+// MP3 song download - Fixed version with multiple APIs
 cmd({ 
     pattern: "song", 
     alias: ["ytdl3", "play"], 
@@ -150,13 +150,56 @@ cmd({
         if (yt.results.length < 1) return reply("No results found!");
         
         let yts = yt.results[0];  
-        let apiUrl = `https://api.giftedtech.co.ke/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(yts.url)}`;
         
-        let response = await fetch(apiUrl);
-        let data = await response.json();
+        // List of APIs to try
+        const apis = [
+            `https://api.giftedtech.co.ke/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(yts.url)}`,
+            `https://apis-keith.vercel.app/download/ytmp3?url=${encodeURIComponent(yts.url)}`,
+            `https://apis-keith.vercel.app/download/mp3?url=${encodeURIComponent(yts.url)}`,
+            `https://apis-keith.vercel.app/download/dlmp3?url=${encodeURIComponent(yts.url)}`,
+            `https://apis-keith.vercel.app/download/audio?url=${encodeURIComponent(yts.url)}`
+        ];
         
-        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
-            return reply("Failed to fetch the audio. Please try again later.");
+        let data = null;
+        let success = false;
+        
+        // Try each API until one works
+        for (let apiUrl of apis) {
+            try {
+                let response = await fetch(apiUrl);
+                data = await response.json();
+                
+                // Check if the API response is valid
+                if (data && (data.status === 200 || data.success || data.downloadUrl || 
+                    (data.result && data.result.downloadUrl) || data.url || data.direct_url)) {
+                    success = true;
+                    break;
+                }
+            } catch (error) {
+                console.log(`API ${apiUrl} failed:`, error);
+                // Continue to next API
+                continue;
+            }
+        }
+        
+        if (!success) {
+            return reply("Failed to fetch the audio from all APIs. Please try again later.");
+        }
+        
+        // Extract download URL based on different API response formats
+        let downloadUrl = "";
+        if (data.downloadUrl) {
+            downloadUrl = data.downloadUrl;
+        } else if (data.result && data.result.downloadUrl) {
+            downloadUrl = data.result.downloadUrl;
+        } else if (data.url) {
+            downloadUrl = data.url;
+        } else if (data.direct_url) {
+            downloadUrl = data.direct_url;
+        } else if (data.link) {
+            downloadUrl = data.link;
+        } else {
+            return reply("Could not extract download URL from API response.");
         }
         
         let ytmsg = `🎵 *Song Details*
@@ -207,7 +250,7 @@ cmd({
             switch (selectedOption) {
                 case "1":   
                     await conn.sendMessage(from, { 
-                        document: { url: data.result.downloadUrl }, 
+                        document: { url: downloadUrl }, 
                         mimetype: "audio/mpeg", 
                         fileName: `${yts.title}.mp3`, 
                         contextInfo: {
@@ -222,7 +265,7 @@ cmd({
                     break;
                 case "2":   
                     await conn.sendMessage(from, { 
-                        audio: { url: data.result.downloadUrl }, 
+                        audio: { url: downloadUrl }, 
                         mimetype: "audio/mpeg", 
                         contextInfo: {
                             ...contextInfo,
@@ -236,7 +279,7 @@ cmd({
                     break;
                 case "3":   
                     await conn.sendMessage(from, { 
-                        audio: { url: data.result.downloadUrl }, 
+                        audio: { url: downloadUrl }, 
                         mimetype: "audio/mpeg", 
                         ptt: true, 
                         contextInfo: {
