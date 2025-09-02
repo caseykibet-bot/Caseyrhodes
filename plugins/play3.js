@@ -3,6 +3,7 @@ const { cmd } = require('../command');
 const { ytsearch } = require('@dark-yasiya/yt-dl.js');
 
 // MP4 video download
+// MP4 video download with options
 cmd({ 
     pattern: "video", 
     alias: ["videos"], 
@@ -53,79 +54,48 @@ cmd({
         };
 
         // Send thumbnail with options
-        const videoMsg = await conn.sendMessage(from, { 
-            image: { url: yts.thumbnail }, 
-            caption: ytmsg, 
-            contextInfo 
-        }, { quoted: mek });
+        const videoMsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
 
-        // Store the message info for later response handling
-        const messageId = videoMsg.key.id;
-        
-        // Create a response handler for this specific message
-        const responseHandler = async (msg) => {
-            if (!msg.message || !msg.message.extendedTextMessage) return;
-            
-            const replyContext = msg.message.extendedTextMessage.contextInfo;
-            if (!replyContext || replyContext.stanzaId !== messageId) return;
-            
-            const selected = msg.message.extendedTextMessage.text.trim();
-            
-            await conn.sendMessage(from, { react: { text: "⬇️", key: msg.key } });
+        conn.ev.on("messages.upsert", async (msgUpdate) => {
+            const replyMsg = msgUpdate.messages[0];
+            if (!replyMsg.message || !replyMsg.message.extendedTextMessage) return;
 
-            switch (selected) {
-                case "1":
-                    await conn.sendMessage(from, {
-                        document: { url: data.result.download_url },
-                        mimetype: "video/mp4",
-                        fileName: `${yts.title}.mp4`,
-                        contextInfo: {
-                            ...contextInfo,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363302677217436@newsletter',
-                                newsletterName: 'CASEYRHODES-XMD',
-                                serverMessageId: 144
-                            }
-                        }
-                    }, { quoted: msg });
-                    break;
+            const selected = replyMsg.message.extendedTextMessage.text.trim();
 
-                case "2":
-                    await conn.sendMessage(from, {
-                        video: { url: data.result.download_url },
-                        mimetype: "video/mp4",
-                        caption: yts.title,
-                        contextInfo: {
-                            ...contextInfo,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363302677217436@newsletter',
-                                newsletterName: 'CASEYRHODES-XMD',
-                                serverMessageId: 145
-                            }
-                        }
-                    }, { quoted: msg });
-                    break;
+            if (
+                replyMsg.message.extendedTextMessage.contextInfo &&
+                replyMsg.message.extendedTextMessage.contextInfo.stanzaId === videoMsg.key.id
+            ) {
+                await conn.sendMessage(from, { react: { text: "⬇️", key: replyMsg.key } });
 
-                default:
-                    await conn.sendMessage(
-                        from,
-                        { text: "*Please Reply with ( 1 or 2) ❤️*" },
-                        { quoted: msg }
-                    );
-                    return; // Don't remove listener for invalid response
+                switch (selected) {
+                    case "1":
+                        await conn.sendMessage(from, {
+                            document: { url: data.result.download_url },
+                            mimetype: "video/mp4",
+                            fileName: `${yts.title}.mp4`,
+                            contextInfo
+                        }, { quoted: replyMsg });
+                        break;
+
+                    case "2":
+                        await conn.sendMessage(from, {
+                            video: { url: data.result.download_url },
+                            mimetype: "video/mp4",
+                            contextInfo
+                        }, { quoted: replyMsg });
+                        break;
+
+                    default:
+                        await conn.sendMessage(
+                            from,
+                            { text: "*Please Reply with ( 1 , 2 or 3) ❤️" },
+                            { quoted: replyMsg }
+                        );
+                        break;
+                }
             }
-            
-            // Remove the listener after successful handling
-            conn.ev.off('messages.upsert', responseHandler);
-        };
-
-        // Add the listener
-        conn.ev.on('messages.upsert', responseHandler);
-        
-        // Set timeout to remove listener after 2 minutes
-        setTimeout(() => {
-            conn.ev.off('messages.upsert', responseHandler);
-        }, 120000);
+        });
 
     } catch (e) {
         console.log(e);
@@ -133,7 +103,7 @@ cmd({
     }
 });
 
-// MP3 song download - Fixed version with multiple APIs
+// MP3 song download
 cmd({ 
     pattern: "song", 
     alias: ["ytdl3", "play"], 
@@ -150,56 +120,13 @@ cmd({
         if (yt.results.length < 1) return reply("No results found!");
         
         let yts = yt.results[0];  
+        let apiUrl = `https://api.giftedtech.co.ke/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(yts.url)}`;
         
-        // List of APIs to try
-        const apis = [
-            `https://api.giftedtech.co.ke/api/download/ytmp3?apikey=gifted&url=${encodeURIComponent(yts.url)}`,
-            `https://apis-keith.vercel.app/download/ytmp3?url=${encodeURIComponent(yts.url)}`,
-            `https://apis-keith.vercel.app/download/mp3?url=${encodeURIComponent(yts.url)}`,
-            `https://apis-keith.vercel.app/download/dlmp3?url=${encodeURIComponent(yts.url)}`,
-            `https://apis-keith.vercel.app/download/audio?url=${encodeURIComponent(yts.url)}`
-        ];
+        let response = await fetch(apiUrl);
+        let data = await response.json();
         
-        let data = null;
-        let success = false;
-        
-        // Try each API until one works
-        for (let apiUrl of apis) {
-            try {
-                let response = await fetch(apiUrl);
-                data = await response.json();
-                
-                // Check if the API response is valid
-                if (data && (data.status === 200 || data.success || data.downloadUrl || 
-                    (data.result && data.result.downloadUrl) || data.url || data.direct_url)) {
-                    success = true;
-                    break;
-                }
-            } catch (error) {
-                console.log(`API ${apiUrl} failed:`, error);
-                // Continue to next API
-                continue;
-            }
-        }
-        
-        if (!success) {
-            return reply("Failed to fetch the audio from all APIs. Please try again later.");
-        }
-        
-        // Extract download URL based on different API response formats
-        let downloadUrl = "";
-        if (data.downloadUrl) {
-            downloadUrl = data.downloadUrl;
-        } else if (data.result && data.result.downloadUrl) {
-            downloadUrl = data.result.downloadUrl;
-        } else if (data.url) {
-            downloadUrl = data.url;
-        } else if (data.direct_url) {
-            downloadUrl = data.direct_url;
-        } else if (data.link) {
-            downloadUrl = data.link;
-        } else {
-            return reply("Could not extract download URL from API response.");
+        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
+            return reply("Failed to fetch the audio. Please try again later.");
         }
         
         let ytmsg = `🎵 *Song Details*
@@ -227,91 +154,53 @@ cmd({
             }
         };
         
-        // Send thumbnail with caption
-        const songMsg = await conn.sendMessage(from, { 
-            image: { url: yts.thumbnail }, 
-            caption: ytmsg, 
-            contextInfo 
-        }, { quoted: mek });
+        // Send thumbnail with caption only
+  const songmsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
 
-        const messageId = songMsg.key.id;
+  
+     
+                     conn.ev.on("messages.upsert", async (msgUpdate) => {
         
-        // Create response handler
-        const responseHandler = async (msg) => {
-            if (!msg.message || !msg.message.extendedTextMessage) return;
-            
-            const replyContext = msg.message.extendedTextMessage.contextInfo;
-            if (!replyContext || replyContext.stanzaId !== messageId) return;
-            
-            const selectedOption = msg.message.extendedTextMessage.text.trim();
-            
-            await conn.sendMessage(from, { react: { text: "⬇️", key: msg.key } });
 
-            switch (selectedOption) {
-                case "1":   
-                    await conn.sendMessage(from, { 
-                        document: { url: downloadUrl }, 
-                        mimetype: "audio/mpeg", 
-                        fileName: `${yts.title}.mp3`, 
-                        contextInfo: {
-                            ...contextInfo,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363302677217436@newsletter',
-                                newsletterName: 'CASEYRHODES-TECH',
-                                serverMessageId: 144
-                            }
-                        }
-                    }, { quoted: msg });   
-                    break;
-                case "2":   
-                    await conn.sendMessage(from, { 
-                        audio: { url: downloadUrl }, 
-                        mimetype: "audio/mpeg", 
-                        contextInfo: {
-                            ...contextInfo,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363302677217436@newsletter',
-                                newsletterName: 'CASEYRHODES-TECH',
-                                serverMessageId: 145
-                            }
-                        }
-                    }, { quoted: msg });
-                    break;
-                case "3":   
-                    await conn.sendMessage(from, { 
-                        audio: { url: downloadUrl }, 
-                        mimetype: "audio/mpeg", 
-                        ptt: true, 
-                        contextInfo: {
-                            ...contextInfo,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363302677217436@newsletter',
-                                newsletterName: 'CASEYRHODES-TECH',
-                                serverMessageId: 146
-                            }
-                        }
-                    }, { quoted: msg });
-                    break;
-                default:
-                    await conn.sendMessage(
-                        from,
-                        { text: "*Invalid selection please select between (1, 2 or 3) 🔴*" },
-                        { quoted: msg }
-                    );
-                    return; // Don't remove listener for invalid response
-            }
-            
-            // Remove the listener after successful handling
-            conn.ev.off('messages.upsert', responseHandler);
-        };
+                const mp3msg = msgUpdate.messages[0];
+                if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
 
-        // Add the listener
-        conn.ev.on('messages.upsert', responseHandler);
-        
-        // Set timeout to remove listener after 2 minutes
-        setTimeout(() => {
-            conn.ev.off('messages.upsert', responseHandler);
-        }, 120000);
+                const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
+
+                if (
+                    mp3msg.message.extendedTextMessage.contextInfo &&
+                    mp3msg.message.extendedTextMessage.contextInfo.stanzaId === songmsg.key.id
+                ) {
+                
+                            
+                   await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
+
+                    switch (selectedOption) {
+case "1":   
+
+      
+      
+   await conn.sendMessage(from, { document: { url: data.result.downloadUrl }, mimetype: "audio/mpeg", fileName: `${yts.title}.mp3`, contextInfo }, { quoted: mp3msg });   
+      
+      
+break;
+case "2":   
+await conn.sendMessage(from, { audio: { url: data.result.downloadUrl }, mimetype: "audio/mpeg", contextInfo }, { quoted: mp3msg });
+break;
+case "3":   
+await conn.sendMessage(from, { audio: { url: data.result.downloadUrl }, mimetype: "audio/mpeg", ptt: true, contextInfo }, { quoted: mp3msg });
+break;
+
+
+default:
+                            await conn.sendMessage(
+                                from,
+                                {
+                                    text: "*invalid selection please select between ( 1 or 2 or 3) 🔴*",
+                                },
+                                { quoted: mp3msg }
+                            );
+             }}});
            
     } catch (e) {
         console.log(e);
