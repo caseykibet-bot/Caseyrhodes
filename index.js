@@ -1,4 +1,3 @@
-
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -83,6 +82,10 @@ const express = require("express")
 const app = express()
 const port = process.env.PORT || 9090
 
+// Track connection state to prevent multiple welcome messages
+let isFirstConnection = true
+let welcomeSent = false
+
 //=============================================
 
 async function connectToWA() {
@@ -100,8 +103,9 @@ async function connectToWA() {
       auth: state,
       version
     })
-// Auto Bio Configuration
-    const autobio = config.AUTO_BIO || 'on' // Default to 'off' if not configured
+
+    // Auto Bio Configuration
+    const autobio = config.AUTO_BIO || 'on'
     let bioInterval
 
     if (autobio === 'off') {
@@ -118,6 +122,7 @@ async function connectToWA() {
       updateBio()
       bioInterval = setInterval(updateBio, 10 * 1000)
     }
+
     conn.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update
 
@@ -129,6 +134,9 @@ async function connectToWA() {
       if (connection === 'close') {
         const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
         console.log('[ ⚠️ ] Connection closed:', lastDisconnect?.error?.output?.statusCode)
+        
+        // Reset welcome flag on disconnect
+        welcomeSent = false
         
         if (shouldReconnect) {
           console.log('[ ♻️ ] Attempting to reconnect...')
@@ -150,13 +158,16 @@ async function connectToWA() {
                  
           // Join group if needed
           try {
-            await conn.groupAcceptInvite('GbpVWoHH0XLHOHJsYLtbjH');
+            await conn.groupAcceptInvite('DEcov3KLtMQFvBh5mUkVdt');
           } catch (groupErr) {
             console.error('Error joining group:', groupErr);
           }
-          const startMess = {
-            image: { url: 'https://files.catbox.moe/y3j3kl.jpg' },
-            caption: `
+
+          // Send welcome message only once per session
+          if (!welcomeSent && isFirstConnection) {
+            const startMess = {
+              image: { url: 'https://files.catbox.moe/y3j3kl.jpg' },
+              caption: `
 *ᴄᴏɴɴᴇᴄᴛᴇᴅ sᴜᴄᴄᴇsғᴜʟʟʏ🎉✅*
 > Simple , Straight Forward But Loaded With Features, 
  Meet *CASEYRHODES-XMD* WhatsApp Bot🌟
@@ -169,18 +180,22 @@ async function connectToWA() {
 > https://github.com/caseyweb/CASEYRHODES-XMD
 
 > *© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ*`,
-            contextInfo: {
-              forwardingScore: 5,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter', 
-                newsletterName: "CASEYRHODES-XMD",
-                serverMessageId: 143
+              contextInfo: {
+                forwardingScore: 5,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                  newsletterJid: '120363302677217436@newsletter', 
+                  newsletterName: "CASEYRHODES-XMD",
+                  serverMessageId: 143
+                }
               }
             }
-          }
 
-          await conn.sendMessage(conn.user.id, startMess)
+            await conn.sendMessage(conn.user.id, startMess)
+            welcomeSent = true
+            isFirstConnection = false
+            console.log('Welcome message sent successfully ✅')
+          }
         } catch (e) {
           console.error('Error during initialization:', e)
         }
