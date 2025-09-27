@@ -4,12 +4,12 @@ const { ytsearch } = require('@dark-yasiya/yt-dl.js');
 
 /**
  * MP3 Audio Download Command (Play)
- * Downloads YouTube videos as MP3 audio with multiple format options
+ * Downloads YouTube videos as compressed MP3 audio
  * 
  * Features:
  * - Search YouTube videos by name or URL
  * - Provide audio details (title, duration, views, author)
- * - Three download formats: Document, Audio, Voice Note (PTT)
+ * - Three download formats with compressed audio
  * - Interactive selection via reply system
  * 
  * Usage: .play <YouTube URL or search query>
@@ -33,7 +33,13 @@ cmd({
         
         // Get first result
         let yts = yt.results[0];  
-        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp4?url=${encodeURIComponent(yts.url)}`;
+        
+        // Use audio-specific API endpoint for smaller file sizes
+        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp3?url=${encodeURIComponent(yts.url)}`;
+        
+        // Alternative APIs if the above fails
+        // let apiUrl = `https://api.heckerman06.repl.co/api/yta?url=${encodeURIComponent(yts.url)}`;
+        // let apiUrl = `https://yt-downloader.qtcloud.workers.dev/audio?url=${encodeURIComponent(yts.url)}`;
         
         // Fetch audio data from API
         let response = await fetch(apiUrl);
@@ -44,23 +50,40 @@ cmd({
         
         // Validate API response - check multiple possible structures
         let downloadUrl = null;
-        if (data.status === 'success' && data.data && data.data.downloads) {
-            // Find audio download from the downloads array
-            const audioDownload = data.data.downloads.find(d => d.quality && d.downloadUrl);
-            if (audioDownload) {
-                downloadUrl = audioDownload.downloadUrl;
+        let fileSize = null;
+        
+        if (data.status === 'success' && data.data) {
+            // Structure 1: Direct audio link
+            if (data.data.downloadUrl) downloadUrl = data.data.downloadUrl;
+            // Structure 2: Downloads array
+            else if (data.data.downloads && data.data.downloads.length > 0) {
+                const audioDownload = data.data.downloads.find(d => d.quality && d.downloadUrl);
+                if (audioDownload) downloadUrl = audioDownload.downloadUrl;
             }
-        } else if (data.success && data.result && data.result.downloadUrl) {
+            // Structure 3: Result object
+            else if (data.data.result && data.data.result.downloadUrl) {
+                downloadUrl = data.data.result.downloadUrl;
+            }
+        } else if (data.success && data.result) {
             // Alternative structure
-            downloadUrl = data.result.downloadUrl;
-        } else if (data.success && data.result && data.result.download_url) {
-            // Another possible structure
-            downloadUrl = data.result.download_url;
+            if (data.result.downloadUrl) downloadUrl = data.result.downloadUrl;
+            else if (data.result.url) downloadUrl = data.result.url;
+            else if (data.result.audio) downloadUrl = data.result.audio;
+        } else if (data.url) {
+            // Simple URL response
+            downloadUrl = data.url;
         }
         
         if (!downloadUrl) {
             console.log('No download URL found in response:', data);
             return reply("Failed to fetch the audio. Please try again later.");
+        }
+        
+        // Add compression parameters to URL if possible
+        if (downloadUrl.includes('?')) {
+            downloadUrl += '&quality=low&format=mp3';
+        } else {
+            downloadUrl += '?quality=low&format=mp3';
         }
         
         // Format audio details message
@@ -96,64 +119,111 @@ _Reply with 1, 2 or 3 to this message to download the format you prefer._`;
             contextInfo 
         }, { quoted: mek });
 
+        // Store download info for this message
+        const downloadInfo = {
+            url: downloadUrl,
+            title: yts.title,
+            timestamp: Date.now()
+        };
+        
+        // Simple storage for message context (you might want to use a proper cache)
+        if (!conn.playCache) conn.playCache = new Map();
+        conn.playCache.set(songmsg.key.id, downloadInfo);
+        
+        // Set timeout to clear cache (5 minutes)
+        setTimeout(() => {
+            if (conn.playCache.has(songmsg.key.id)) {
+                conn.playCache.delete(songmsg.key.id);
+            }
+        }, 5 * 60 * 1000);
+
         // Handle user selection
-        conn.ev.on("messages.upsert", async (msgUpdate) => {
-            const mp3msg = msgUpdate.messages[0];
-            if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
+        const messageHandler = async (msgUpdate) => {
+            try {
+                const mp3msg = msgUpdate.messages[0];
+                if (!mp3msg || !mp3msg.message || !mp3msg.message.extendedTextMessage) return;
 
-            const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
+                const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
 
-            // Verify this is a reply to our song message
-            if (
-                mp3msg.message.extendedTextMessage.contextInfo &&
-                mp3msg.message.extendedTextMessage.contextInfo.stanzaId === songmsg.key.id
-            ) {
-                await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
+                // Verify this is a reply to our song message
+                if (
+                    mp3msg.message.extendedTextMessage.contextInfo &&
+                    mp3msg.message.extendedTextMessage.contextInfo.stanzaId === songmsg.key.id
+                ) {
+                    // Remove listener to prevent multiple triggers
+                    conn.ev.off("messages.upsert", messageHandler);
+                    
+                    await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
 
-                // Clean context for download messages (no newsletter)
-                let downloadContextInfo = {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 999,
-                    isForwarded: true
-                };
-
-                // Handle format selection
-                switch (selectedOption) {
-                    case "1": // Document format
-                        await conn.sendMessage(from, { 
-                            document: { url: downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            fileName: `${yts.title}.mp3`, 
-                            contextInfo: downloadContextInfo 
-                        }, { quoted: mp3msg });   
-                        break;
-                        
-                    case "2": // Audio format
-                        await conn.sendMessage(from, { 
-                            audio: { url: downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            contextInfo: downloadContextInfo 
-                        }, { quoted: mp3msg });
-                        break;
-                        
-                    case "3": // Voice note format (PTT)
-                        await conn.sendMessage(from, { 
-                            audio: { url: downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            ptt: true, 
-                            contextInfo: downloadContextInfo 
-                        }, { quoted: mp3msg });
-                        break;
-
-                    default: // Invalid selection
-                        await conn.sendMessage(
-                            from,
-                            { text: "*Invalid selection. Please choose 1, 2 or 3 🔴*" },
+                    // Get download info from cache
+                    const info = conn.playCache.get(songmsg.key.id);
+                    if (!info) {
+                        return await conn.sendMessage(from, 
+                            { text: "Download session expired. Please search again." }, 
                             { quoted: mp3msg }
                         );
+                    }
+
+                    // Clean context for download messages
+                    let downloadContextInfo = {
+                        mentionedJid: [mp3msg.participant || mp3msg.key.remoteJid],
+                        forwardingScore: 999,
+                        isForwarded: true
+                    };
+
+                    // Handle format selection with file size optimization
+                    const audioMessageOptions = {
+                        mimetype: "audio/mpeg",
+                        contextInfo: downloadContextInfo
+                    };
+
+                    switch (selectedOption) {
+                        case "1": // Document format
+                            await conn.sendMessage(from, { 
+                                document: { url: info.url }, 
+                                mimetype: "audio/mpeg", 
+                                fileName: `${info.title.substring(0, 100)}.mp3`, 
+                                contextInfo: downloadContextInfo 
+                            }, { quoted: mp3msg });   
+                            break;
+                            
+                        case "2": // Audio format
+                            await conn.sendMessage(from, { 
+                                audio: { url: info.url }, 
+                                ...audioMessageOptions
+                            }, { quoted: mp3msg });
+                            break;
+                            
+                        case "3": // Voice note format (PTT)
+                            await conn.sendMessage(from, { 
+                                audio: { url: info.url }, 
+                                ...audioMessageOptions,
+                                ptt: true
+                            }, { quoted: mp3msg });
+                            break;
+
+                        default: // Invalid selection
+                            await conn.sendMessage(
+                                from,
+                                { text: "*Invalid selection. Please choose 1, 2 or 3 🔴*" },
+                                { quoted: mp3msg }
+                            );
+                            // Re-add listener for new attempts
+                            conn.ev.on("messages.upsert", messageHandler);
+                    }
+                    
+                    // Clear cache after successful download
+                    conn.playCache.delete(songmsg.key.id);
                 }
+            } catch (error) {
+                console.log("Error in message handler:", error);
+                // Re-add listener on error
+                conn.ev.on("messages.upsert", messageHandler);
             }
-        });
+        };
+
+        // Add the message listener
+        conn.ev.on("messages.upsert", messageHandler);
            
     } catch (e) {
         console.log(e);
