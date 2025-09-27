@@ -33,14 +33,33 @@ cmd({
         
         // Get first result
         let yts = yt.results[0];  
-        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp3?url=${encodeURIComponent(yts.url)}`;
+        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp4?url=${encodeURIComponent(yts.url)}`;
         
         // Fetch audio data from API
         let response = await fetch(apiUrl);
         let data = await response.json();
         
-        // Validate API response
-        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
+        // Debug: Log the actual response structure
+        console.log('API Response:', JSON.stringify(data, null, 2));
+        
+        // Validate API response - check multiple possible structures
+        let downloadUrl = null;
+        if (data.status === 'success' && data.data && data.data.downloads) {
+            // Find audio download from the downloads array
+            const audioDownload = data.data.downloads.find(d => d.quality && d.downloadUrl);
+            if (audioDownload) {
+                downloadUrl = audioDownload.downloadUrl;
+            }
+        } else if (data.success && data.result && data.result.downloadUrl) {
+            // Alternative structure
+            downloadUrl = data.result.downloadUrl;
+        } else if (data.success && data.result && data.result.download_url) {
+            // Another possible structure
+            downloadUrl = data.result.download_url;
+        }
+        
+        if (!downloadUrl) {
+            console.log('No download URL found in response:', data);
             return reply("Failed to fetch the audio. Please try again later.");
         }
         
@@ -102,7 +121,7 @@ _Reply with 1, 2 or 3 to this message to download the format you prefer._`;
                 switch (selectedOption) {
                     case "1": // Document format
                         await conn.sendMessage(from, { 
-                            document: { url: data.result.downloadUrl }, 
+                            document: { url: downloadUrl }, 
                             mimetype: "audio/mpeg", 
                             fileName: `${yts.title}.mp3`, 
                             contextInfo: downloadContextInfo 
@@ -111,7 +130,7 @@ _Reply with 1, 2 or 3 to this message to download the format you prefer._`;
                         
                     case "2": // Audio format
                         await conn.sendMessage(from, { 
-                            audio: { url: data.result.downloadUrl }, 
+                            audio: { url: downloadUrl }, 
                             mimetype: "audio/mpeg", 
                             contextInfo: downloadContextInfo 
                         }, { quoted: mp3msg });
@@ -119,7 +138,7 @@ _Reply with 1, 2 or 3 to this message to download the format you prefer._`;
                         
                     case "3": // Voice note format (PTT)
                         await conn.sendMessage(from, { 
-                            audio: { url: data.result.downloadUrl }, 
+                            audio: { url: downloadUrl }, 
                             mimetype: "audio/mpeg", 
                             ptt: true, 
                             contextInfo: downloadContextInfo 
