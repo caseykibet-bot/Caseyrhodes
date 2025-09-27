@@ -1,7 +1,7 @@
-const { cmd } = require('../command');
-const axios = require('axios');
-const yts = require('yt-search');
 const config = require('../config');
+const { cmd } = require('../command');
+const yts = require('yt-search');
+const axios = require('axios');
 
 // Optimized axios instance
 const axiosInstance = axios.create({
@@ -12,7 +12,7 @@ const axiosInstance = axios.create({
     }
 });
 
-// Kaiz-API configuration
+// API configuration
 const KAIZ_API_KEY = 'cf2ca612-296f-45ba-abbc-473f18f991eb';
 const KAIZ_API_URL = 'https://kaiz-apis.gleeze.com/api/ytdown-mp3';
 
@@ -56,29 +56,61 @@ async function fetchThumbnail(thumbnailUrl) {
 
 // Utility function to send audio
 async function sendAudio(conn, chat, audioBuffer, fileName, type, caption, quoted) {
-    const message = type === 'audio'
-        ? { audio: audioBuffer, mimetype: 'audio/mpeg', fileName, ptt: false }
-        : { document: audioBuffer, mimetype: 'audio/mpeg', fileName };
-    await conn.sendMessage(chat, { ...message, caption }, { quoted });
+    if (type === 'audio') {
+        return await conn.sendMessage(chat, { 
+            audio: audioBuffer, 
+            mimetype: 'audio/mpeg', 
+            fileName: fileName,
+            caption: caption
+        }, { quoted });
+    } else if (type === 'voice') {
+        return await conn.sendMessage(chat, { 
+            audio: audioBuffer, 
+            mimetype: 'audio/mpeg', 
+            ptt: true,
+            fileName: fileName,
+            caption: caption
+        }, { quoted });
+    } else {
+        return await conn.sendMessage(chat, { 
+            document: audioBuffer, 
+            mimetype: 'audio/mpeg', 
+            fileName: fileName,
+            caption: caption
+        }, { quoted });
+    }
 }
 
-cmd({
-    pattern: 'song',
-    alias: ['ytaudio', 'music'],
-    desc: 'High quality YouTube audio downloader',
-    category: 'media',
-    react: '🎵',
-    filename: __filename
-},
-async (conn, mek, m, { from, args, q, reply, react }) => {
-    try {
+/**
+ * MP3 Audio Download Command (Play)
+ * Downloads YouTube videos as MP3 audio with button selection
+ * 
+ * Features:
+ * - Search YouTube videos by name or URL
+ * - Provide audio details (title, duration, views, author)
+ * - Three download formats via buttons: Document, Audio, Voice Note
+ * - Interactive selection via buttons
+ * 
+ * Usage: .play <YouTube URL or search query>
+ */
+cmd({ 
+    pattern: "play", 
+    alias: ["ytdl3", "song"], 
+    react: "🎶", 
+    desc: "Download YouTube song", 
+    category: "main", 
+    use: '.play <YouTube URL or search query>', 
+    filename: __filename 
+}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
+    try { 
+        // Validate input
         if (!q) {
-            await react('⚠️');
-            return reply('🎵 *Usage:* .song <query/url>\nExample: .song https://youtu.be/ox4tmEV6-QU\n.song Alan Walker faded');
+            await conn.sendMessage(from, { react: { text: '⚠️', key: mek.key } });
+            return await reply("🎵 *Usage:* .play <query/url>\nExample: .play https://youtu.be/ox4tmEV6-QU\n.play Alan Walker faded");
         }
 
         // Send processing reaction
-        await react('⏳');
+        await conn.sendMessage(from, { react: { text: '⏳', key: mek.key } });
 
         // Fetch video info
         const { url: videoUrl, info: videoInfo } = await fetchVideoInfo(q);
@@ -89,15 +121,16 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
         // Fetch thumbnail
         const thumbnailBuffer = await fetchThumbnail(videoInfo.thumbnail);
 
-        // Prepare caption
-        const caption = `╭──〔sᴏɴɢ ᴅʟ 〕──
-├ᴛɪᴛʟᴇ: ${songData.title || videoInfo?.title || 'Unknown'}
-├ᴀᴜᴛʜᴏʀ: ${videoInfo?.author?.name || 'Unknown'}
-├ᴅᴜʀᴀᴛɪᴏɴ: ${videoInfo?.timestamp || 'Unknown'}
-├ᴠɪᴇᴡs: ${videoInfo?.views?.toLocaleString() || 'Unknown'}
-├ᴘᴜʙʟɪsʜᴇᴅ: ${videoInfo?.ago || 'Unknown'}
-├ᴜʀʟ: ${videoUrl || 'Unknown'}.
-╰──────────────┈⊷`;
+        // Prepare caption message
+        const caption = `🎵 *Song Details*
+
+🎶 *Title:* ${songData.title || videoInfo.title || 'Unknown'}
+⏳ *Duration:* ${videoInfo.timestamp || 'Unknown'}
+👀 *Views:* ${videoInfo.views ? videoInfo.views.toLocaleString() : 'Unknown'}
+👤 *Author:* ${videoInfo.author ? videoInfo.author.name : 'Unknown'}
+🔗 *Link:* ${videoUrl}
+
+*Choose download format:*`;
 
         // Generate unique session ID
         const sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -106,24 +139,29 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
         const buttonsMessage = {
             image: thumbnailBuffer,
             caption: caption,
-            footer: config.FOOTER || '> ᴍᴀᴅᴇ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs',
+            footer: config.FOOTER || '> Powered by CASEYRHODES TECH',
             buttons: [
                 {
-                    buttonId: `song-audio-${sessionId}-${videoUrl}`,
-                    buttonText: { displayText: '🎵 Audio (Play)' },
+                    buttonId: `play-document-${sessionId}-${videoUrl}`,
+                    buttonText: { displayText: '📄 Document' },
                     type: 1
                 },
                 {
-                    buttonId: `song-document-${sessionId}-${videoUrl}`,
-                    buttonText: { displayText: '📁 Document (Save)' },
+                    buttonId: `play-audio-${sessionId}-${videoUrl}`,
+                    buttonText: { displayText: '🎧 Audio' },
+                    type: 1
+                },
+                {
+                    buttonId: `play-voice-${sessionId}-${videoUrl}`,
+                    buttonText: { displayText: '🎙️ Voice Note' },
                     type: 1
                 }
             ],
             headerType: 1,
             contextInfo: {
                 externalAdReply: {
-                    title: songData.title || videoInfo?.title || 'YouTube Audio',
-                    body: `Duration: ${videoInfo?.timestamp || 'N/A'}`,
+                    title: songData.title || videoInfo.title || 'YouTube Audio',
+                    body: `Duration: ${videoInfo.timestamp || 'N/A'}`,
                     thumbnail: thumbnailBuffer,
                     mediaType: 1,
                     mediaUrl: videoUrl,
@@ -138,55 +176,76 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
 
         // Button handler
         const buttonHandler = async (msgData) => {
-            const receivedMsg = msgData.messages[0];
-            if (!receivedMsg.message?.buttonsResponseMessage) return;
+            try {
+                const receivedMsg = msgData.messages[0];
+                if (!receivedMsg.message?.buttonsResponseMessage) return;
 
-            const buttonId = receivedMsg.message.buttonsResponseMessage.selectedButtonId;
-            const senderId = receivedMsg.key.remoteJid;
-            const isReplyToBot = receivedMsg.message.buttonsResponseMessage.contextInfo?.stanzaId === messageId;
+                const buttonId = receivedMsg.message.buttonsResponseMessage.selectedButtonId;
+                const senderId = receivedMsg.key.remoteJid;
+                const isReplyToBot = receivedMsg.message.buttonsResponseMessage.contextInfo?.stanzaId === messageId;
 
-            if (isReplyToBot && senderId === from && buttonId.includes(sessionId)) {
-                conn.ev.off('messages.upsert', buttonHandler); // Remove listener
+                if (isReplyToBot && senderId === from && buttonId.includes(sessionId)) {
+                    // Remove listener to prevent multiple handlers
+                    conn.ev.off('messages.upsert', buttonHandler);
 
-                await conn.sendMessage(from, { react: { text: '⏳', key: receivedMsg.key } });
+                    await conn.sendMessage(from, { react: { text: '⏳', key: receivedMsg.key } });
 
-                try {
-                    const type = buttonId.startsWith(`song-audio-${sessionId}`) ? 'audio' : 'document';
-                    const freshSongData = await fetchAudioData(videoUrl); // Fresh API call
+                    // Determine download type
+                    let type = 'document';
+                    if (buttonId.startsWith(`play-audio-${sessionId}`)) type = 'audio';
+                    if (buttonId.startsWith(`play-voice-${sessionId}`)) type = 'voice';
+
+                    // Fetch fresh audio data
+                    const freshSongData = await fetchAudioData(videoUrl);
 
                     // Download audio
                     const audioResponse = await axiosInstance.get(freshSongData.download_url, {
                         responseType: 'arraybuffer',
-                        headers: { Referer: 'https://www.youtube.com/', 'Accept-Encoding': 'identity' },
+                        headers: { 
+                            Referer: 'https://www.youtube.com/', 
+                            'Accept-Encoding': 'identity' 
+                        },
                         timeout: 30000
                     });
 
                     const audioBuffer = Buffer.from(audioResponse.data, 'binary');
-                    const fileName = `${(freshSongData.title || videoInfo?.title || 'audio').replace(/[<>:"\/\\|?*]+/g, '')}.mp3`;
+                    const fileName = `${(freshSongData.title || videoInfo.title || 'audio').replace(/[<>:"\/\\|?*]+/g, '')}.mp3`;
 
-                    await sendAudio(conn, from, audioBuffer, fileName, type, caption, receivedMsg);
+                    // Prepare download caption
+                    const downloadCaption = `✅ *Download Complete*
+
+🎶 *Title:* ${freshSongData.title || videoInfo.title || 'Unknown'}
+⏳ *Duration:* ${videoInfo.timestamp || 'Unknown'}
+👤 *Author:* ${videoInfo.author ? videoInfo.author.name : 'Unknown'}
+
+📥 *Format:* ${type === 'document' ? 'Document' : type === 'audio' ? 'Audio' : 'Voice Note'}`;
+
+                    // Send audio
+                    await sendAudio(conn, from, audioBuffer, fileName, type, downloadCaption, receivedMsg);
                     await conn.sendMessage(from, { react: { text: '✅', key: receivedMsg.key } });
-                } catch (error) {
-                    console.error('Song Download Error:', error);
-                    await conn.sendMessage(from, { react: { text: '❌', key: receivedMsg.key } });
-                    conn.sendMessage(from, { text: `❎ Error: ${error.message || 'Download failed'}` }, { quoted: receivedMsg });
                 }
+            } catch (error) {
+                console.error('Button Handler Error:', error);
+                const receivedMsg = msgData.messages[0];
+                await conn.sendMessage(from, { react: { text: '❌', key: receivedMsg.key } });
+                await conn.sendMessage(from, 
+                    { text: `❌ *Download Failed*\nError: ${error.message || 'Unknown error'}` }, 
+                    { quoted: receivedMsg }
+                );
             }
         };
 
-        // Add listener
+        // Add listener for button responses
         conn.ev.on('messages.upsert', buttonHandler);
 
-        // Remove listener after 1 minute
+        // Remove listener after 2 minutes to prevent memory leaks
         setTimeout(() => {
             conn.ev.off('messages.upsert', buttonHandler);
-        }, 60000);
-
-        await react('✅');
+        }, 120000);
 
     } catch (error) {
-        console.error('Song Command Error:', error);
-        await react('❌');
-        reply(`❎ Error: ${error.message || 'An unexpected error occurred'}`);
+        console.error('Play Command Error:', error);
+        await conn.sendMessage(from, { react: { text: '❌', key: mek.key } });
+        await reply(`❌ *Error:* ${error.message || 'An unexpected error occurred'}`);
     }
 });
