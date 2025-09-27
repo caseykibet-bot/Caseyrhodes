@@ -2,32 +2,49 @@ const config = require('../config');
 const { cmd } = require('../command');
 const { ytsearch } = require('@dark-yasiya/yt-dl.js');
 
-// MP4 video download (using original API)
+/**
+ * MP4 Video Download Command
+ * Downloads YouTube videos in MP4 format with multiple download options
+ * 
+ * Features:
+ * - Search YouTube videos by name or URL
+ * - Provide video details (title, duration, views, author)
+ * - Two download formats: Document (no preview) and Normal Video (with preview)
+ * - Interactive selection via reply system
+ * 
+ * Usage: .mp4 <YouTube URL or search query>
+ */
 cmd({ 
-    pattern: "video", 
+    pattern: "mp4", 
     alias: ["videos"], 
     react: "🎥", 
     desc: "Download YouTube video", 
     category: "main", 
-    use: '.mp4 < Yt url or Name >', 
+    use: '.mp4 <YouTube URL or search query>', 
     filename: __filename 
 }, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
     try { 
-        if (!q) return await reply("Please provide a YouTube URL or song name.");
+        // Validate input
+        if (!q) return await reply("Please provide a YouTube URL or video name.");
         
+        // Search YouTube
         const yt = await ytsearch(q);
         if (yt.results.length < 1) return reply("No results found!");
         
+        // Get first result
         let yts = yt.results[0];  
-        let apiUrl = `https://api.giftedtech.co.ke/api/download/ytmp4?apikey=gifted&url=${encodeURIComponent(yts.url)}`;
+        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp4?url=${encodeURIComponent(yts.url)}`;
         
+        // Fetch video data from API
         let response = await fetch(apiUrl);
         let data = await response.json();
         
+        // Validate API response
         if (data.status !== 200 || !data.success || !data.result.download_url) {
             return reply("Failed to fetch the video. Please try again later.");
         }
 
+        // Format video details message
         let ytmsg = `📹 *Video Details*
 🎬 *Title:* ${yts.title}
 ⏳ *Duration:* ${yts.timestamp}
@@ -39,56 +56,70 @@ cmd({
 1. 📄 Document (no preview)
 2. ▶️ Normal Video (with preview)
 
-> ʀᴇᴘʟʏ ᴛᴏ ᴛʜɪs ᴍᴇssᴀɢᴇ ᴡɪᴛʜ 1 ᴏʀ 2 ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ.`;
+_Reply to this message with 1 or 2 to download._`;
 
+        // Context info with newsletter reference for description message
         let contextInfo = {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
+            forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363302677217436@newsletter',
-                newsletterName: 'CASEYRHODES-XMD',
-                serverMessageId: 143
+                newsletterName: 'POWERED BY CASEYRHODES TECH',
+                serverMessageId: -1
             }
         };
 
-        // Send thumbnail with options
-        const videoMsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
+        // Send thumbnail with options and newsletter context
+        const videoMsg = await conn.sendMessage(from, { 
+            image: { url: yts.thumbnail }, 
+            caption: ytmsg, 
+            contextInfo 
+        }, { quoted: mek });
 
+        // Handle user selection
         conn.ev.on("messages.upsert", async (msgUpdate) => {
             const replyMsg = msgUpdate.messages[0];
             if (!replyMsg.message || !replyMsg.message.extendedTextMessage) return;
 
             const selected = replyMsg.message.extendedTextMessage.text.trim();
 
+            // Verify this is a reply to our video message
             if (
                 replyMsg.message.extendedTextMessage.contextInfo &&
                 replyMsg.message.extendedTextMessage.contextInfo.stanzaId === videoMsg.key.id
             ) {
                 await conn.sendMessage(from, { react: { text: "⬇️", key: replyMsg.key } });
 
+                // Clean context for download messages (no newsletter)
+                let downloadContextInfo = {
+                    mentionedJid: [m.sender],
+                    forwardingScore: 999,
+                    isForwarded: true
+                };
+
+                // Handle format selection
                 switch (selected) {
-                    case "1":
+                    case "1": // Document format
                         await conn.sendMessage(from, {
                             document: { url: data.result.download_url },
                             mimetype: "video/mp4",
                             fileName: `${yts.title}.mp4`,
-                            contextInfo
+                            contextInfo: downloadContextInfo
                         }, { quoted: replyMsg });
                         break;
 
-                    case "2":
+                    case "2": // Normal video format
                         await conn.sendMessage(from, {
                             video: { url: data.result.download_url },
                             mimetype: "video/mp4",
-                            contextInfo
+                            contextInfo: downloadContextInfo
                         }, { quoted: replyMsg });
                         break;
 
-                    default:
+                    default: // Invalid selection
                         await conn.sendMessage(
                             from,
-                            { text: "*Please Reply with ( 1 , 2 or 3) ❤️" },
+                            { text: "*Please reply with 1 or 2 ❤️*" },
                             { quoted: replyMsg }
                         );
                         break;
@@ -102,36 +133,50 @@ cmd({
     }
 });
 
-// MP3 song download using Kaiz API
+/**
+ * MP3 Audio Download Command
+ * Downloads YouTube videos as MP3 audio with multiple format options
+ * 
+ * Features:
+ * - Search YouTube videos by name or URL
+ * - Provide audio details (title, duration, views, author)
+ * - Three download formats: Document, Audio, Voice Note (PTT)
+ * - Interactive selection via reply system
+ * 
+ * Usage: .song <YouTube URL or search query>
+ */
 cmd({ 
     pattern: "song", 
     alias: ["ytdl3", "play"], 
     react: "🎶", 
-    desc: "Download YouTube song using Kaiz API", 
+    desc: "Download YouTube song", 
     category: "main", 
-    use: '.song < Yt url or Name >', 
+    use: '.song <YouTube URL or search query>', 
     filename: __filename 
 }, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
     try { 
+        // Validate input
         if (!q) return await reply("Please provide a YouTube URL or song name.");
         
+        // Search YouTube
         const yt = await ytsearch(q);
         if (yt.results.length < 1) return reply("No results found!");
         
+        // Get first result
         let yts = yt.results[0];  
+        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp3?url=${encodeURIComponent(yts.url)}`;
         
-        // Kaiz-API configuration
-        const KAIZ_API_KEY = 'cf2ca612-296f-45ba-abbc-473f18f991eb';
-        const KAIZ_API_URL = `https://kaiz-apis.gleeze.com/api/ytdown-mp3?apikey=${KAIZ_API_KEY}&url=${encodeURIComponent(yts.url)}`;
-        
-        let response = await fetch(KAIZ_API_URL);
+        // Fetch audio data from API
+        let response = await fetch(apiUrl);
         let data = await response.json();
         
-        if (!data.status || data.status !== 200 || !data.downloadUrl) {
-            return reply("Failed to fetch the audio from Kaiz API. Please try again later.");
+        // Validate API response
+        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
+            return reply("Failed to fetch the audio. Please try again later.");
         }
         
-        let ytmsg = `🎵 *Song Details (via Kaiz API)*
+        // Format audio details message
+        let ytmsg = `🎵 *Song Details*
 🎶 *Title:* ${yts.title}
 ⏳ *Duration:* ${yts.timestamp}
 👀 *Views:* ${yts.views}
@@ -143,64 +188,79 @@ cmd({
 2. 🎧 MP3 as Audio (Play)
 3. 🎙️ MP3 as Voice Note (PTT)
 
-> ʀᴇᴘʟʏ ᴡɪᴛʜ 1,2 ᴏʀ 3 ᴛᴏ ᴛʜɪs ᴍᴇssᴀɢᴇ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴛʜᴇ ғᴏʀᴍᴀᴛ ʏᴏᴜ ᴘʀᴇғᴇʀ.`;
+_Reply with 1, 2 or 3 to this message to download the format you prefer._`;
         
+        // Context info with newsletter reference for description message
         let contextInfo = {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
+            forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363302677217436@newsletter',
-                newsletterName: 'CASEYRHODES-TECH',
-                serverMessageId: 143
+                newsletterName: 'POWERED BY CASEYRHODES TECH',
+                serverMessageId: -1
             }
         };
         
-        // Send thumbnail with caption only
-        const songmsg = await conn.sendMessage(from, { image: { url: yts.thumbnail }, caption: ytmsg, contextInfo }, { quoted: mek });
+        // Send thumbnail with caption and newsletter context
+        const songmsg = await conn.sendMessage(from, { 
+            image: { url: yts.thumbnail }, 
+            caption: ytmsg, 
+            contextInfo 
+        }, { quoted: mek });
 
+        // Handle user selection
         conn.ev.on("messages.upsert", async (msgUpdate) => {
             const mp3msg = msgUpdate.messages[0];
             if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
 
             const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
 
+            // Verify this is a reply to our song message
             if (
                 mp3msg.message.extendedTextMessage.contextInfo &&
                 mp3msg.message.extendedTextMessage.contextInfo.stanzaId === songmsg.key.id
             ) {
                 await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
 
+                // Clean context for download messages (no newsletter)
+                let downloadContextInfo = {
+                    mentionedJid: [m.sender],
+                    forwardingScore: 999,
+                    isForwarded: true
+                };
+
+                // Handle format selection
                 switch (selectedOption) {
-                    case "1":   
+                    case "1": // Document format
                         await conn.sendMessage(from, { 
-                            document: { url: data.downloadUrl }, 
+                            document: { url: data.result.downloadUrl }, 
                             mimetype: "audio/mpeg", 
                             fileName: `${yts.title}.mp3`, 
-                            contextInfo 
+                            contextInfo: downloadContextInfo 
                         }, { quoted: mp3msg });   
                         break;
-                    case "2":   
+                        
+                    case "2": // Audio format
                         await conn.sendMessage(from, { 
-                            audio: { url: data.downloadUrl }, 
+                            audio: { url: data.result.downloadUrl }, 
                             mimetype: "audio/mpeg", 
-                            contextInfo 
+                            contextInfo: downloadContextInfo 
                         }, { quoted: mp3msg });
                         break;
-                    case "3":   
+                        
+                    case "3": // Voice note format (PTT)
                         await conn.sendMessage(from, { 
-                            audio: { url: data.downloadUrl }, 
+                            audio: { url: data.result.downloadUrl }, 
                             mimetype: "audio/mpeg", 
                             ptt: true, 
-                            contextInfo 
+                            contextInfo: downloadContextInfo 
                         }, { quoted: mp3msg });
                         break;
-                    default:
+
+                    default: // Invalid selection
                         await conn.sendMessage(
                             from,
-                            {
-                                text: "*Invalid selection please select between (1, 2 or 3) 🔴*",
-                            },
+                            { text: "*Invalid selection. Please choose 1, 2 or 3 🔴*" },
                             { quoted: mp3msg }
                         );
                 }
