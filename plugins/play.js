@@ -3,138 +3,7 @@ const { cmd } = require('../command');
 const { ytsearch } = require('@dark-yasiya/yt-dl.js');
 
 /**
- * MP4 Video Download Command
- * Downloads YouTube videos in MP4 format with multiple download options
- * 
- * Features:
- * - Search YouTube videos by name or URL
- * - Provide video details (title, duration, views, author)
- * - Two download formats: Document (no preview) and Normal Video (with preview)
- * - Interactive selection via reply system
- * 
- * Usage: .mp4 <YouTube URL or search query>
- */
-cmd({ 
-    pattern: "mp4", 
-    alias: ["videos"], 
-    react: "🎥", 
-    desc: "Download YouTube video", 
-    category: "main", 
-    use: '.mp4 <YouTube URL or search query>', 
-    filename: __filename 
-}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
-    try { 
-        // Validate input
-        if (!q) return await reply("Please provide a YouTube URL or video name.");
-        
-        // Search YouTube
-        const yt = await ytsearch(q);
-        if (yt.results.length < 1) return reply("No results found!");
-        
-        // Get first result
-        let yts = yt.results[0];  
-        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp4?url=${encodeURIComponent(yts.url)}`;
-        
-        // Fetch video data from API
-        let response = await fetch(apiUrl);
-        let data = await response.json();
-        
-        // Validate API response
-        if (data.status !== 200 || !data.success || !data.result.download_url) {
-            return reply("Failed to fetch the video. Please try again later.");
-        }
-
-        // Format video details message
-        let ytmsg = `📹 *Video Details*
-🎬 *Title:* ${yts.title}
-⏳ *Duration:* ${yts.timestamp}
-👀 *Views:* ${yts.views}
-👤 *Author:* ${yts.author.name}
-🔗 *Link:* ${yts.url}
-
-*Choose download format:*
-1. 📄 Document (no preview)
-2. ▶️ Normal Video (with preview)
-
-_Reply to this message with 1 or 2 to download._`;
-
-        // Context info with newsletter reference for description message
-        let contextInfo = {
-            forwardingScore: 1,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
-                newsletterName: 'POWERED BY CASEYRHODES TECH',
-                serverMessageId: -1
-            }
-        };
-
-        // Send thumbnail with options and newsletter context
-        const videoMsg = await conn.sendMessage(from, { 
-            image: { url: yts.thumbnail }, 
-            caption: ytmsg, 
-            contextInfo 
-        }, { quoted: mek });
-
-        // Handle user selection
-        conn.ev.on("messages.upsert", async (msgUpdate) => {
-            const replyMsg = msgUpdate.messages[0];
-            if (!replyMsg.message || !replyMsg.message.extendedTextMessage) return;
-
-            const selected = replyMsg.message.extendedTextMessage.text.trim();
-
-            // Verify this is a reply to our video message
-            if (
-                replyMsg.message.extendedTextMessage.contextInfo &&
-                replyMsg.message.extendedTextMessage.contextInfo.stanzaId === videoMsg.key.id
-            ) {
-                await conn.sendMessage(from, { react: { text: "⬇️", key: replyMsg.key } });
-
-                // Clean context for download messages (no newsletter)
-                let downloadContextInfo = {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 999,
-                    isForwarded: true
-                };
-
-                // Handle format selection
-                switch (selected) {
-                    case "1": // Document format
-                        await conn.sendMessage(from, {
-                            document: { url: data.result.download_url },
-                            mimetype: "video/mp4",
-                            fileName: `${yts.title}.mp4`,
-                            contextInfo: downloadContextInfo
-                        }, { quoted: replyMsg });
-                        break;
-
-                    case "2": // Normal video format
-                        await conn.sendMessage(from, {
-                            video: { url: data.result.download_url },
-                            mimetype: "video/mp4",
-                            contextInfo: downloadContextInfo
-                        }, { quoted: replyMsg });
-                        break;
-
-                    default: // Invalid selection
-                        await conn.sendMessage(
-                            from,
-                            { text: "*Please reply with 1 or 2 ❤️*" },
-                            { quoted: replyMsg }
-                        );
-                        break;
-                }
-            }
-        });
-
-    } catch (e) {
-        console.log(e);
-        reply("An error occurred. Please try again later.");
-    }
-});
-
-/**
- * MP3 Audio Download Command
+ * MP3 Audio Download Command (Play)
  * Downloads YouTube videos as MP3 audio with multiple format options
  * 
  * Features:
@@ -143,15 +12,15 @@ _Reply to this message with 1 or 2 to download._`;
  * - Three download formats: Document, Audio, Voice Note (PTT)
  * - Interactive selection via reply system
  * 
- * Usage: .song <YouTube URL or search query>
+ * Usage: .play <YouTube URL or search query>
  */
 cmd({ 
-    pattern: "song", 
-    alias: ["ytdl3", "play"], 
+    pattern: "play", 
+    alias: ["ytdl3", "song"], 
     react: "🎶", 
     desc: "Download YouTube song", 
     category: "main", 
-    use: '.song <YouTube URL or search query>', 
+    use: '.play <YouTube URL or search query>', 
     filename: __filename 
 }, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
     try { 
