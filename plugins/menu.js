@@ -132,7 +132,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         await conn.sendMessage(from, {
             audio: { url: randomAudioUrl },
             mimetype: 'audio/mp4',
-            ptt: true
+            ptt: false
         }, { quoted: verifiedContact });
 
     } catch (e) {
