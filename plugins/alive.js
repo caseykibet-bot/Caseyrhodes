@@ -57,7 +57,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
+                    newsletterJid: '120363420261263259@newsletter',
                     newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
                     serverMessageId: 143
                    }
@@ -70,7 +70,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         await conn.sendMessage(from, { 
             audio: { url: 'https://files.catbox.moe/dcxfi1.mp3' },
             mimetype: 'audio/mp4',
-            ptt: true 
+            ptt: false
              }, { quoted: verifiedContact });
 
     } catch (e) {
