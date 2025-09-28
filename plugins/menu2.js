@@ -101,7 +101,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
+                newsletterJid: '120363420261263259@newsletter',
                 newsletterName:'CASEYRHODES-XMD 👻',
                 serverMessageId: 143
             }
