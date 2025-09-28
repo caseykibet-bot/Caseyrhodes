@@ -33,7 +33,7 @@ cmd({
         
         // Get first result
         let yts = yt.results[0];  
-        let apiUrl = `https://apis-keith.vercel.app/download/dlmp3?url=${encodeURIComponent(yts.url)}`;
+        let apiUrl = `https://apis-keith.vercel.app/download/dlmp4?url=${encodeURIComponent(yts.url)}`;
         
         // Fetch audio data from API
         let response = await fetch(apiUrl);
