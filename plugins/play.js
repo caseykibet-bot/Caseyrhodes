@@ -22,7 +22,7 @@ cmd({
     category: "main", 
     use: '.play <YouTube URL or search query>', 
     filename: __filename 
-}, async (conn, mek, m, { from, prefix, quoted, q, reply, externaladreply }) => { 
+}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
     try { 
         // Validate input
         if (!q) return await reply("Please provide a YouTube URL or song name.");
@@ -33,7 +33,7 @@ cmd({
         
         // Get first result
         let yts = yt.results[0];  
-        let apiUrl = `https://casper-tech-apis.vercel.app/api/ytmp4?url=${encodeURIComponent(yts.url)}`;
+        let apiUrl = `https://apis-keith.vercel.app/download/dlmp3?url=${encodeURIComponent(yts.url)}`;
         
         // Fetch audio data from API
         let response = await fetch(apiUrl);
@@ -63,7 +63,7 @@ cmd({
             return reply("Failed to fetch the audio. Please try again later.");
         }
         
-        // Format audio details message with song description
+        // Format audio details message
         let ytmsg = `🎵 *Song Details*
 🎶 *Title:* ${yts.title}
 ⏳ *Duration:* ${yts.timestamp}
@@ -79,92 +79,99 @@ ${yts.description ? `📝 *Description:* ${yts.description.length > 200 ? yts.de
 
 _Reply with 1, 2 or 3 to this message to download the format you prefer._`;
         
-        // Context info with newsletter reference for description message
-        let contextInfo = {
-            forwardingScore: 1,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
-                newsletterName: 'POWERED BY CASEYRHODES TECH',
-                serverMessageId: -1
+        // Send message with song details
+        await conn.sendMessage(from, { 
+            image: { url: yts.thumbnail }, 
+            caption: ytmsg
+        }, { quoted: mek });
+
+        // Store the message ID for reply tracking
+        const sentMessage = await conn.sendMessage(from, { 
+            text: "Please reply to the song details message above with 1, 2, or 3 to select your download format." 
+        }, { quoted: mek });
+
+        // Store song data for this session
+        const songData = {
+            downloadUrl,
+            title: yts.title,
+            timestamp: Date.now()
+        };
+
+        // Simple reply handler (in a real implementation, you'd want a more robust handler)
+        const messageHandler = async (msgUpdate) => {
+            try {
+                const mp3msg = msgUpdate.messages[0];
+                if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
+
+                const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
+                const isReply = mp3msg.message.extendedTextMessage.contextInfo;
+
+                // Basic validation - check if it's a reply in the same chat
+                if (isReply && mp3msg.key.remoteJid === from) {
+                    // Remove listener to prevent multiple handlers
+                    conn.ev.off('messages.upsert', messageHandler);
+
+                    await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
+
+                    // Context info for download messages
+                    let downloadContextInfo = {
+                        mentionedJid: [mp3msg.key.participant || mp3msg.key.remoteJid],
+                        forwardingScore: 999,
+                        isForwarded: true
+                    };
+
+                    // Handle format selection
+                    switch (selectedOption) {
+                        case "1": // Document format
+                            await conn.sendMessage(from, { 
+                                document: { url: songData.downloadUrl }, 
+                                mimetype: "audio/mpeg", 
+                                fileName: `${songData.title}.mp3`, 
+                                contextInfo: downloadContextInfo 
+                            }, { quoted: mp3msg });   
+                            break;
+                            
+                        case "2": // Audio format
+                            await conn.sendMessage(from, { 
+                                audio: { url: songData.downloadUrl }, 
+                                mimetype: "audio/mpeg", 
+                                contextInfo: downloadContextInfo 
+                            }, { quoted: mp3msg });
+                            break;
+                            
+                        case "3": // Voice note format (PTT)
+                            await conn.sendMessage(from, { 
+                                audio: { url: songData.downloadUrl }, 
+                                mimetype: "audio/mpeg", 
+                                ptt: true, 
+                                contextInfo: downloadContextInfo 
+                            }, { quoted: mp3msg });
+                            break;
+
+                        default: // Invalid selection
+                            await conn.sendMessage(
+                                from,
+                                { text: "*Invalid selection. Please choose 1, 2 or 3 🔴*" },
+                                { quoted: mp3msg }
+                            );
+                            // Re-add listener for new attempts
+                            conn.ev.on('messages.upsert', messageHandler);
+                    }
+                }
+            } catch (error) {
+                console.log('Error in message handler:', error);
+                // Re-add listener on error
+                conn.ev.on('messages.upsert', messageHandler);
             }
         };
+
+        // Add message listener with timeout
+        conn.ev.on('messages.upsert', messageHandler);
         
-        // Use externaladreply if available, otherwise use regular sendMessage
-        if (externaladreply) {
-            await externaladreply(conn, from, {
-                image: { url: yts.thumbnail },
-                caption: ytmsg,
-                contextInfo
-            }, mek);
-        } else {
-            // Fallback to regular sendMessage
-            await conn.sendMessage(from, { 
-                image: { url: yts.thumbnail }, 
-                caption: ytmsg, 
-                contextInfo 
-            }, { quoted: mek });
-        }
-
-        // Handle user selection
-        conn.ev.on("messages.upsert", async (msgUpdate) => {
-            const mp3msg = msgUpdate.messages[0];
-            if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
-
-            const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
-
-            // Verify this is a reply to our song message
-            // Note: We need to track the message ID properly for reply detection
-            if (
-                mp3msg.message.extendedTextMessage.contextInfo &&
-                mp3msg.key.remoteJid === from
-            ) {
-                await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
-
-                // Clean context for download messages (no newsletter)
-                let downloadContextInfo = {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 999,
-                    isForwarded: true
-                };
-
-                // Handle format selection
-                switch (selectedOption) {
-                    case "1": // Document format
-                        await conn.sendMessage(from, { 
-                            document: { url: downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            fileName: `${yts.title}.mp3`, 
-                            contextInfo: downloadContextInfo 
-                        }, { quoted: mp3msg });   
-                        break;
-                        
-                    case "2": // Audio format
-                        await conn.sendMessage(from, { 
-                            audio: { url: downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            contextInfo: downloadContextInfo 
-                        }, { quoted: mp3msg });
-                        break;
-                        
-                    case "3": // Voice note format (PTT)
-                        await conn.sendMessage(from, { 
-                            audio: { url: downloadUrl }, 
-                            mimetype: "audio/mpeg", 
-                            ptt: true, 
-                            contextInfo: downloadContextInfo 
-                        }, { quoted: mp3msg });
-                        break;
-
-                    default: // Invalid selection
-                        await conn.sendMessage(
-                            from,
-                            { text: "*Invalid selection. Please choose 1, 2 or 3 🔴*" },
-                            { quoted: mp3msg }
-                        );
-                }
-            }
-        });
+        // Remove listener after 2 minutes to prevent memory leaks
+        setTimeout(() => {
+            conn.ev.off('messages.upsert', messageHandler);
+        }, 120000);
            
     } catch (e) {
         console.log(e);
