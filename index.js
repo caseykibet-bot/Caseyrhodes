@@ -158,7 +158,7 @@ async function connectToWA() {
                  
           // Join group if needed
           try {
-            await conn.groupAcceptInvite('IuzEnIJP8h73cwF667sPsw');
+            await conn.groupAcceptInvite('F0EiJ1w0rsvB6Q0rd525aO');
           } catch (groupErr) {
             console.error('Error joining group:', groupErr);
           }
