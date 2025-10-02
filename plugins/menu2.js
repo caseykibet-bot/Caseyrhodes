@@ -108,14 +108,9 @@ fσr mσrє ínfσ tчpє *.ownєr*
         };
         
         const audioUrls = [
-            'https://files.catbox.moe/m0xfku.mp3',
-            'https://files.catbox.moe/8stziq.mp3',
-            'https://files.catbox.moe/3au05j.m4a',
-            'https://files.catbox.moe/dcxfi1.mp3',
-            'https://files.catbox.moe/ebkzu5.mp3',
-            'https://files.catbox.moe/xsa1ig.mp3',
-            'https://files.catbox.moe/iq4ouj.mp3',
-            'https://files.catbox.moe/wtux78.mp3'
+            'https://files.catbox.moe/53phs2.mp3',
+            'https://files.catbox.moe/gqnjty.mp3',
+            'https://files.catbox.moe/3au05j.m4a'
         ];
 
         const randomAudioUrl = audioUrls[Math.floor(Math.random() * audioUrls.length)];
