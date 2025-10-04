@@ -1,180 +1,108 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const { ytsearch } = require('@dark-yasiya/yt-dl.js');
+const BASE_URL = 'https://noobs-api.top';
+const yts = require('yt-search');
 
 /**
- * MP3 Audio Download Command (Play)
- * Downloads YouTube videos as MP3 audio with multiple format options
- * 
- * Features:
- * - Search YouTube videos by name or URL
- * - Provide audio details (title, duration, views, author)
- * - Three download formats: Document, Audio, Voice Note (PTT)
- * - Interactive selection via reply system
- * 
- * Usage: .play <YouTube URL or search query>
+ * Music Player Command
+ * Downloads YouTube videos as MP3 audio using specified API
  */
 cmd({ 
     pattern: "play", 
-    alias: ["ytdl3", "song"], 
-    react: "🎶", 
-    desc: "Download YouTube song", 
-    category: "main", 
-    use: '.play <YouTube URL or search query>', 
+    alias: ["song", "music"], 
+    react: "🎵", 
+    desc: "Download YouTube music", 
+    category: "media", 
+    use: '.play <song name>', 
     filename: __filename 
-}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
-    try { 
-        // Validate input
-        if (!q) return await reply("Please provide a YouTube URL or song name.");
-        
-        // Search YouTube
-        const yt = await ytsearch(q);
-        if (yt.results.length < 1) return reply("No results found!");
-        
-        // Get first result
-        let yts = yt.results[0];  
-        let apiUrl = `https://apis-keith.vercel.app/download/dlmp4?url=${encodeURIComponent(yts.url)}`;
-        
-        // Fetch audio data from API
-        let response = await fetch(apiUrl);
-        let data = await response.json();
-        
-        // Debug: Log the actual response structure
-        console.log('API Response:', JSON.stringify(data, null, 2));
-        
-        // Validate API response - check multiple possible structures
-        let downloadUrl = null;
-        if (data.status === 'success' && data.data && data.data.downloads) {
-            // Find audio download from the downloads array
-            const audioDownload = data.data.downloads.find(d => d.quality && d.downloadUrl);
-            if (audioDownload) {
-                downloadUrl = audioDownload.downloadUrl;
-            }
-        } else if (data.success && data.result && data.result.downloadUrl) {
-            // Alternative structure
-            downloadUrl = data.result.downloadUrl;
-        } else if (data.success && data.result && data.result.download_url) {
-            // Another possible structure
-            downloadUrl = data.result.download_url;
+}, async (conn, mek, m, { from, prefix, quoted, q, text, reply }) => { 
+    try {
+        if (!text) {
+            return await reply('🎵 *Music Player*\nPlease provide a song name to play.');
         }
-        
-        if (!downloadUrl) {
-            console.log('No download URL found in response:', data);
-            return reply("Failed to fetch the audio. Please try again later.");
+
+        // Send searching message
+        await reply('🔍 *Searching for your song...*');
+
+        const search = await yts(text);
+        const video = search.videos[0];
+
+        if (!video) {
+            return await reply('❌ *No Results Found*\nNo songs found for your query. Please try different keywords.');
         }
-        
-        // Format audio details message
-        let ytmsg = `🎵 *Song Details*
-🎶 *Title:* ${yts.title}
-⏳ *Duration:* ${yts.timestamp}
-👀 *Views:* ${yts.views}
-👤 *Author:* ${yts.author.name}
-🔗 *Link:* ${yts.url}
 
-${yts.description ? `📝 *Description:* ${yts.description.length > 200 ? yts.description.substring(0, 200) + '...' : yts.description}\n\n` : ''}
-*Choose download format:*
-1. 📄 MP3 as Document
-2. 🎧 MP3 as Audio (Play)
-3. 🎙️ MP3 as Voice Note (PTT)
+        // Create enhanced newsletter-style description
+        const songInfo = `
+🎧 *MUSIC NEWSLETTER* 🎧
 
-_Reply with 1, 2 or 3 to this message to download the format you prefer._`;
-        
-        // Send message with song details
-        await conn.sendMessage(from, { 
-            image: { url: yts.thumbnail }, 
-            caption: ytmsg
+📀 *Title:* ${video.title}
+👤 *Channel:* ${video.author?.name || 'Unknown'}
+⏱️ *Duration:* ${video.timestamp}
+👁️ *Views:* ${video.views}
+📅 *Uploaded:* ${video.ago}
+🔗 *YouTube URL:* https://youtu.be/${video.videoId}
+
+📝 *Description:*
+${video.description ? (video.description.length > 200 ? video.description.substring(0, 200) + '...' : video.description) : 'No description available.'}
+
+⬇️ *Downloading your audio... Please wait* ⬇️
+        `.trim();
+
+        // Send song info with thumbnail first
+        await conn.sendMessage(from, {
+            image: { url: video.thumbnail },
+            caption: songInfo
         }, { quoted: mek });
 
-        // Store the message ID for reply tracking
-        const sentMessage = await conn.sendMessage(from, { 
-            text: "Please reply to the song details message above with 1, 2, or 3 to select your download format." 
-        }, { quoted: mek });
+        const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, '');
+        const fileName = `${safeTitle}.mp3`;
+        const BASE_URL = 'https://apis-keith.vercel.app'; // Define BASE_URL
+        const apiURL = `${BASE_URL}/dipto/ytDl3?link=${encodeURIComponent(video.videoId)}&format=mp3`;
 
-        // Store song data for this session
-        const songData = {
-            downloadUrl,
-            title: yts.title,
-            timestamp: Date.now()
-        };
+        // Send processing message
+        await reply('🎵 *Fetching audio from YouTube...*');
 
-        // Simple reply handler (in a real implementation, you'd want a more robust handler)
-        const messageHandler = async (msgUpdate) => {
-            try {
-                const mp3msg = msgUpdate.messages[0];
-                if (!mp3msg.message || !mp3msg.message.extendedTextMessage) return;
-
-                const selectedOption = mp3msg.message.extendedTextMessage.text.trim();
-                const isReply = mp3msg.message.extendedTextMessage.contextInfo;
-
-                // Basic validation - check if it's a reply in the same chat
-                if (isReply && mp3msg.key.remoteJid === from) {
-                    // Remove listener to prevent multiple handlers
-                    conn.ev.off('messages.upsert', messageHandler);
-
-                    await conn.sendMessage(from, { react: { text: "⬇️", key: mp3msg.key } });
-
-                    // Context info for download messages
-                    let downloadContextInfo = {
-                        mentionedJid: [mp3msg.key.participant || mp3msg.key.remoteJid],
-                        forwardingScore: 999,
-                        isForwarded: true
-                    };
-
-                    // Handle format selection
-                    switch (selectedOption) {
-                        case "1": // Document format
-                            await conn.sendMessage(from, { 
-                                document: { url: songData.downloadUrl }, 
-                                mimetype: "audio/mpeg", 
-                                fileName: `${songData.title}.mp3`, 
-                                contextInfo: downloadContextInfo 
-                            }, { quoted: mp3msg });   
-                            break;
-                            
-                        case "2": // Audio format
-                            await conn.sendMessage(from, { 
-                                audio: { url: songData.downloadUrl }, 
-                                mimetype: "audio/mpeg", 
-                                contextInfo: downloadContextInfo 
-                            }, { quoted: mp3msg });
-                            break;
-                            
-                        case "3": // Voice note format (PTT)
-                            await conn.sendMessage(from, { 
-                                audio: { url: songData.downloadUrl }, 
-                                mimetype: "audio/mpeg", 
-                                ptt: true, 
-                                contextInfo: downloadContextInfo 
-                            }, { quoted: mp3msg });
-                            break;
-
-                        default: // Invalid selection
-                            await conn.sendMessage(
-                                from,
-                                { text: "*Invalid selection. Please choose 1, 2 or 3 🔴*" },
-                                { quoted: mp3msg }
-                            );
-                            // Re-add listener for new attempts
-                            conn.ev.on('messages.upsert', messageHandler);
-                    }
-                }
-            } catch (error) {
-                console.log('Error in message handler:', error);
-                // Re-add listener on error
-                conn.ev.on('messages.upsert', messageHandler);
+        try {
+            // Fetch from your API endpoint
+            const response = await fetch(apiURL);
+            
+            if (!response.ok) {
+                throw new Error(`API responded with status: ${response.status}`);
             }
-        };
+            
+            const data = await response.json();
 
-        // Add message listener with timeout
-        conn.ev.on('messages.upsert', messageHandler);
-        
-        // Remove listener after 2 minutes to prevent memory leaks
-        setTimeout(() => {
-            conn.ev.off('messages.upsert', messageHandler);
-        }, 120000);
-           
-    } catch (e) {
-        console.log(e);
-        reply("An error occurred. Please try again later.");
+            // Check for downloadLink in response
+            if (!data.downloadLink) {
+                console.log('API Response structure:', data);
+                return await reply('❌ *Download Failed*\nThe API did not return a valid download link. Response structure may have changed.');
+            }
+
+            const downloadLink = data.downloadLink;
+
+            // Validate download link
+            if (!downloadLink.startsWith('http')) {
+                return await reply('❌ *Invalid Download Link*\nThe returned download link is not valid.');
+            }
+
+            // Send audio with metadata
+            await conn.sendMessage(from, {
+                audio: { url: downloadLink },
+                mimetype: 'audio/mpeg',
+                fileName: fileName,
+                ptt: false
+            }, { quoted: mek });
+
+            // Send success message
+            await reply(`✅ *Download Complete!*\n\n🎶 "${video.title}"\n📁 Saved as: ${fileName}\n\nEnjoy your music! 🎧`);
+
+        } catch (apiError) {
+            console.error('[API ERROR]', apiError);
+            await reply('❌ *API Error*\nFailed to fetch audio from the download service. Please try again later.');
+        }
+
+    } catch (error) {
+        console.error('[PLAY ERROR]', error);
+        await reply('❌ *Error Occurred*\nFailed to process your song request. Please try again later.');
     }
 });
