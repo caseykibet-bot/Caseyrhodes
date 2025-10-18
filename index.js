@@ -68,7 +68,7 @@ setInterval(clearTempDir, 5 * 60 * 1000)
 //===================SESSION-AUTH============================
 if (!fs.existsSync(__dirname + '/sessions/creds.json')) {
   if(!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!')
-  const sessdata = config.SESSION_ID.replace("Caseyrhodes~", '')
+  const sessdata = config.SESSION_ID.replace("IK~", '')
   const filer = File.fromURL(`https://mega.nz/file/${sessdata}`)
   filer.download((err, data) => {
     if(err) throw err
@@ -158,7 +158,7 @@ async function connectToWA() {
                  
           // Join group if needed
           try {
-            await conn.groupAcceptInvite('F0EiJ1w0rsvB6Q0rd525aO');
+            await conn.groupAcceptInvite('Ekt0Zs9tkAy3Ki2gkviuzc');
           } catch (groupErr) {
             console.error('Error joining group:', groupErr);
           }
