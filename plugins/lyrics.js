@@ -1,54 +1,90 @@
-const {
-  cmd
-} = require("../command");
-const fetch = require("node-fetch");
+const { cmd } = require("../command");
+const axios = require("axios");
 
 cmd({
-  'pattern': 'lyrics',
-  'alias': ["lyric"],
-  'desc': "Get song lyrics from Genius",
-  'category': "music",
-  'use': "<song title>"
-}, async (message, client, args, {
-  text: songTitle,
-  prefix: userPrefix,
-  command: userCommand,
-  reply: sendReply
+  'pattern': "lyrics",
+  'alias': ["lyric", "songlyrics"],
+  'react': '🎶',
+  'desc': "Search for song lyrics",
+  'category': "media",
+  'use': "<song name and artist>",
+  'filename': __filename
+}, async (message, client, context, {
+  from: sender,
+  q: query,
+  reply: replyFunction
 }) => {
-  if (!songTitle) {
-    return sendReply("Please provide a song title.\nExample: *" + (userPrefix + userCommand) + " robbery*");
-  }
-  
   try {
-    const encodedTitle = encodeURIComponent(songTitle);
-    const apiUrl = `https://api.giftedtech.co.ke/api/search/lyrics?apikey=gifted&query=${encodedTitle}`;
-    
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    
-    if (!data.result || !data.result.lyrics) {
-      return sendReply("❌ Lyrics not found.");
+    if (!query) {
+      return replyFunction(
+        '🎶 *Please provide a song name and artist...*\n\n' +
+        'Example: *.lyrics not afraid Eminem*\n' +
+        'Example: *.lyrics shape of you Ed Sheeran*'
+      );
     }
-    
-    const result = data.result;
-    let lyricsText = `🎵 *${result.title || "Unknown"}* - ${result.artist || "Unknown Artist"}\n\n`;
-    
-    if (result.lyrics && Array.isArray(result.lyrics)) {
-      for (const section of result.lyrics) {
-        lyricsText += section.text + "\n\n";
-      }
-    }
-    
-    lyricsText += `\n🔗 ${result.url || ""}\n\n> Powered by CaseyRhodes Tech`;
-    
-    await client.sendMessage(message.chat, {
-      text: lyricsText
+
+    // Send searching message
+    await message.sendMessage(sender, {
+      'text': "🔍 Searching for lyrics..."
     }, {
-      quoted: message
+      'quoted': client
     });
-    
+
+    const apiURL = `https://lyricsapi.fly.dev/api/lyrics?q=${encodeURIComponent(query)}`;
+    const res = await axios.get(apiURL);
+    const data = res.data;
+
+    if (!data.success || !data.result || !data.result.lyrics) {
+      return replyFunction(
+        '❌ *Lyrics not found for the provided query.*\n\n' +
+        'Please check the song name and artist spelling.'
+      );
+    }
+
+    const { title, artist, image, link, lyrics } = data.result;
+    const shortLyrics = lyrics.length > 4096 ? lyrics.slice(0, 4093) + '...' : lyrics;
+
+    const caption =
+      `╭───❮ *CASEYRHODES LYRICS* ❯────⊷\n` +
+      `┃ 🎵 *Title:* ${title}\n` +
+      `┃ 👤 *Artist:* ${artist}\n` +
+      `┃ 🔗 *Link:* ${link}\n` +
+      `╰──────────────────────⊷\n\n` +
+      `📜 *Lyrics:*\n\n` +
+      `${shortLyrics}\n\n` +
+      `> *Powered by Caseyrhodes tech♡*`;
+
+    // Send lyrics with image
+    await message.sendMessage(sender, {
+      'image': {
+        'url': image
+      },
+      'caption': caption
+    }, {
+      'quoted': client
+    });
+
+    // Send success reaction
+    await message.sendMessage(sender, {
+      'react': {
+        'text': '✅',
+        'key': client.key
+      }
+    });
+
   } catch (error) {
-    console.error("Lyrics error:", error);
-    sendReply("❌ Failed to fetch lyrics. Try again later.");
+    console.error("Lyrics command error:", error);
+    replyFunction(
+      '❌ *An error occurred while fetching lyrics!*\n\n' +
+      'Please try again later or check your internet connection.'
+    );
+    
+    // Send error reaction
+    await message.sendMessage(sender, {
+      'react': {
+        'text': '❌',
+        'key': client.key
+      }
+    });
   }
 });
