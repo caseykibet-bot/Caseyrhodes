@@ -50,7 +50,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         
         // Send image + caption + audio combined
         await conn.sendMessage(from, { 
-            image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
+            image: { url: `https://i.ibb.co/fGSVG8vJ/caseyweb.jpg` },  
             caption: status,
             contextInfo: {
                 mentionedJid: [m.sender],
@@ -68,7 +68,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
 
         // Attach audio within the same "quoted" message for grouping
         await conn.sendMessage(from, { 
-            audio: { url: 'https://files.catbox.moe/dcxfi1.mp3' },
+            audio: { url: 'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3' },
             mimetype: 'audio/mp4',
             ptt: false
              }, { quoted: verifiedContact });
