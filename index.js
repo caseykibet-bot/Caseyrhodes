@@ -166,7 +166,7 @@ async function connectToWA() {
           // Send welcome message only once per session
           if (!welcomeSent && isFirstConnection) {
             const startMess = {
-              image: { url: 'https://files.catbox.moe/y3j3kl.jpg' },
+              image: { url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg' },
               caption: `
 *ᴄᴏɴɴᴇᴄᴛᴇᴅ sᴜᴄᴄᴇsғᴜʟʟʏ🎉✅*
 > Simple , Straight Forward But Loaded With Features, 
