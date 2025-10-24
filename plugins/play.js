@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 
 cmd({
   'pattern': "play",
-  'alias': ["yta2", "song"],
+  'alias': ["play2", "song"],
   'react': '🎵',
   'desc': "Download high quality YouTube audio",
   'category': "media",
@@ -39,13 +39,13 @@ cmd({
     
     // Create info caption
     const infoCaption = `
-*╭───❮  NEBULA MD - AUDIO DOWNLOADER ❯───╮*
+╭───❮ *CASEYRHODES XMD* ❯────⊷
 ┃ 🎵 *Title:* ${videoData.title}
 ┃ ⏱️ *Duration:* ${videoData.timestamp}
 ┃ 👀 *Views:* ${videoData.views}
 ┃ 👤 *Author:* ${videoData.author.name}
-*╰───────────────────────────────╯*
-> *Powered by Ridz Coder ♡*
+╰──────────────────────⊷
+> *Powered by Caseyrhodes tech♡*
     `.trim();
 
     // Send video info with thumbnail
@@ -90,7 +90,7 @@ cmd({
       'mimetype': "audio/mpeg",
       'ptt': false,
       'fileName': sanitizedFileName,
-      'caption': "*© Created by Ridz Coder ❦*"
+      'caption': "*© Created by  Caseyrhodes tech ❦*"
     }, {
       'quoted': client
     });
