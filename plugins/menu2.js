@@ -15,14 +15,14 @@ const getRandomImage = () => {
         
         if (imageFiles.length === 0) {
             console.log('No image files found in src folder');
-            return 'https://files.catbox.moe/y3j3kl.jpg'; 
+            return 'https://i.ibb.co/Ng6PQcMv/caseyweb.jpg'; 
         }
         
         const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
         return path.join(srcPath, randomImage);
     } catch (e) {
         console.log('Error getting random image:', e);
-        return 'https://files.catbox.moe/wklbg4.jpg'; 
+        return 'https://i.ibb.co/Ng6PQcMv/caseyweb.jpg'; 
     }
 };
 
@@ -108,9 +108,9 @@ fσr mσrє ínfσ tчpє *.ownєr*
         };
         
         const audioUrls = [
-            'https://files.catbox.moe/53phs2.mp3',
-            'https://files.catbox.moe/gqnjty.mp3',
-            'https://files.catbox.moe/3au05j.m4a'
+            'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3',
+      'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/roddyrich.mp3',
+      'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/casey.mp3'
         ];
 
         const randomAudioUrl = audioUrls[Math.floor(Math.random() * audioUrls.length)];
