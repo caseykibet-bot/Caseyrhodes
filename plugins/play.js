@@ -7,7 +7,7 @@ cmd({
   'pattern': "play",
   'alias': ["play2", "song"],
   'react': '🎵',
-  'desc': "Download high quality YouTube audio",
+  'desc': "Download high quality YouTube audio with confirmation",
   'category': "media",
   'use': "<song name>",
   'filename': __filename
@@ -37,7 +37,7 @@ cmd({
 
     const videoData = searchResults.results[0];
     
-    // Create info caption
+    // Create info caption with download options and newsletter
     const infoCaption = `
 ╭───❮ *CASEYRHODES XMD* ❯────⊷
 ┃ 🎵 *Title:* ${videoData.title}
@@ -45,63 +45,196 @@ cmd({
 ┃ 👀 *Views:* ${videoData.views}
 ┃ 👤 *Author:* ${videoData.author.name}
 ╰──────────────────────⊷
+
+*Choose download format:*
+1️⃣ *MP3 as Document* 📄
+2️⃣ *MP3 as Audio* 🎧  
+3️⃣ *MP3 as Voice Note* 🎙️
+
+*Reply with 1, 2 or 3 to download the format you prefer.*
+
 > *Powered by Caseyrhodes tech♡*
     `.trim();
 
-    // Send video info with thumbnail
-    await message.sendMessage(sender, {
+    // Newsletter context info for the song description message only
+    const newsletterContextInfo = {
+      forwardingScore: 1,
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: '120363302677217436@newsletter',
+        newsletterName: 'POWERED BY CASEYRHODES TECH',
+        serverMessageId: -1
+      }
+    };
+
+    // Store video data for later use
+    const songData = {
+      title: videoData.title,
+      thumbnail: videoData.thumbnail,
+      timestamp: videoData.timestamp,
+      views: videoData.views,
+      author: videoData.author.name,
+      query: query
+    };
+
+    // Send video info with thumbnail, options, and newsletter context
+    const infoMessage = await message.sendMessage(sender, {
       'image': {
         'url': videoData.thumbnail
       },
-      'caption': infoCaption
+      'caption': infoCaption,
+      'contextInfo': newsletterContextInfo
     }, {
       'quoted': client
     });
 
-    // Fetch audio download URL
-    const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytplaymp3?query=${encodeURIComponent(videoData.title)}`;
-    const apiResponse = await fetch(apiUrl);
-    const apiData = await apiResponse.json();
+    // Store the message ID for reply tracking
+    const triggerMessageId = infoMessage.key?.id;
 
-    const downloadUrl = apiData?.result?.download_url || apiData?.result?.downloadUrl;
-    
-    if (!downloadUrl) {
-      return replyFunction("❌ Failed to fetch audio. Try again later.");
-    }
+    // Set up reply handler
+    const replyHandler = async (mek) => {
+      try {
+        // Check if this is a reply to our trigger message
+        if (mek.message?.extendedTextMessage?.contextInfo?.stanzaId === triggerMessageId) {
+          const selectedOption = mek.message.extendedTextMessage.text.trim();
+          
+          // Validate selection
+          if (!['1', '2', '3'].includes(selectedOption)) {
+            await message.sendMessage(sender, {
+              'text': "❌ Invalid selection. Please reply with 1, 2, or 3 only."
+            }, {
+              'quoted': mek
+            });
+            return;
+          }
 
-    // Download and convert audio
-    const audioResponse = await fetch(downloadUrl);
-    const audioBuffer = await audioResponse.buffer();
+          // Remove the listener to prevent multiple handlers
+          client.ev.off('messages.upsert', replyHandler);
 
-    let convertedAudio;
-    try {
-      convertedAudio = await converter.toAudio(audioBuffer, "mp4");
-    } catch (conversionError) {
-      console.error("Audio conversion failed:", conversionError);
-      return replyFunction("❌ Audio conversion failed. Please try another song.");
-    }
+          // Send processing reaction
+          await message.sendMessage(sender, {
+            'react': {
+              'text': '⬇️',
+              'key': mek.key
+            }
+          });
 
-    // Sanitize filename
-    const sanitizedFileName = `${videoData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
+          // Send processing message
+          await message.sendMessage(sender, {
+            'text': "⏳ Processing your download request..."
+          }, {
+            'quoted': mek
+          });
 
-    // Send audio file
-    await message.sendMessage(sender, {
-      'audio': convertedAudio,
-      'mimetype': "audio/mpeg",
-      'ptt': false,
-      'fileName': sanitizedFileName,
-      'caption': "*© Created by  Caseyrhodes tech ❦*"
-    }, {
-      'quoted': client
-    });
+          // Fetch audio download URL
+          const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytplaymp3?query=${encodeURIComponent(songData.title)}`;
+          const apiResponse = await fetch(apiUrl);
+          const apiData = await apiResponse.json();
 
-    // Send success reaction
-    await message.sendMessage(sender, {
-      'react': {
-        'text': '✅',
-        'key': client.key
+          const downloadUrl = apiData?.result?.download_url || apiData?.result?.downloadUrl;
+          
+          if (!downloadUrl) {
+            return await message.sendMessage(sender, {
+              'text': "❌ Failed to fetch audio. Try again later."
+            }, {
+              'quoted': mek
+            });
+          }
+
+          // Download and convert audio
+          const audioResponse = await fetch(downloadUrl);
+          const audioBuffer = await audioResponse.buffer();
+
+          let convertedAudio;
+          try {
+            convertedAudio = await converter.toAudio(audioBuffer, "mp4");
+          } catch (conversionError) {
+            console.error("Audio conversion failed:", conversionError);
+            return await message.sendMessage(sender, {
+              'text': "❌ Audio conversion failed. Please try another song."
+            }, {
+              'quoted': mek
+            });
+          }
+
+          // Sanitize filename
+          const sanitizedFileName = `${songData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
+
+          // Regular context info for download messages (no newsletter)
+          const downloadContextInfo = {
+            mentionedJid: [mek.participant || mek.key.participant],
+            forwardingScore: 999,
+            isForwarded: true
+          };
+
+          // Send audio based on selected format
+          switch (selectedOption) {
+            case '1': // Document format
+              await message.sendMessage(sender, {
+                'document': convertedAudio,
+                'mimetype': "audio/mpeg",
+                'fileName': sanitizedFileName,
+                'caption': "*📄 MP3 Document • © Created by Caseyrhodes tech ❦*",
+                'contextInfo': downloadContextInfo
+              }, {
+                'quoted': mek
+              });
+              break;
+
+            case '2': // Audio format
+              await message.sendMessage(sender, {
+                'audio': convertedAudio,
+                'mimetype': "audio/mpeg",
+                'ptt': false,
+                'fileName': sanitizedFileName,
+                'caption': "*🎧 MP3 Audio • © Created by Caseyrhodes tech ❦*",
+                'contextInfo': downloadContextInfo
+              }, {
+                'quoted': mek
+              });
+              break;
+
+            case '3': // Voice note format
+              await message.sendMessage(sender, {
+                'audio': convertedAudio,
+                'mimetype': "audio/mpeg",
+                'ptt': true,
+                'fileName': sanitizedFileName,
+                'caption': "*🎙️ Voice Note • © Created by Caseyrhodes tech ❦*",
+                'contextInfo': downloadContextInfo
+              }, {
+                'quoted': mek
+              });
+              break;
+          }
+
+          // Send success reaction
+          await message.sendMessage(sender, {
+            'react': {
+              'text': '✅',
+              'key': mek.key
+            }
+          });
+
+        }
+      } catch (error) {
+        console.error("Reply handler error:", error);
+        await message.sendMessage(sender, {
+          'text': "⚠️ An error occurred during download. Please try again."
+        }, {
+          'quoted': mek
+        });
       }
-    });
+    };
+
+    // Add the reply handler with timeout
+    client.ev.on('messages.upsert', replyHandler);
+
+    // Set timeout to remove listener after 2 minutes
+    setTimeout(() => {
+      client.ev.off('messages.upsert', replyHandler);
+      console.log('Reply handler removed due to timeout');
+    }, 120000);
 
   } catch (error) {
     console.error("Play command error:", error);
