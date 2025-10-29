@@ -108,7 +108,38 @@ function getSpecialResponse(type, query) {
     }
 }
 
-// OpenAI command
+// Fake verification context function
+function getVerifiedContext(sender) {
+    return {
+        mentionedJid: [sender],
+        forwardingScore: 999,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363302677217436@newsletter',
+            newsletterName: 'CASEYRHODES VERIFIED ✅',
+            serverMessageId: -1
+        }
+    };
+}
+
+// Fake verification contact message
+function getVerifiedContact() {
+    return {
+        key: {
+            fromMe: false,
+            participant: `0@s.whatsapp.net`,
+            remoteJid: "status@broadcast"
+        },
+        message: {
+            contactMessage: {
+                displayName: "CASEYRHODES VERIFIED ✅",
+                vcard: "BEGIN:VCARD\nVERSION:3.0\nFN:Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+13135550002\nEND:VCARD"
+            }
+        }
+    };
+}
+
+// OpenAI command with fake verification
 cmd({
     pattern: "openai",
     alias: ["chatgpt", "gpt3", "open-gpt", "gpt5"],
@@ -126,9 +157,15 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
         if (specialType) {
             const specialResponse = getSpecialResponse(specialType, q);
             if (specialType === 'reset') {
-                messageMemory.delete(from); // Clear memory for this chat
+                messageMemory.delete(from);
             }
-            await reply(specialResponse);
+            
+            // Send special response with fake verification
+            await conn.sendMessage(from, { 
+                text: specialResponse,
+                contextInfo: getVerifiedContext(m.sender)
+            }, { quoted: mek });
+            
             await react("✅");
             return;
         }
@@ -141,7 +178,12 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
             return reply("OpenAI failed to respond. Please try again later.");
         }
 
-        await reply(`🧠 *OpenAI Response:*\n\n${data.result}`);
+        // Send response with fake verification
+        await conn.sendMessage(from, { 
+            text: `🧠 *OpenAI Response:*\n\n${data.result}`,
+            contextInfo: getVerifiedContext(m.sender)
+        }, { quoted: mek });
+        
         await react("✅");
     } catch (e) {
         console.error("Error in OpenAI command:", e);
@@ -150,7 +192,7 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
     }
 });
 
-// Main AI command with enhanced logic
+// Main AI command with fake verification
 cmd({
     pattern: "ai",
     alias: ["bot", "xd", "gpt", "gpt4", "bing"],
@@ -169,25 +211,15 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
             const specialResponse = getSpecialResponse(specialType, q);
             
             if (specialType === 'reset') {
-                messageMemory.delete(from); // Clear memory
-                await reply(specialResponse);
-            } else {
-                // Send with newsletter integration for special responses
-                await conn.sendMessage(from, { 
-                    image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
-                    caption: specialResponse,
-                    contextInfo: {
-                        mentionedJid: [m.sender],
-                        forwardingScore: 999,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363302677217436@newsletter',
-                            newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐈 🤖',
-                            serverMessageId: 143
-                        }
-                    }
-                }, { quoted: mek });
+                messageMemory.delete(from);
             }
+            
+            // Send with fake verification and image
+            await conn.sendMessage(from, { 
+                image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
+                caption: specialResponse,
+                contextInfo: getVerifiedContext(m.sender)
+            }, { quoted: mek });
             
             await react("✅");
             return;
@@ -216,20 +248,11 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
         
         const status = `🤖 *CASEYRHODES-XMD AI Response:*\n\n${data.message}`;
         
-        // Send image + caption with newsletter info
+        // Send image + caption with fake verification
         await conn.sendMessage(from, { 
             image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
             caption: status,
-            contextInfo: {
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐈 🤖',
-                    serverMessageId: 143
-                }
-            }
+            contextInfo: getVerifiedContext(m.sender)
         }, { quoted: mek });
 
         await react("✅");
@@ -240,7 +263,7 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
     }
 });
 
-// DeepSeek AI command
+// DeepSeek AI command with fake verification
 cmd({
     pattern: "deepseek",
     alias: ["deep", "seekai"],
@@ -260,7 +283,13 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
             if (specialType === 'reset') {
                 messageMemory.delete(from);
             }
-            await reply(specialResponse);
+            
+            // Send with fake verification
+            await conn.sendMessage(from, { 
+                text: specialResponse,
+                contextInfo: getVerifiedContext(m.sender)
+            }, { quoted: mek });
+            
             await react("✅");
             return;
         }
@@ -273,7 +302,12 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
             return reply("DeepSeek AI failed to respond. Please try again later.");
         }
 
-        await reply(`👾 *DeepSeek AI Response:*\n\n${data.answer}`);
+        // Send response with fake verification
+        await conn.sendMessage(from, { 
+            text: `👾 *DeepSeek AI Response:*\n\n${data.answer}`,
+            contextInfo: getVerifiedContext(m.sender)
+        }, { quoted: mek });
+        
         await react("✅");
     } catch (e) {
         console.error("Error in DeepSeek AI command:", e);
@@ -282,7 +316,7 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
     }
 });
 
-// Additional command to check memory status
+// Memory command with fake verification
 cmd({
     pattern: "memory",
     alias: ["chatstatus", "mem"],
@@ -295,10 +329,49 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
     const memory = messageMemory.get(from);
     const messageCount = memory ? memory.length : 0;
     
-    await reply(`💾 *Memory Status:*\n\n` +
+    const statusMessage = `💾 *Memory Status:*\n\n` +
                 `• Messages in memory: ${messageCount}\n` +
                 `• Memory limit: ${MAX_MEMORY} messages\n` +
                 `• Chat ID: ${from}\n\n` +
-                `Use \`.ai reset chat\` to clear memory.`);
+                `Use \`.ai reset chat\` to clear memory.`;
+    
+    // Send with fake verification
+    await conn.sendMessage(from, { 
+        text: statusMessage,
+        contextInfo: getVerifiedContext(m.sender)
+    }, { quoted: mek });
+    
     await react("✅");
+});
+
+// Additional command to send verification contact
+cmd({
+    pattern: "verify",
+    alias: ["verified", "checkverify"],
+    desc: "Check bot verification status",
+    category: "ai",
+    react: "✅",
+    filename: __filename
+},
+async (conn, mek, m, { from, args, q, reply, react }) => {
+    try {
+        // Send fake verification contact
+        await conn.sendMessage(from, getVerifiedContact());
+        
+        // Send verification message
+        await conn.sendMessage(from, { 
+            text: `✅ *CASEYRHODES AI - VERIFIED STATUS*\n\n` +
+                  `• *Bot Name:* CASEYRHODES-XMD AI\n` +
+                  `• *Status:* VERIFIED ✅\n` +
+                  `• *Newsletter:* CASEYRHODES VERIFIED ✅\n` +
+                  `• *Server ID:* 120363302677217436\n\n` +
+                  `This bot is officially verified and trusted!`,
+            contextInfo: getVerifiedContext(m.sender)
+        }, { quoted: mek });
+        
+        await react("✅");
+    } catch (e) {
+        console.error("Error in verify command:", e);
+        await react("❌");
+    }
 });
