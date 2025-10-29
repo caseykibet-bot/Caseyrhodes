@@ -22,7 +22,7 @@ cmd({
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
+                newsletterJid: '120363420261263259@newsletter',
                 newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐔𝐏𝐃𝐀𝐓𝐄𝐒',
                 serverMessageId: 143
             }
@@ -38,7 +38,7 @@ cmd({
         }, { quoted: mek });
 
         // Fetch the latest commit hash from GitHub
-        const { data: commitData } = await axios.get("https://api.github.com/repos/caseyweb/CASEYRHODES-XMD/commits/main");
+        const { data: commitData } = await axios.get("https://api.github.com/repos/caseykibet-bot/Caseyrhodes/commits/main");
         const latestCommitHash = commitData.sha;
         const currentHash = await getCommitHash();
 
@@ -68,7 +68,7 @@ cmd({
 
         // Download the latest code
         const zipPath = path.join(__dirname, "latest.zip");
-        const { data: zipData } = await axios.get("https://github.com/caseyweb/CASEYRHODES-XMD/archive/main.zip", { 
+        const { data: zipData } = await axios.get("https://github.com/caseykibet-bot/Caseyrhodes/archive/main.zip", { 
             responseType: "arraybuffer",
             headers: {
                 'User-Agent': 'CASEYRHODES-XMD-Bot'
@@ -104,7 +104,7 @@ cmd({
         }, {});
 
         // Copy updated files
-        const sourcePath = path.join(extractPath, "CASEYRHODES-XMD-main");
+        const sourcePath = path.join(extractPath, "Caseyrhodes-main");
         const destinationPath = path.join(__dirname, '..');
         copyFolderSync(sourcePath, destinationPath);
 
