@@ -36,13 +36,12 @@ cmd({
     try {
         const totalCommands = Object.keys(commands).length;
         
-        // Enhanced menu list with newsletter info
         const menulist = `🌟 *Good ${
             new Date().getHours() < 12 ? 'Morning' : 
             (new Date().getHours() < 18 ? 'Afternoon' : 'Evening')
         }, ${pushname}!* 🌟
 
-╭━━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》 ━━━┈⊷
+╭━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》 ━━━┈⊷
 ┃❍⁠⁠⁠⁠╭──────────────
 ┃❍⁠⁠⁠⁠│▸  Usᴇʀ : ${pushname}
 ┃❍⁠⁠⁠⁠│▸  Oᴡɴᴇʀ : ${config.OWNER_NAME}
@@ -55,17 +54,8 @@ cmd({
 ┃❍⁠⁠⁠⁠│▸  𝖯ʀᴇғɪx : *[${config.PREFIX}]*
 ┃❍⁠⁠⁠⁠│▸  ᴛɪᴍᴇ : *${new Date().toLocaleTimeString()}*
 ┃❍⁠⁠⁠⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎
-┃❍⁠⁠⁠⁠│▸  𝖭𝖾𝗐𝗌𝗅𝖾𝗍𝗍𝖾𝗋 : 𝖠𝖼𝗍𝗂𝗏𝖾 ✅
 ┃❍⁠⁠⁠⁠╰──────────────
-╰━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
-
-📰 *NEWSLETTER UPDATES*
-• Latest features added weekly
-• Bug fixes & improvements
-• New command announcements
-• Community news & events
-
-📚 *INTERACTIVE MENU NAVIGATION*
+╰━━━━━━━━━━━━━━━━━┈⊷
 
 \`\`\`Reply with any number 1-15\`\`\`
 
@@ -92,50 +82,34 @@ _*📱 Reply with any number above to access menu option*_
 🔧 *Quick Commands:*
 • *.allmenu* - See all commands
 • *.owner* - Contact developer
-• *.news* - Latest updates
 • *.help* - Get assistance
-
-📬 *Stay Updated: Subscribe to our newsletter for latest features!*
 
 > ${config.DESCRIPTION}`;
 
-        // Get thumbnail buffer for context info
-        let thumbnailBuffer;
-        try {
-            const thumbnailResponse = await axios.get('https://i.ibb.co/Ng6PQcMv/caseyweb.jpg', { 
-                responseType: 'arraybuffer' 
-            });
-            thumbnailBuffer = Buffer.from(thumbnailResponse.data);
-        } catch (e) {
-            console.log('Error getting thumbnail:', e);
-            thumbnailBuffer = Buffer.from('');
-        }
-
         // Newsletter context info
         const newsletterContext = {
-            externalAdReply: {
-                showAdAttribution: true,
-                title: "📰 CASEYRHODES XMD NEWSLETTER",
-                body: `Latest Updates • ${pushname}`,
-                thumbnail: thumbnailBuffer,
-                sourceUrl: "https://whatsapp.com/channel/0029Va8f2VD3REy8LJu9Lz3e",
-                mediaType: 1,
-                renderLargerThumbnail: true,
-            },
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
+            forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363420261263259@newsletter',
-                newsletterName: 'CASEYRHODES-XMD OFFICIAL 📰',
-                serverMessageId: 143
-            }
+                newsletterName: 'CASEYRHODES-XMD OFFICIAL 🌟',
+                serverMessageId: -1
+            },
+            externalAdReply: {
+                title: `𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃 𝐌𝐄𝐍𝐔 🚀`,
+                body: `ᴘʀᴇᴍɪᴜᴍ ʙᴏᴛ ꜱᴇʀᴠɪᴄᴇꜱ`,
+                mediaType: 1,
+                thumbnailUrl: "https://i.ibb.co/Ng6PQcMv/caseyweb.jpg",
+                sourceUrl: "https://github.com/caseyweb",
+                renderLargerThumbnail: false
+            },
+            mentionedJid: [m.sender]
         };
 
         // Send document menu as main menu
         const sentMsg = await conn.sendMessage(from, {
             document: {
-                url: "https://files.catbox.moe/52dotx.jpg", // Using a reliable image URL
+                url: "https://files.catbox.moe/52dotx.jpg",
             },
             caption: menulist,
             mimetype: "application/zip",
@@ -146,7 +120,7 @@ _*📱 Reply with any number above to access menu option*_
 
         const messageID = sentMsg.key.id;
 
-        // Send audio with newsletter context
+        // Send audio without newsletter context
         const audioUrls = [
             'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3',
             'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/roddyrich.mp3',
@@ -158,11 +132,10 @@ _*📱 Reply with any number above to access menu option*_
         await conn.sendMessage(from, {
             audio: { url: randomAudioUrl },
             mimetype: 'audio/mp4',
-            ptt: false,
-            contextInfo: newsletterContext
+            ptt: false
         }, { quoted: mek });
 
-        // Enhanced menu data with newsletter info
+        // Menu data
         const menuData = {
             '1': {
                 title: "📥 *Download Menu* 📥",
@@ -202,8 +175,6 @@ _*📱 Reply with any number above to access menu option*_
 ┃◈┃• gemini
 ┃◈└───────────┈⊷
 ╰──────────────┈⊷
-
-📰 *Newsletter Update:* New download sources added!
 > ${config.DESCRIPTION}`,
                 image: true
             },
@@ -248,8 +219,6 @@ _*📱 Reply with any number above to access menu option*_
 ┃◈┃• tagadmins
 ┃◈└───────────┈⊷
 ╰──────────────┈⊷
-
-📰 *Newsletter Update:* Enhanced group management!
 > ${config.DESCRIPTION}`,
                 image: true
             },
@@ -288,12 +257,9 @@ _*📱 Reply with any number above to access menu option*_
 ┃◈┃• poke
 ┃◈└───────────┈⊷
 ╰──────────────┈⊷
-
-📰 *Newsletter Update:* New fun commands added weekly!
 > ${config.DESCRIPTION}`,
                 image: true
             },
-            // ... (other menu items remain the same with newsletter updates added)
             '4': {
                 title: "👑 *Owner Menu* 👑",
                 content: `╭━━━〔 *Owner Menu* 〕━━━┈⊷
@@ -315,8 +281,6 @@ _*📱 Reply with any number above to access menu option*_
 ┃★│ • allmenu
 ┃★╰──────────────
 ╰━━━━━━━━━━━━━━━┈⊷
-
-📰 *Newsletter Update:* Enhanced owner controls!
 > ${config.DESCRIPTION}`,
                 image: true
             },
@@ -344,12 +308,293 @@ _*📱 Reply with any number above to access menu option*_
 ┃★│ • dj [query]
 ┃★╰──────────────
 ╰━━━━━━━━━━━━━━━┈⊷
-
-📰 *Newsletter Update:* New AI models integrated!
 > ${config.DESCRIPTION}`,
                 image: true
             },
-            // ... (continue with other menu items in similar format)
+            '6': {
+                title: "🎎 *Anime Menu* 🎎",
+                content: `╭━━━〔 *Anime Menu* 〕━━━┈⊷
+┃★╭──────────────
+┃★│ 🖼️ *Images*
+┃★│ • fack
+┃★│ • dog
+┃★│ • awoo
+┃★│ • garl
+┃★│ • waifu
+┃★│ • neko
+┃★│ • megnumin
+┃★│ • maid
+┃★│ • loli
+┃★╰──────────────
+┃★╭──────────────
+┃★│ 🎭 *Characters*
+┃★│ • animegirl
+┃★│ • animegirl1-5
+┃★│ • anime1-5
+┃★│ • foxgirl
+┃★│ • naruto
+┃★╰──────────────
+╰━━━━━━━━━━━━━━━┈⊷
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '7': {
+                title: "🔄 *Convert Menu* 🔄",
+                content: `╭━━━〔 *Convert Menu* 〕━━━┈⊷
+┃★╭──────────────
+┃★│ 🖼️ *Media*
+┃★│ • sticker [img]
+┃★│ • sticker2 [img]
+┃★│ • emojimix 😎+😂
+┃★│ • take [name,text]
+┃★│ • tomp3 [video]
+┃★╰──────────────
+┃★╭──────────────
+┃★│ 📝 *Text*
+┃★│ • fancy [text]
+┃★│ • tts [text]
+┃★│ • trt [text]
+┃★│ • base64 [text]
+┃★│ • unbase64 [text]
+┃★╰──────────────
+╰━━━━━━━━━━━━━━━┈⊷
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '8': {
+                title: "📌 *Other Menu* 📌",
+                content: `━━〔 Other Menu 〕━━┈⊷
+┃◈╭─────────────·๏
+┃◈┃• vv
+┃◈┃• pair
+┃◈┃• pair2
+┃◈┃• fact
+┃◈┃• font
+┃◈┃• define
+┃◈┃• news
+┃◈┃• movie
+┃◈┃• weather
+┃◈┃• srepo
+┃◈┃• insult
+┃◈┃• save
+┃◈┃• wikipedia
+┃◈┃• gpass
+┃◈┃• githubstalk
+┃◈┃• yts
+┃◈┃• ytv
+┃◈└───────────┈⊷
+╰──────────────┈⊷
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '9': {
+                title: "💞 *Reactions Menu* 💞",
+                content: `╭━━〔 Reactions Menu 〕━━┈⊷
+┃◈╭─────────────·๏
+┃◈┃• bully 
+┃◈┃• cuddle 
+┃◈┃• cry 
+┃◈┃• hug 
+┃◈┃• awoo 
+┃◈┃• kiss 
+┃◈┃• lick 
+┃◈┃• pat 
+┃◈┃• smug 
+┃◈┃• bonk
+┃◈┃• yeet 
+┃◈┃• blush 
+┃◈┃• smile
+┃◈┃• wave 
+┃◈┃• highfive 
+┃◈┃• handhold 
+┃◈┃• nom 
+┃◈┃• bite 
+┃◈┃• glomp 
+┃◈┃• slap
+┃◈┃• kill
+┃◈┃• happy
+┃◈┃• wink 
+┃◈┃• poke 
+┃◈┃• dance 
+┃◈┃• cringe 
+┃◈└───────────┈⊷
+╰──────────────┈⊷
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '10': {
+                title: "🏠 *Main Menu* 🏠",
+                content: `╭━━━〔 *Main Menu* 〕━━━┈⊷
+┃★╭──────────────
+┃★│ ℹ️ *Bot Info*
+┃★│ • ping
+┃★│ • live
+┃★│ • alive
+┃★│ • runtime
+┃★│ • uptime
+┃★│ • repo
+┃★│ • owner
+┃★╰──────────────
+┃★╭──────────────
+┃★│ 🛠️ *Controls*
+┃★│ • menu
+┃★│ • menu2
+┃★│ • restart
+┃★╰──────────────
+╰━━━━━━━━━━━━━━━┈⊷
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '11': {
+                title: "⚙️ *Settings Menu* ⚙️",
+                content: `╭━━━〔 *Settings Menu* 〕━━━┈⊷
+┃★╭──────────────
+┃★│ • setprefix 
+┃★│ • statusview
+┃★│ • mode
+┃★│ • statusreply
+┃★│ • alwaysonline
+┃★│ • autorecording
+┃★│ • autotyping
+┃★│ • setbotnumber
+┃★│ • autovoice
+┃★│ • autosticker
+┃★│ • autoreply
+┃★│ • statusreact
+┃★│ • autoreact
+┃★│ • welcome
+┃★│ • customreacts
+┃★│ • antibad
+┃★│ • antibot
+┃★│ • antilink
+┃★│ • readmessage
+┃★│ • settings
+┃★╰──────────────
+╰━━━━━━━━━━━━━━━┈⊷
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '12': {
+                title: "💰 *M-Pesa Menu* 💰",
+                content: `*╭───❍「 M-PESA 」❍*
+‎*├⬡ .ᴀɪʀᴛᴇʟᴍᴏɴᴇʏ*
+‎*├⬡ .ᴍᴘᴇsᴀ*
+‎*╰───────────────❍*
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '13': {
+                title: "🎨 *Logo Menu* 🎨",
+                content: `*╭───❍「 LOGO LIST 」❍*
+‎*├⬡ .ɴᴇᴏɴʟɪɢʜᴛ*
+‎*├⬡ .ʙʟᴀᴄᴋᴘɪɴᴋ*
+‎*├⬡ .ᴅʀᴀɢᴏɴʙᴀʟʟ*
+‎*├⬡ .𝟹ᴅᴄᴏᴍɪᴄ*
+‎*├⬡ .ᴀᴍᴇʀɪᴄᴀ*
+‎*├⬡ .ɴᴀʀᴜᴛᴏ*
+‎*├⬡ .sᴀᴅɢɪʀʟ*
+‎*├⬡ .ᴄʟᴏᴜᴅs*
+‎*├⬡ .ғᴜᴛᴜʀɪsᴛɪᴄ*
+‎*├⬡ .𝟹ᴅᴘᴀᴘᴇʀ*
+‎*├⬡ .ᴇʀᴀsᴇʀ*
+‎*├⬡ .sᴜɴsᴇᴛ*
+‎*├⬡ .ʟᴇᴀғ*
+‎*├⬡ .ɢᴀʟᴀxʏ*
+‎*├⬡ .sᴀɴs*
+‎*├⬡ .ʙᴏᴏᴍ*
+‎*├⬡ .ʜᴀᴄᴋᴇʀ*
+‎*├⬡ .ᴅᴇᴠɪʟᴡɪɴɢs*
+‎*├⬡ .ɴɪɢᴇʀɪᴀ*
+‎*├⬡ .ʙᴜʟʙ*
+‎*├⬡ .ᴀɴɢᴇʟᴡɪɴɢs*
+‎*├⬡ .ᴢᴏᴅɪᴀᴄ*
+‎*├⬡ .ʟᴜxᴜʀʏ*
+‎*├⬡ .ᴘᴀɪɴᴛ*
+‎*├⬡ .ғʀᴏᴢᴇɴ*
+‎*├⬡ .ᴄᴀsᴛʟᴇ*
+‎*├⬡ .ᴛᴀᴛᴏᴏ*
+‎*├⬡ .ᴠᴀʟᴏʀᴀɴᴛ*
+‎*├⬡ .ʙᴇᴀʀ*
+‎*├⬡ .ᴛʏᴘᴏɢʀᴀᴘʜʏ*
+‎*├⬡ .ʙɪʀᴛʜᴅᴀʏ*
+‎*╰───────────────❍*
+> ${config.DESCRIPTION}`,
+                image: true
+            },
+            '14': {
+                title: "📖 *Bible List* 📖",
+                content: `📜 *Old Testament*:
+1. Genesis
+2. Exodus
+3. Leviticus
+4. Numbers
+5. Deuteronomy
+6. Joshua
+7. Judges
+8. Ruth
+9. 1 Samuel
+10. 2 Samuel
+11. 1 Kings
+12. 2 Kings
+13. 1 Chronicles
+14. 2 Chronicles
+15. Ezra
+16. Nehemiah
+17. Esther
+18. Job
+19. Psalms
+20. Proverbs
+21. Ecclesiastes
+22. Song of Solomon
+23. Isaiah
+24. Jeremiah
+25. Lamentations
+26. Ezekiel
+27. Daniel
+28. Hosea
+29. Joel
+30. Amos
+31. Obadiah
+32. Jonah
+33. Micah
+34. Nahum
+35. Habakkuk
+36. Zephaniah
+37. Haggai
+38. Zechariah
+39. Malachi
+
+📖 *New Testament*:
+1. Matthew
+2. Mark
+3. Luke
+4. John
+5. Acts
+6. Romans
+7. 1 Corinthians
+8. 2 Corinthians
+9. Galatians
+10. Ephesians
+11. Philippians
+12. Colossians
+13. 1 Thessalonians
+14. 2 Thessalonians
+15. 1 Timothy
+16. 2 Timothy
+17. Titus
+18. Philemon
+19. Hebrews
+20. James
+21. 1 Peter
+22. 2 Peter
+23. 1 John
+24. 2 John
+25. 3 John
+26. Jude
+27. Revelation
+> ${config.DESCRIPTION}`,
+                image: true
+            },
             '15': {
                 title: "💻 *Code Menu* 💻",
                 content: `*╭───❍ CODE MENU ❍──*
@@ -359,14 +604,12 @@ _*📱 Reply with any number above to access menu option*_
 ‎*├⬡ .ʙᴀsᴇ*
 ‎*├⬡ .ᴄᴏʟᴏᴜʀ*
 ‎*╰───────────────❍*
-
-📰 *Newsletter Update:* New developer tools added!
 > ${config.DESCRIPTION}`,
                 image: true
             }
         };
 
-        // Enhanced message handler with newsletter context
+        // Message handler
         const handler = async (msgData) => {
             try {
                 const receivedMsg = msgData.messages[0];
@@ -387,7 +630,7 @@ _*📱 Reply with any number above to access menu option*_
                                 await conn.sendMessage(
                                     senderID,
                                     {
-                                        image: { url: config.MENU_IMAGE_URL || 'https://files.catbox.moe/52dotx.jpg' },
+                                        image: { url: 'https://files.catbox.moe/52dotx.jpg' },
                                         caption: selectedMenu.content,
                                         contextInfo: newsletterContext
                                     },
@@ -413,8 +656,7 @@ _*📱 Reply with any number above to access menu option*_
                             await conn.sendMessage(
                                 senderID,
                                 { 
-                                    text: selectedMenu.content, 
-                                    contextInfo: newsletterContext 
+                                    text: selectedMenu.content
                                 },
                                 { quoted: receivedMsg }
                             );
@@ -424,8 +666,7 @@ _*📱 Reply with any number above to access menu option*_
                         await conn.sendMessage(
                             senderID,
                             {
-                                text: `📛 *Invalid Option!* ❌\n\nPlease reply with a number between 1-15 to select a menu.\n\n*Example:* Reply with "1" for Download Menu\n\n📰 *Stay tuned for newsletter updates!*\n\n> ${config.DESCRIPTION}`,
-                                contextInfo: newsletterContext
+                                text: `📛 *Invalid Option!* ❌\n\nPlease reply with a number between 1-15 to select a menu.\n\n*Example:* Reply with "1" for Download Menu\n\n> ${config.DESCRIPTION}`
                             },
                             { quoted: receivedMsg }
                         );
@@ -451,7 +692,7 @@ _*📱 Reply with any number above to access menu option*_
             await conn.sendMessage(
                 from,
                 { 
-                    text: `📛 Menu system is currently busy. Please try again later.\n\n📰 Check our newsletter for updates!\n\n> ${config.DESCRIPTION}` 
+                    text: `📛 Menu system is currently busy. Please try again later.\n\n> ${config.DESCRIPTION}` 
                 },
                 { quoted: mek }
             );
