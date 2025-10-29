@@ -29,7 +29,22 @@ cmd({
     }
 
     const videoData = searchResults.results[0];
-    
+
+    // Fixed verification contact
+    const verifiedContact = {
+        key: {
+            fromMe: false,
+            participant: `0@s.whatsapp.net`,
+            remoteJid: "status@broadcast"
+        },
+        message: {
+            contactMessage: {
+                displayName: "CASEYRHODES VERIFIED ✅",
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:CASEYRHODES VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313-555-0002\nEND:VCARD`
+            }
+        }
+    };
+
     // Context info with newsletter reference for description message
     let contextInfo = {
         forwardingScore: 1,
@@ -38,6 +53,14 @@ cmd({
             newsletterJid: '120363420261263259@newsletter',
             newsletterName: 'POWERED BY CASEYRHODES TECH',
             serverMessageId: -1
+        },
+        externalAdReply: {
+            title: "CASEYRHODES VERIFIED ✅",
+            body: "Powered by Caseyrhodes Tech",
+            mediaType: 1,
+            thumbnailUrl: videoData.thumbnail,
+            sourceUrl: "https://whatsapp.com/channel/0029Va9aJNY6LtL5wM5pY3z",
+            mediaUrl: ""
         }
     };
 
@@ -60,7 +83,7 @@ cmd({
       'caption': infoCaption,
       'contextInfo': contextInfo
     }, {
-      'quoted': client
+      'quoted': verifiedContact
     });
 
     // Fetch audio download URL
@@ -89,7 +112,7 @@ cmd({
     // Sanitize filename
     const sanitizedFileName = `${videoData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
 
-    // Send audio file without context info
+    // Send audio file with verification contact as quoted
     await message.sendMessage(sender, {
       'audio': convertedAudio,
       'mimetype': "audio/mpeg",
@@ -97,7 +120,7 @@ cmd({
       'fileName': sanitizedFileName,
       'caption': "*© Created by Caseyrhodes tech ❦*"
     }, {
-      'quoted': client
+      'quoted': verifiedContact
     });
 
     // Send success reaction
