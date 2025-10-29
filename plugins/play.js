@@ -3,6 +3,9 @@ const { ytsearch } = require("@dark-yasiya/yt-dl.js");
 const converter = require("../data/play-converter");
 const fetch = require('node-fetch');
 
+// Store active sessions to handle replies
+const activePlaySessions = new Map();
+
 cmd({
   'pattern': "play",
   'alias': ["play2", "song"],
@@ -37,7 +40,7 @@ cmd({
 
     const videoData = searchResults.results[0];
     
-    // Create info caption with download options and newsletter
+    // Create info caption with download options
     const infoCaption = `
 ╭───❮ *CASEYRHODES XMD* ❯────⊷
 ┃ 🎵 *Title:* ${videoData.title}
@@ -53,10 +56,9 @@ cmd({
 
 *Reply with 1, 2 or 3 to download the format you prefer.*
 
-> *Powered by Caseyrhodes tech♡*
-    `.trim();
+> *Powered by Caseyrhodes tech♡*`.trim();
 
-    // Newsletter context info for the song description message only
+    // Newsletter context info
     const newsletterContextInfo = {
       forwardingScore: 1,
       isForwarded: true,
@@ -67,17 +69,20 @@ cmd({
       }
     };
 
-    // Store video data for later use
+    // Store song data for this session
+    const sessionId = `${sender}_${Date.now()}`;
     const songData = {
       title: videoData.title,
       thumbnail: videoData.thumbnail,
       timestamp: videoData.timestamp,
       views: videoData.views,
       author: videoData.author.name,
-      query: query
+      query: query,
+      sessionId: sessionId,
+      startTime: Date.now()
     };
 
-    // Send video info with thumbnail, options, and newsletter context
+    // Send video info with thumbnail
     const infoMessage = await message.sendMessage(sender, {
       'image': {
         'url': videoData.thumbnail
@@ -88,159 +93,25 @@ cmd({
       'quoted': client
     });
 
-    // Store the message ID for reply tracking
+    // Store the trigger message ID
     const triggerMessageId = infoMessage.key?.id;
+    songData.triggerMessageId = triggerMessageId;
 
-    // Set up reply handler
-    const replyHandler = async (mek) => {
-      try {
-        // Check if this is a reply to our trigger message
-        if (mek.message?.extendedTextMessage?.contextInfo?.stanzaId === triggerMessageId) {
-          const selectedOption = mek.message.extendedTextMessage.text.trim();
-          
-          // Validate selection
-          if (!['1', '2', '3'].includes(selectedOption)) {
-            await message.sendMessage(sender, {
-              'text': "❌ Invalid selection. Please reply with 1, 2, or 3 only."
-            }, {
-              'quoted': mek
-            });
-            return;
-          }
+    // Store session data
+    activePlaySessions.set(sessionId, songData);
 
-          // Remove the listener to prevent multiple handlers
-          client.ev.off('messages.upsert', replyHandler);
-
-          // Send processing reaction
-          await message.sendMessage(sender, {
-            'react': {
-              'text': '⬇️',
-              'key': mek.key
-            }
-          });
-
-          // Send processing message
-          await message.sendMessage(sender, {
-            'text': "⏳ Processing your download request..."
-          }, {
-            'quoted': mek
-          });
-
-          // Fetch audio download URL
-          const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytplaymp3?query=${encodeURIComponent(songData.title)}`;
-          const apiResponse = await fetch(apiUrl);
-          const apiData = await apiResponse.json();
-
-          const downloadUrl = apiData?.result?.download_url || apiData?.result?.downloadUrl;
-          
-          if (!downloadUrl) {
-            return await message.sendMessage(sender, {
-              'text': "❌ Failed to fetch audio. Try again later."
-            }, {
-              'quoted': mek
-            });
-          }
-
-          // Download and convert audio
-          const audioResponse = await fetch(downloadUrl);
-          const audioBuffer = await audioResponse.buffer();
-
-          let convertedAudio;
-          try {
-            convertedAudio = await converter.toAudio(audioBuffer, "mp4");
-          } catch (conversionError) {
-            console.error("Audio conversion failed:", conversionError);
-            return await message.sendMessage(sender, {
-              'text': "❌ Audio conversion failed. Please try another song."
-            }, {
-              'quoted': mek
-            });
-          }
-
-          // Sanitize filename
-          const sanitizedFileName = `${songData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
-
-          // Regular context info for download messages (no newsletter)
-          const downloadContextInfo = {
-            mentionedJid: [mek.participant || mek.key.participant],
-            forwardingScore: 999,
-            isForwarded: true
-          };
-
-          // Send audio based on selected format
-          switch (selectedOption) {
-            case '1': // Document format
-              await message.sendMessage(sender, {
-                'document': convertedAudio,
-                'mimetype': "audio/mpeg",
-                'fileName': sanitizedFileName,
-                'caption': "*📄 MP3 Document • © Created by Caseyrhodes tech ❦*",
-                'contextInfo': downloadContextInfo
-              }, {
-                'quoted': mek
-              });
-              break;
-
-            case '2': // Audio format
-              await message.sendMessage(sender, {
-                'audio': convertedAudio,
-                'mimetype': "audio/mpeg",
-                'ptt': false,
-                'fileName': sanitizedFileName,
-                'caption': "*🎧 MP3 Audio • © Created by Caseyrhodes tech ❦*",
-                'contextInfo': downloadContextInfo
-              }, {
-                'quoted': mek
-              });
-              break;
-
-            case '3': // Voice note format
-              await message.sendMessage(sender, {
-                'audio': convertedAudio,
-                'mimetype': "audio/mpeg",
-                'ptt': true,
-                'fileName': sanitizedFileName,
-                'caption': "*🎙️ Voice Note • © Created by Caseyrhodes tech ❦*",
-                'contextInfo': downloadContextInfo
-              }, {
-                'quoted': mek
-              });
-              break;
-          }
-
-          // Send success reaction
-          await message.sendMessage(sender, {
-            'react': {
-              'text': '✅',
-              'key': mek.key
-            }
-          });
-
-        }
-      } catch (error) {
-        console.error("Reply handler error:", error);
-        await message.sendMessage(sender, {
-          'text': "⚠️ An error occurred during download. Please try again."
-        }, {
-          'quoted': mek
-        });
-      }
-    };
-
-    // Add the reply handler with timeout
-    client.ev.on('messages.upsert', replyHandler);
-
-    // Set timeout to remove listener after 2 minutes
+    // Set timeout to clean up session after 2 minutes
     setTimeout(() => {
-      client.ev.off('messages.upsert', replyHandler);
-      console.log('Reply handler removed due to timeout');
+      if (activePlaySessions.has(sessionId)) {
+        activePlaySessions.delete(sessionId);
+        console.log(`Cleaned up session: ${sessionId}`);
+      }
     }, 120000);
 
   } catch (error) {
     console.error("Play command error:", error);
     replyFunction("⚠️ An unexpected error occurred. Please try again.");
     
-    // Send error reaction
     await message.sendMessage(sender, {
       'react': {
         'text': '❌',
@@ -249,3 +120,183 @@ cmd({
     });
   }
 });
+
+// Global message handler for play command replies
+if (typeof global.playReplyHandler === 'undefined') {
+  global.playReplyHandler = async (mek, conn) => {
+    try {
+      // Check if message has extended text (reply)
+      if (!mek.message?.extendedTextMessage?.text) return;
+      
+      const messageText = mek.message.extendedTextMessage.text.trim();
+      const sender = mek.key.remoteJid;
+      const quotedMessageId = mek.message.extendedTextMessage.contextInfo?.stanzaId;
+      
+      // Only process replies with numbers 1, 2, or 3
+      if (!['1', '2', '3'].includes(messageText)) return;
+      
+      // Find active session that matches this reply
+      let targetSession = null;
+      let sessionIdToDelete = null;
+      
+      for (const [sessionId, sessionData] of activePlaySessions.entries()) {
+        if (sessionData.sender === sender && sessionData.triggerMessageId === quotedMessageId) {
+          targetSession = sessionData;
+          sessionIdToDelete = sessionId;
+          break;
+        }
+      }
+      
+      // Also check by sender only (fallback)
+      if (!targetSession) {
+        for (const [sessionId, sessionData] of activePlaySessions.entries()) {
+          if (sessionData.sender === sender) {
+            targetSession = sessionData;
+            sessionIdToDelete = sessionId;
+            break;
+          }
+        }
+      }
+      
+      if (!targetSession) {
+        console.log('No active session found for this reply');
+        return;
+      }
+      
+      // Remove session to prevent multiple processing
+      activePlaySessions.delete(sessionIdToDelete);
+      
+      // Send processing reaction
+      await conn.sendMessage(sender, {
+        react: {
+          text: '⬇️',
+          key: mek.key
+        }
+      });
+      
+      // Send processing message
+      await conn.sendMessage(sender, {
+        text: "⏳ Downloading your audio... Please wait."
+      }, {
+        quoted: mek
+      });
+      
+      // Fetch audio download URL
+      const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytplaymp3?query=${encodeURIComponent(targetSession.title)}`;
+      const apiResponse = await fetch(apiUrl);
+      const apiData = await apiResponse.json();
+
+      const downloadUrl = apiData?.result?.download_url || apiData?.result?.downloadUrl;
+      
+      if (!downloadUrl) {
+        return await conn.sendMessage(sender, {
+          text: "❌ Failed to fetch audio download URL. Please try again later."
+        }, {
+          quoted: mek
+        });
+      }
+
+      // Download audio
+      const audioResponse = await fetch(downloadUrl);
+      if (!audioResponse.ok) {
+        throw new Error(`HTTP error! status: ${audioResponse.status}`);
+      }
+      const audioBuffer = await audioResponse.buffer();
+
+      let convertedAudio;
+      try {
+        convertedAudio = await converter.toAudio(audioBuffer, "mp4");
+      } catch (conversionError) {
+        console.error("Audio conversion failed:", conversionError);
+        return await conn.sendMessage(sender, {
+          text: "❌ Audio conversion failed. Please try another song."
+        }, {
+          quoted: mek
+        });
+      }
+
+      // Sanitize filename
+      const sanitizedFileName = `${targetSession.title}.mp3`.replace(/[^\w\s.-]/gi, '');
+
+      // Send audio based on selected format
+      switch (messageText) {
+        case '1': // Document format
+          await conn.sendMessage(sender, {
+            document: convertedAudio,
+            mimetype: "audio/mpeg",
+            fileName: sanitizedFileName,
+            caption: "*📄 MP3 Document • © Created by Caseyrhodes tech ❦*"
+          }, {
+            quoted: mek
+          });
+          break;
+
+        case '2': // Audio format
+          await conn.sendMessage(sender, {
+            audio: convertedAudio,
+            mimetype: "audio/mpeg",
+            ptt: false,
+            fileName: sanitizedFileName,
+            caption: "*🎧 MP3 Audio • © Created by Caseyrhodes tech ❦*"
+          }, {
+            quoted: mek
+          });
+          break;
+
+        case '3': // Voice note format
+          await conn.sendMessage(sender, {
+            audio: convertedAudio,
+            mimetype: "audio/mpeg",
+            ptt: true,
+            fileName: sanitizedFileName,
+            caption: "*🎙️ Voice Note • © Created by Caseyrhodes tech ❦*"
+          }, {
+            quoted: mek
+          });
+          break;
+      }
+
+      // Send success reaction
+      await conn.sendMessage(sender, {
+        react: {
+          text: '✅',
+          key: mek.key
+        }
+      });
+
+    } catch (error) {
+      console.error("Play reply handler error:", error);
+      const sender = mek.key.remoteJid;
+      await conn.sendMessage(sender, {
+        text: "❌ Download failed. Please try again with a different song."
+      }, {
+        quoted: mek
+      });
+    }
+  };
+
+  // Register the global handler
+  if (typeof global.client !== 'undefined') {
+    global.client.ev.on('messages.upsert', ({ messages }) => {
+      const mek = messages[0];
+      if (mek) {
+        global.playReplyHandler(mek, global.client);
+      }
+    });
+  }
+}
+
+// Also add session data to track sender
+const originalHandler = cmd.handlers[cmd.handlers.length - 1];
+cmd.handlers[cmd.handlers.length - 1] = async (...args) => {
+  await originalHandler(...args);
+  // Update the session with sender information
+  const [message, client, context, { from: sender }] = args;
+  const latestSession = Array.from(activePlaySessions.entries())
+    .find(([_, data]) => !data.sender);
+  
+  if (latestSession) {
+    latestSession[1].sender = sender;
+    activePlaySessions.set(latestSession[0], latestSession[1]);
+  }
+};
