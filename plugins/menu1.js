@@ -41,7 +41,7 @@ cmd({
             (new Date().getHours() < 18 ? 'Afternoon' : 'Evening')
         }, ${pushname}!* 🌟
 
-╭━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》 ━━━┈⊷
+╭━━━━━━━━━━━━━━━━━━━┈⊷
 ┃❍⁠⁠⁠⁠╭──────────────
 ┃❍⁠⁠⁠⁠│▸  Usᴇʀ : ${pushname}
 ┃❍⁠⁠⁠⁠│▸  Oᴡɴᴇʀ : ${config.OWNER_NAME}
@@ -55,7 +55,7 @@ cmd({
 ┃❍⁠⁠⁠⁠│▸  ᴛɪᴍᴇ : *${new Date().toLocaleTimeString()}*
 ┃❍⁠⁠⁠⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎
 ┃❍⁠⁠⁠⁠╰──────────────
-╰━━━━━━━━━━━━━━━━━┈⊷
+╰━━━━━━━━━━━━━━━━━━┈⊷
 
 \`\`\`Reply with any number 1-15\`\`\`
 
@@ -75,15 +75,9 @@ cmd({
 ‎*├⬡ 13. 🎨 Logo Menu*
 ‎*├⬡ 14. 📖 Bible List*
 ‎*├⬡ 15. 💻 Code Menu*
-‎*╰───────────────────┈⊷*
+‎*╰─────────────┈⊷*
 
-_*📱 Reply with any number above to access menu option*_
-
-🔧 *Quick Commands:*
-• *.allmenu* - See all commands
-• *.owner* - Contact developer
-• *.help* - Get assistance
-
+_*📱 Reply with any number above to access menu options*_
 > ${config.DESCRIPTION}`;
 
         // Newsletter context info
@@ -101,7 +95,7 @@ _*📱 Reply with any number above to access menu option*_
                 mediaType: 1,
                 thumbnailUrl: "https://i.ibb.co/Ng6PQcMv/caseyweb.jpg",
                 sourceUrl: "https://github.com/caseyweb",
-                renderLargerThumbnail: false
+                renderLargerThumbnail: true
             },
             mentionedJid: [m.sender]
         };
