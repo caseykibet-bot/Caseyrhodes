@@ -60,31 +60,83 @@ cmd({
     else if (mimeType.includes('video')) mediaType = 'Video';
     else if (mimeType.includes('audio')) mediaType = 'Audio';
 
-    // Create the status message
-    const status = `*${mediaType} ᴜᴘʟᴏᴀᴅᴇᴅ sᴜᴄᴄᴇsғᴜʟʟʏ ✅*\n\n` +
-      `*Size:* ${formatBytes(mediaBuffer.length)}\n` +
-      `*URL:* ${mediaUrl}\n\n` +
-      `> ᴜᴘʟᴏᴀᴅᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ 🌟`;
+    // Verification contact
+    const verifiedContact = {
+        key: {
+            fromMe: false,
+            participant: `0@s.whatsapp.net`,
+            remoteJid: "status@broadcast"
+        },
+        message: {
+            contactMessage: {
+                displayName: "CASEYRHODES VERIFIED ✅",
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:CASEYRHODES VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313-555-0002\nEND:VCARD`
+            }
+        }
+    };
 
-    // Send response with newsletter
-    await client.sendMessage(message.chat, { 
-      image: { url: `https://i.ibb.co/whs6RtyC/caseywebs.jpg` },  
-      caption: status,
-      contextInfo: {
+    // Enhanced context info with newsletter
+    const contextInfo = {
         mentionedJid: [message.sender],
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363420261263259@newsletter',
-          newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
-          serverMessageId: 143
+            newsletterJid: '120363420261263259@newsletter',
+            newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
+            serverMessageId: 143
+        },
+        externalAdReply: {
+            title: "CASEYRHODES VERIFIED ✅",
+            body: "Media Upload Service",
+            mediaType: 1,
+            thumbnailUrl: "https://i.ibb.co/whs6RtyC/caseywebs.jpg",
+            sourceUrl: "https://whatsapp.com/channel/0029Va9aJNY6LtL5wM5pY3z",
+            mediaUrl: ""
         }
+    };
+
+    // Create the status message with enhanced formatting
+    const status = `
+╭───❮ *MEDIA UPLOADER* ❯───⊷
+┃ 📁 *Type:* ${mediaType}
+┃ 💾 *Size:* ${formatBytes(mediaBuffer.length)}
+┃ 🔗 *URL:* ${mediaUrl}
+╰──────────────────────⊷
+*📢 Uploaded by CASEYRHODES TECH*
+*✅ Verified & Secure Service*
+    `.trim();
+
+    // Send response with verification and newsletter
+    await client.sendMessage(message.chat, { 
+      image: { 
+        url: `https://i.ibb.co/whs6RtyC/caseywebs.jpg`
+      },  
+      caption: status,
+      contextInfo: contextInfo
+    }, { 
+      quoted: verifiedContact 
+    });
+
+    // Send success reaction
+    await client.sendMessage(message.chat, {
+      react: {
+        text: '✅',
+        key: message.key
       }
-    }, { quoted: message });
+    });
 
   } catch (error) {
     console.error(error);
-    await reply(`Error: ${error.message || error}`);
+    
+    // Send error reaction
+    await client.sendMessage(message.chat, {
+      react: {
+        text: '❌',
+        key: message.key
+      }
+    });
+    
+    await reply(`❌ Error: ${error.message || error}\n\nPlease try again or contact support.`);
   }
 });
 
@@ -96,3 +148,12 @@ function formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
+
+// Add command info
+commands.info({
+  'pattern': "tourl",
+  'desc': "Upload media to Catbox and get shareable URL",
+  'category': "utility",
+  'example': ".tourl [reply to media]",
+  'credit': "CASEYRHODES TECH"
+});
