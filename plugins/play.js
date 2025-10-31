@@ -51,11 +51,11 @@ cmd({
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid: '120363420261263259@newsletter',
-            newsletterName: 'POWERED BY CASEYRHODES TECH',
+            newsletterName: 'CASEYRHODES TECH 🧑‍💻🌸',
             serverMessageId: -1
         },
         externalAdReply: {
-            title: "CASEYRHODES VERIFIED ✅",
+            title: " ⇆ㅤ ||◁   ㅤ❚❚   ㅤ▷||ㅤ ↻",
             body: "Powered by Caseyrhodes Tech",
             mediaType: 1,
             thumbnailUrl: videoData.thumbnail,
@@ -66,7 +66,7 @@ cmd({
 
     // Create info caption
     const infoCaption = ` 
- *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
+    *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
 ╭───❮ *CASEYRHODES XMD* ❯────⊷
 ┃ 🎵 *Title:* ${videoData.title}
 ┃ ⏱️ *Duration:* ${videoData.timestamp}─〇───── 
