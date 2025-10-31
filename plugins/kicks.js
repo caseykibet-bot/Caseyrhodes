@@ -1,5 +1,21 @@
 const { cmd } = require('../command');
 
+// Function to check if bot is admin
+async function checkBotAdmin(conn, chatId) {
+    try {
+        if (!chatId.endsWith('@g.us')) return false;
+        
+        const metadata = await conn.groupMetadata(chatId);
+        const botId = conn.user.id;
+        const botParticipant = metadata.participants.find(p => p.id === botId);
+        
+        return botParticipant ? ['admin', 'superadmin'].includes(botParticipant.admin) : false;
+    } catch (error) {
+        console.error('Error checking bot admin status:', error);
+        return false;
+    }
+}
+
 cmd({
     pattern: "kick",
     alias: ["remove", "ban"],
@@ -13,9 +29,10 @@ cmd({
             return await reply('❌ This command can only be used in groups!');
         }
 
-        // Check if bot is admin
-        if (!isBotAdmin) {
-            return await reply('❌ I need to be admin to kick users!');
+        // DOUBLE CHECK: Verify bot is admin (in case plugin parameter is wrong)
+        const verifiedBotAdmin = await checkBotAdmin(conn, from);
+        if (!verifiedBotAdmin) {
+            return await reply('❌ I need to be admin to kick users! Please promote me to admin.');
         }
 
         // Check if sender is admin or owner
@@ -40,16 +57,11 @@ cmd({
         }
 
         // Get bot's ID
-        const botId = conn.user.id.split(':')[0] + '@s.whatsapp.net';
+        const botId = conn.user.id;
 
         // Check if any of the users to kick is the bot itself
-        if (usersToKick.includes(botId)) {
+        if (usersToKick.some(user => user === botId)) {
             return await reply("🤖 I can't kick myself!");
-        }
-
-        // Check if trying to kick owner
-        if (usersToKick.includes(conn.user.id) || usersToKick.some(user => user.includes(conn.user.id))) {
-            return await reply("👑 I can't kick my owner!");
         }
 
         // Kick users
@@ -78,6 +90,8 @@ cmd({
             await reply('❌ The specified user is not in this group.');
         } else if (error.message?.includes('401') || error.message?.includes('auth')) {
             await reply('❌ Authentication error. Please check bot permissions.');
+        } else if (error.message?.includes('403')) {
+            await reply('❌ Forbidden: Cannot kick users with higher privileges.');
         } else {
             await reply('❌ Failed to kick user(s). Please try again.');
         }
