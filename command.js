@@ -35,7 +35,7 @@ async function checkBotAdmin(conn, chatId) {
 // Function to check if user is owner (update with your actual numbers)
 function isOwner(userId) {
     const OWNER_NUMBERS = [
-        "254712345678@s.whatsapp.net",  // Replace with your actual numbers
+        "254112192119@s.whatsapp.net",  // Replace with your actual numbers
         "254112192119@s.whatsapp.net"   // Replace with your actual numbers
     ];
     
