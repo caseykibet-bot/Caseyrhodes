@@ -95,17 +95,17 @@ fσr mσrє ínfσ tчpє *.ownєr*
                 }
             }
         };
-        
-        const contextInfo = {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363420261263259@newsletter',
-                newsletterName:'CASEYRHODES-XMD 👻',
-                serverMessageId: 143
-            }
-        };
+     
+    // Common message context
+    const messageContext = {
+        forwardingScore: 1,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363420261263259@newsletter',
+            newsletterName: 'CASEYRHODES TECH 亗',
+            serverMessageId: -1
+        }
+    };
         
         const audioUrls = [
             'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3',
