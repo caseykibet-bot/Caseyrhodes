@@ -45,7 +45,7 @@ cmd({
         }
     };
 
-    // Context info with newsletter reference for description message
+    // Context info for the info message
     let contextInfo = {
         forwardingScore: 1,
         isForwarded: true,
@@ -69,7 +69,7 @@ cmd({
     *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
 ╭───❮ *CASEYRHODES XMD* ❯────⊷
 ┃ 🎵 *Title:* ${videoData.title}
-┃ ⏱️ *Duration:* ${videoData.timestamp}─〇───── 
+┃ ⏱️ *Duration:* ${videoData.timestamp}
 ┃ 👀 *Views:* ${videoData.views}
 ┃ 👤 *Author:* ${videoData.author.name}
 ╰──────────────────────⊷
@@ -78,14 +78,10 @@ cmd({
 
     // Send video info with thumbnail and context info
     await message.sendMessage(sender, {
-      'image': {
-        'url': videoData.thumbnail
-      },
-      'caption': infoCaption,
-      'contextInfo': contextInfo
-    }, {
-      'quoted': verifiedContact
-    });
+      image: { url: videoData.thumbnail },
+      caption: infoCaption,
+      contextInfo: contextInfo
+    }, { quoted: verifiedContact });
 
     // Fetch audio download URL
     const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytplaymp3?query=${encodeURIComponent(videoData.title)}`;
@@ -113,22 +109,32 @@ cmd({
     // Sanitize filename
     const sanitizedFileName = `${videoData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
 
-    // Send audio file with verification contact as quoted
+    // Context info for audio message with external ad reply
+    const audioContextInfo = {
+        externalAdReply: {
+            title: videoData.title.substring(0, 40),
+            body: `Duration: ${videoData.timestamp}`,
+            mediaType: 1, // 1 for image
+            thumbnailUrl: videoData.thumbnail,
+            sourceUrl: `https://youtu.be/${videoData.videoId}`,
+            renderLargerThumbnail: false
+        }
+    };
+
+    // Send audio with external ad reply and verification contact
     await message.sendMessage(sender, {
-      'audio': convertedAudio,
-      'mimetype': "audio/mpeg",
-      'ptt': false,
-      'fileName': sanitizedFileName,
-      'caption': "*© Created by Caseyrhodes tech ❦*"
-    }, {
-      'quoted': verifiedContact
-    });
+      audio: convertedAudio,
+      mimetype: 'audio/mpeg',
+      fileName: sanitizedFileName,
+      ptt: false,
+      contextInfo: audioContextInfo
+    }, { quoted: verifiedContact });
 
     // Send success reaction
     await message.sendMessage(sender, {
-      'react': {
-        'text': '✅',
-        'key': client.key
+      react: {
+        text: '✅',
+        key: message.key
       }
     });
 
@@ -138,9 +144,9 @@ cmd({
     
     // Send error reaction
     await message.sendMessage(sender, {
-      'react': {
-        'text': '❌',
-        'key': client.key
+      react: {
+        text: '❌',
+        key: message.key
       }
     });
   }
