@@ -75,15 +75,8 @@ cmd({
     react: "☕",
     filename: __filename
 },
-async (conn, mek, m, { from, reply, isCreator }) => {
+async (conn, mek, m, { from, reply }) => {
     try {
-        // Owner restriction check
-        if (!isCreator) {
-            return await conn.sendMessage(from, {
-                text: "*📛 This is an owner command.*"
-            }, { quoted: mek });
-        }
-
         // making
         const brewingMsg = await conn.sendMessage(from, { 
             text: 'Brewing your chai... ☕' 
