@@ -3,9 +3,9 @@ const axios = require("axios");
 
 cmd({
     pattern: "img",
-    alias: ["image", "googleimage", "searchimg"],
-    react: "🦋",
-    desc: "Search and download Google images",
+    alias: ["image", "pinterest", "searchimg"],
+    react: "🫧",
+    desc: "Search and download images from Pinterest",
     category: "fun",
     use: ".img <keywords>",
     filename: __filename
@@ -16,42 +16,31 @@ cmd({
             return reply("🖼️ Please provide a search query\nExample: .img cute cats");
         }
 
-        await reply(`🔍 Searching images for "${query}"...`);
+        await reply(`🔍 Searching Pinterest for "${query}"...`);
 
-        const url = `https://apis.davidcyriltech.my.id/googleimage?query=${encodeURIComponent(query)}`;
+        const url = `https://zenzxz.dpdns.org/search/pinterest?q=${encodeURIComponent(query)}`;
         const response = await axios.get(url);
 
         // Validate response
-        if (!response.data?.success || !response.data.results?.length) {
+        if (!response.data?.status || !response.data.result?.length) {
             return reply("❌ No images found. Try different keywords");
         }
 
-        const results = response.data.results;
+        const results = response.data.result;
         // Get 5 random images
         const selectedImages = results
             .sort(() => 0.5 - Math.random())
             .slice(0, 5);
 
-        for (const imageUrl of selectedImages) {
+        for (const image of selectedImages) {
             await conn.sendMessage(
                 from,
                 { 
-                    image: { url: imageUrl },
-                    caption: `📷 Result for: ${query}\n> ©𝐏𝐎𝐖𝐄𝐑𝐄𝐃 𝐁𝐘 𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃`,
-                    contextInfo: {
-                        mentionedJid: [m.sender],
-                        forwardingScore: 999,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363302677217436@newsletter',
-                            newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 ',
-                            serverMessageId: 143
-                        }
-                    }
+                    image: { url: image.images_url },
+                    caption: `*📷 Result for*: ${query}\n> *© ᴘᴏᴡᴇʀᴇᴅ ʙʏ Rɪᴅᴢ Cᴏᴅᴇʀ*`
                 },
                 { quoted: mek }
             );
-            
             // Add delay between sends to avoid rate limiting
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
