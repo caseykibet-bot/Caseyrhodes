@@ -4,6 +4,8 @@ const { runtime } = require('../lib/functions');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const more = String.fromCharCode(8206);
+const readmore = more.repeat(4001);
 
 const getRandomImage = () => {
     try {
@@ -51,7 +53,7 @@ cmd({
 ┃❍⁠⁠⁠⁠│▸  𝖯ʀᴇғɪx : *[${config.PREFIX}]*
 ┃❍⁠⁠⁠⁠│▸  ᴛɪᴍᴇ : *${new Date().toLocaleTimeString()}*
 ┃❍⁠⁠⁠⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎
-┃❍⁠⁠⁠⁠╰──────────────
+┃❍⁠⁠⁠⁠╰──────────────${readmore}
 ╰━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
 📚 *ᴍᴇɴᴜ ɴᴀᴠɪɢᴀᴛɪᴏɴ*
 
@@ -102,7 +104,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363420261263259@newsletter',
-                newsletterName: 'CASEYRHODES TECH 亗',
+                newsletterName: 'CASEYRHODES TECH 亗🧑‍💻',
                 serverMessageId: -1
             }
         };
@@ -130,7 +132,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
         await conn.sendMessage(from, {
             audio: { url: randomAudioUrl },
             mimetype: 'audio/mp4',
-            ptt: false
+            ptt: true
         }, { quoted: verifiedContact });
 
         const messageID = sentMsg.key.id;
