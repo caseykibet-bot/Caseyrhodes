@@ -194,8 +194,8 @@ async (conn, mek, m, { from, args, q, reply, react }) => {
 
 // Main AI command with fake verification
 cmd({
-    pattern: "ai",
-    alias: ["bot", "xd", "gpt", "gpt4", "bing"],
+    pattern: "ai2",
+    alias: ["bot", "xd", "gpt2", "gpt4", "bing"],
     desc: "Chat with an AI model",
     category: "ai",
     react: "🤖",
