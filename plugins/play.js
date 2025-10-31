@@ -65,10 +65,11 @@ cmd({
     };
 
     // Create info caption
-    const infoCaption = `
+    const infoCaption = ` 
+ *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
 ╭───❮ *CASEYRHODES XMD* ❯────⊷
 ┃ 🎵 *Title:* ${videoData.title}
-┃ ⏱️ *Duration:* ${videoData.timestamp}
+┃ ⏱️ *Duration:* ${videoData.timestamp}─〇───── 
 ┃ 👀 *Views:* ${videoData.views}
 ┃ 👤 *Author:* ${videoData.author.name}
 ╰──────────────────────⊷
