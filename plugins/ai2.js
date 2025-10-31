@@ -7,7 +7,7 @@ cmd({
     desc: "AI chatbot powered by Casey AI",
     category: "ai",
     filename: __filename
-}, async (conn, mek, m, { from, sender, reply, text, prefix, config }) => {
+}, async (conn, mek, m, { from, sender, reply, text, prefix }) => {
     try {
         await conn.sendMessage(sender, { react: { text: '🤖', key: mek.key } });
 
@@ -68,37 +68,35 @@ cmd({
 
         const apis = [
             `https://api.giftedtech.co.ke/api/ai/geminiaipro?apikey=gifted&q=${encodeURIComponent(q)}`,
-            `https://api.giftedtech.co.ke/api/ai/geminiaipro?apikey=gifted&q=${encodeURIComponent(q)}`,
             `https://lance-frank-asta.onrender.com/api/gpt?q=${encodeURIComponent(q)}`
         ];
 
         let response = null;
         for (const apiUrl of apis) {
             try {
-                const res = await axios.get(apiUrl);
-                response = res.data?.result || res.data?.response || res.data;
-                if (response) break;
+                const res = await axios.get(apiUrl, { timeout: 10000 });
+                response = res.data?.result || res.data?.response || res.data?.answer || res.data;
+                if (response && typeof response === 'string' && response.trim() !== '') {
+                    break;
+                }
             } catch (err) {
-                console.error(`AI Error (${apiUrl}):`, err.message || err);
+                console.error(`AI Error (${apiUrl}):`, err.message);
                 continue;
             }
         }
 
         if (!response) {
-            return await reply(`❌ *I'm experiencing technical difficulties*\nPlease try again in a moment.`);
+            return await reply(`❌ *I'm experiencing technical difficulties*\nAll AI APIs are currently unavailable. Please try again later.`);
         }
-
-        // Add owner message
-        const ownerMessage = `\n\n👨‍💻 *Developer:* ${config.OWNER_NAME || "CaseyRhodes Tech"}`;
 
         // Send AI response with image
         await conn.sendMessage(from, {
             image: { url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg' },
-            caption: `🤖 *Caseyrhodes AI:*\n\n` + response + ownerMessage
+            caption: `🤖 *Caseyrhodes AI:*\n\n${response}\n\n👨‍💻 *Developer:* CaseyRhodes Tech`
         }, { quoted: mek });
 
     } catch (e) {
-        console.error(e);
+        console.error('AI Command Error:', e);
         await reply(`❌ *AI Error:* ${e.message}\nPlease try again later.`);
     }
 });
