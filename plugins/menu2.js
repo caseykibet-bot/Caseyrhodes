@@ -35,10 +35,10 @@ cmd({
 }, async (conn, mek, m, { from, pushname, reply }) => {
     try {
         const totalCommands = Object.keys(commands).length;
-        const menuCaption = `🌟 *Good ${
+        const menuCaption = `\`\`\`🌟 *Good ${
   new Date().getHours() < 12 ? 'Morning' : 
   (new Date().getHours() < 18 ? 'Afternoon' : 'Evening')
-}, ${pushname}!* 🌟
+}, ${pushname}!* 🌟\`\`\`
 ╭━━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》 ━━━┈⊷
 ┃❍⁠⁠⁠⁠╭──────────────
 ┃❍⁠⁠⁠⁠│▸  Usᴇʀ : ${config.OWNER_NAME}
@@ -96,21 +96,21 @@ fσr mσrє ínfσ tчpє *.ownєr*
             }
         };
      
-    // Common message context
-    const messageContext = {
-        forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363420261263259@newsletter',
-            newsletterName: 'CASEYRHODES TECH 亗',
-            serverMessageId: -1
-        }
-    };
+        // Common message context
+        const messageContext = {
+            forwardingScore: 1,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363420261263259@newsletter',
+                newsletterName: 'CASEYRHODES TECH 亗',
+                serverMessageId: -1
+            }
+        };
         
         const audioUrls = [
             'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3',
-      'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/roddyrich.mp3',
-      'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/casey.mp3'
+            'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/roddyrich.mp3',
+            'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/casey.mp3'
         ];
 
         const randomAudioUrl = audioUrls[Math.floor(Math.random() * audioUrls.length)];
@@ -121,7 +121,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
             { 
                 image: { url: getRandomImage() }, 
                 caption: menuCaption,
-                contextInfo: contextInfo 
+                contextInfo: messageContext 
             }, 
             { quoted: verifiedContact }
         );
@@ -363,7 +363,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
             },
             '8': {
                 title: "📌 *Other Menu* 📌",
-                content: `━━〔 Other Menu 〕━━┈⊷
+                content: `╭━━〔 Other Menu 〕━━┈⊷
 ┃◈╭─────────────·๏
 ┃◈┃• vv
 ┃◈┃• pair
@@ -446,8 +446,8 @@ fσr mσrє ínfσ tчpє *.ownєr*
                 image: true
             },
             '11': {
-                title: "Settingsmenu",
-                content: `╭━━━〔 *Reactions Menu* 〕━━━┈⊷
+                title: "⚙️ *Settings Menu* ⚙️",
+                content: `╭━━━〔 *Settings Menu* 〕━━━┈⊷
 〘 𝖲𝖤𝖳𝖳𝖨𝖭𝖦𝖲 𝗠𝗘𝗡𝗨 〙
 
 ╭─────────────⪼
@@ -461,7 +461,6 @@ fσr mσrє ínfσ tчpє *.ownєr*
 ┋ ☻ setbotnumber
 ┋ ☻ autovoice
 ┋ ☻ autosticker
-┋ ☻ autoreply
 ┋ ☻ autoreply
 ┋ ☻ statusreact
 ┋ ☻ autoreact
@@ -478,7 +477,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
                 image: true
             },
             '12': {
-                title: "MPESA MENU",
+                title: "💰 *MPESA Menu* 💰",
                 content: `*╭───❍「 SUPPORT 」❍*
 ‎*├⬡ .ᴀɪʀᴛᴇʟᴍᴏɴᴇʏ*
 ‎*├⬡ .ᴍᴘᴇsᴀ*
@@ -487,7 +486,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
                 image: true
             },
             '13': {
-                title: "MPESA MENU",
+                title: "🎨 *Logo Menu* 🎨",
                 content: `*╭───❍「 LOGO 𝖫𝖨𝖲𝖳 」❍*
 ‎*├⬡ .ɴᴇᴏɴʟɪɢʜᴛ*
 ‎*├⬡ .ʙʟᴀᴄᴋᴘɪɴᴋ*
@@ -522,12 +521,11 @@ fσr mσrє ínfσ tчpє *.ownєr*
 ‎*├⬡ .ʙɪʀᴛʜᴅᴀʏ*
 ‎*╰───────────────❍*
 > ${config.DESCRIPTION}`,
-                  image: true
+                image: true
             },
             '14': {
-                title: "BIBLE LIST",
-                content:`
-📜 *Old Testament*:
+                title: "📖 *Bible List* 📖",
+                content: `📜 *Old Testament*:
 1. Genesis
 2. Exodus
 3. Leviticus
@@ -600,8 +598,8 @@ fσr mσrє ínfσ tчpє *.ownєr*
                 image: true
             },
             '15': {
-                title: "CODE MENU",
-                content: `*╭───❍CODE MENU❍*──
+                title: "💻 *Code Menu* 💻",
+                content: `*╭───❍ CODE MENU ❍──*
 ‎*├⬡ .ɢɪᴛsᴛᴀʟᴋ*
 ‎*├⬡ .ᴛᴇʀᴍɪɴᴀᴛᴇ*
 ‎*├⬡ .ᴜɴʙᴀsᴇ*
@@ -636,14 +634,14 @@ fσr mσrє ínfσ tчpє *.ownєr*
                                     {
                                         image: { url: config.MENU_IMAGE_URL || 'https://files.catbox.moe/52dotx.jpg' },
                                         caption: selectedMenu.content,
-                                        contextInfo: contextInfo
+                                        contextInfo: messageContext
                                     },
                                     { quoted: receivedMsg }
                                 );
                             } else {
                                 await conn.sendMessage(
                                     senderID,
-                                    { text: selectedMenu.content, contextInfo: contextInfo },
+                                    { text: selectedMenu.content, contextInfo: messageContext },
                                     { quoted: receivedMsg }
                                 );
                             }
@@ -656,7 +654,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
                             console.log('Menu reply error:', e);
                             await conn.sendMessage(
                                 senderID,
-                                { text: selectedMenu.content, contextInfo: contextInfo },
+                                { text: selectedMenu.content, contextInfo: messageContext },
                                 { quoted: receivedMsg }
                             );
                         }
@@ -666,7 +664,7 @@ fσr mσrє ínfσ tчpє *.ownєr*
                             senderID,
                             {
                                 text: `📛 *Invalid Option!* ❌\n\nPlease reply with a number between 1-15 to select a menu.\n\n*Example:* Reply with "1" for Download Menu\n\n> ${config.DESCRIPTION}`,
-                                contextInfo: contextInfo
+                                contextInfo: messageContext
                             },
                             { quoted: receivedMsg }
                         );
