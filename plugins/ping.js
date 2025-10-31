@@ -67,7 +67,7 @@ cmd({
     }
 
     const stylishText = `
-> *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃: ${latencyMs}ms ${reactionEmoji}*
+\`\`\`𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃: ${latencyMs}ms ${reactionEmoji}\`\`\`
     `.trim();
 
     await conn.sendMessage(from, {
@@ -77,7 +77,7 @@ cmd({
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363302677217436@newsletter',
+          newsletterJid: '120363420261263259@newsletter',
           newsletterName: "𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇",
           serverMessageId: 143
         },
