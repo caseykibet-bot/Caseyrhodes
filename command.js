@@ -1,50 +1,27 @@
 var commands = [];
-
-// Function to check if user is admin
-async function isAdmin(conn, chatId, userId) {
-    try {
-        if (!chatId.endsWith('@g.us')) return false;
-        
-        const metadata = await conn.groupMetadata(chatId);
-        const participants = metadata.participants;
-        const user = participants.find(participant => participant.id === userId);
-        
-        return user ? ['admin', 'superadmin'].includes(user.admin) : false;
-    } catch (error) {
-        console.error('Error checking admin status:', error);
-        return false;
-    }
-}
+const isAdmin = require('./lib/isAdmin');
+const isOwner = require('./lib/isOwner'); // Import from lib
 
 // Function to check if bot is admin
 async function checkBotAdmin(conn, chatId) {
     try {
-        if (!chatId.endsWith('@g.us')) return false;
-        
-        const metadata = await conn.groupMetadata(chatId);
-        const botId = conn.user.id;
-        const botParticipant = metadata.participants.find(p => p.id === botId);
-        
-        return botParticipant ? ['admin', 'superadmin'].includes(botParticipant.admin) : false;
+        const { isBotAdmin } = await isAdmin(conn, chatId, conn.user.id);
+        return isBotAdmin;
     } catch (error) {
         console.error('Error checking bot admin status:', error);
         return false;
     }
 }
 
-// Function to check if user is owner (update with your actual numbers)
-function isOwner(userId) {
-    const OWNER_NUMBERS = [
-        "254112192119@s.whatsapp.net",  // Replace with your actual numbers
-        "254112192119@s.whatsapp.net"   // Replace with your actual numbers
-    ];
-    
-    if (!userId) return false;
-    return OWNER_NUMBERS.some(owner => 
-        userId === owner || 
-        userId.includes(owner.replace('@s.whatsapp.net', '')) ||
-        owner.includes(userId.replace('@s.whatsapp.net', ''))
-    );
+// Function to check if user is admin
+async function checkUserAdmin(conn, chatId, userId) {
+    try {
+        const { isSenderAdmin } = await isAdmin(conn, chatId, userId);
+        return isSenderAdmin;
+    } catch (error) {
+        console.error('Error checking user admin status:', error);
+        return false;
+    }
 }
 
 function cmd(info, func) {
@@ -65,7 +42,8 @@ module.exports = {
     Function: cmd,
     Module: cmd,
     commands,
-    isAdmin,
-    checkBotAdmin,
-    isOwner
+    isAdmin,           // The main function that returns {isSenderAdmin, isBotAdmin}
+    checkBotAdmin,     // Simplified: returns only isBotAdmin boolean
+    checkUserAdmin,    // Simplified: returns only isSenderAdmin boolean
+    isOwner            // Imported from lib/isOwner.js
 };
