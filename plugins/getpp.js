@@ -1,69 +1,39 @@
-const { cmd } = require("../command");
+const { cmd } = require('../command');
 
 cmd({
-  pattern: "getpp",
-  alias: [],
-  use: "pp",
-  desc: "Get profile picture of a user (replied user in group, or DM user)",
-  category: "tools",
-  react: "🖼️",
-  filename: __filename
-},
-async (conn, mek, m, { from, sender, reply, isGroup }) => {
-  try {
-    const quotedMsg = mek.message?.extendedTextMessage?.contextInfo?.participant;
-    const quotedKey = mek.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    let targetJid;
-
-    if (isGroup) {
-      if (quotedMsg && quotedKey) {
-        targetJid = quotedMsg;
-      } else {
-        return reply("❌ Please reply to someone's message to get their profile picture.");
-      }
-    } else {
-      targetJid = from.endsWith("@s.whatsapp.net") ? from : sender;
-    }
-
-    let imageUrl;
+    pattern: "getpp",
+    alias: ["pp", "profilepic", "dp"],
+    desc: "Get user's profile picture",
+    category: "utility",
+    filename: __filename
+}, async (conn, mek, m, { from, sender, reply, text, mentionedJid, quoted }) => {
     try {
-      imageUrl = await conn.profilePictureUrl(targetJid, 'image');
-    } catch {
-      imageUrl = "https://files.catbox.moe/ntqtnt.jpg";
+        await conn.sendMessage(sender, { react: { text: '👤', key: mek.key } });
+        
+        let targetUser = sender;
+        
+        // Check if user mentioned someone or replied to a message
+        if (mentionedJid && mentionedJid.length > 0) {
+            targetUser = mentionedJid[0];
+        } else if (quoted) {
+            targetUser = quoted.sender;
+        }
+        
+        const ppUrl = await conn.profilePictureUrl(targetUser, 'image').catch(() => null);
+        
+        if (ppUrl) {
+            await conn.sendMessage(from, {
+                image: { url: ppUrl },
+                caption: `📸 Profile picture of @${targetUser.split('@')[0]}`,
+                mentions: [targetUser]
+            }, { quoted: mek });
+        } else {
+            await reply(`❌ @${targetUser.split('@')[0]} doesn't have a profile picture.`, {
+                mentions: [targetUser]
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        await reply("❌ Error fetching profile picture.");
     }
-
-    const fakeVCard = {
-      key: {
-        fromMe: false,
-        participant: '0@s.whatsapp.net',
-        remoteJid: "status@broadcast"
-      },
-      message: {
-        contactMessage: {
-          displayName: "CASEYRHODES TECH ✅",
-          vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: CASEYRHODES ✅\nORG: CASEYRHODES-XMD;\nTEL;type=CELL;type=VOICE;waid=254700000000:+254 700 000000\nEND:VCARD",
-          jpegThumbnail: Buffer.from([])
-        }
-      }
-    };
-
-    await conn.sendMessage(from, {
-      image: { url: imageUrl },
-      caption: `🖼️ Profile Picture of @${targetJid.split('@')[0]}`,
-      contextInfo: {
-        mentionedJid: [targetJid],
-        forwardingScore: 5,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-          newsletterName: "CASEYRHODES-XMD",
-          newsletterJid: "120363302677217436@newsletter"
-        }
-      }
-    }, { quoted: fakeVCard });
-
-  } catch (err) {
-    console.error("Error in getpp:", err);
-    reply("❌ Failed to fetch profile picture.");
-  }
 });
-      
