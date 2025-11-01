@@ -1,8 +1,7 @@
 var commands = [];
 const isAdmin = require('./lib/isAdmin');
-const isOwner = require('./lib/isOwner'); // Import from lib
 
-// Function to check if bot is admin
+// Function to check if bot is admin (using the improved isAdmin)
 async function checkBotAdmin(conn, chatId) {
     try {
         const { isBotAdmin } = await isAdmin(conn, chatId, conn.user.id);
@@ -22,6 +21,21 @@ async function checkUserAdmin(conn, chatId, userId) {
         console.error('Error checking user admin status:', error);
         return false;
     }
+}
+
+// Function to check if user is owner (update with your actual numbers)
+function isOwner(userId) {
+    const OWNER_NUMBERS = [
+        "254112192119@s.whatsapp.net",  // Replace with your actual numbers
+        "254112192119@s.whatsapp.net"   // Replace with your actual numbers
+    ];
+    
+    if (!userId) return false;
+    return OWNER_NUMBERS.some(owner => 
+        userId === owner || 
+        userId.includes(owner.replace('@s.whatsapp.net', '')) ||
+        owner.includes(userId.replace('@s.whatsapp.net', ''))
+    );
 }
 
 function cmd(info, func) {
@@ -45,5 +59,5 @@ module.exports = {
     isAdmin,           // The main function that returns {isSenderAdmin, isBotAdmin}
     checkBotAdmin,     // Simplified: returns only isBotAdmin boolean
     checkUserAdmin,    // Simplified: returns only isSenderAdmin boolean
-    isOwner            // Imported from lib/isOwner.js
+    isOwner
 };
