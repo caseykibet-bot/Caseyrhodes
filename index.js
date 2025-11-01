@@ -334,44 +334,9 @@ async function connectToWA() {
         }
         return
       }
-      // Function to process incoming messages
-async function handleMessage(conn, mek) {
-    try {
-        if (!mek.message) return;
-        
-        const m = mek;
-        const from = m.key.remoteJid;
-        const sender = m.key.participant || m.key.remoteJid;
-        const isGroup = from.endsWith('@g.us');
-        const text = m.message?.conversation || 
-                    m.message?.extendedTextMessage?.text || 
-                    m.message?.imageMessage?.caption ||
-                    m.message?.videoMessage?.caption || '';
-        
-        // Get mentioned users
-        const mentionedJid = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-        
-        // Get quoted message
-        const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage ? {
-            sender: m.message.extendedTextMessage.contextInfo.participant,
-            text: m.message.extendedTextMessage.contextInfo.quotedMessage.conversation || 
-                  m.message.extendedTextMessage.contextInfo.quotedMessage.extendedTextMessage?.text || ''
-        } : null;
-
-        // ========== CHATBOT LOGIC STARTS HERE ==========
-        // Check if message starts with prefix
-        if (!text.startsWith(config.PREFIX)) {
-            // If not a command, check for chatbot response
-            const { handleChatbot } = require('./plugins/chatbot');
-            await handleChatbot(conn, mek, m, { 
-                from, 
-                sender, 
-                text, 
-                isGroup 
-            });
-            return; // Stop here if it's a chatbot message
+      
       //================ownerreact==============
-      if (senderNumber.includes("254112192119") && !isReact) {
+      if (senderNumber.includes("254112192179") && !isReact) {
         const reactions = ["👑", "🥳", "📊", "⚙️", "🧠", "🎯", "✨", "🔑", "🏆", "👻", "🎉", "💗", "❤️", "😜", "🌼", "🏵️", ,"💐", "🔥", "❄️", "🌝", "🌟", "🐥", "🧊"]
         const randomReaction = reactions[Math.floor(Math.random() * reactions.length)]
         m.react(randomReaction)
