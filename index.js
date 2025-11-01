@@ -42,7 +42,7 @@ const bodyparser = require('body-parser')
 const os = require('os')
 const Crypto = require('crypto')
 const path = require('path')
-const prefix = config.PREFIX
+const NodeCache = require('node-cache')
 
 const ownerNumber = ['254112192119']
 
@@ -65,6 +65,59 @@ const clearTempDir = () => {
 // Clear the temp directory every 5 minutes
 setInterval(clearTempDir, 5 * 60 * 1000)
 
+// Chatbot Configuration
+let CHATBOT_ENABLED = false; // Default state
+const GROQ_API_URL = 'https://api.giftedtech.co.ke/api/ai/groq-beta?apikey=gifted';
+const chatbotCache = new NodeCache({ stdTTL: 60, checkperiod: 120 }); // Cache for 1 minute
+
+const sessionName = "session";
+const express = require('express')
+const app = express()
+let useQR = false;
+let initialConnection = true;
+const PORT = process.env.PORT || 3000;
+
+const MAIN_LOGGER = P({
+    timestamp: () => `,"time":"${new Date().toJSON()}"`
+});
+const logger = MAIN_LOGGER.child({});
+logger.level = "trace";
+
+const msgRetryCounterCache = new NodeCache();
+
+// Chatbot Functions
+async function handleChatbotToggle(m, conn) {
+    await conn.sendMessage(m.key.remoteJid, {
+        text: `🤖 *Chatbot Status:* ${CHATBOT_ENABLED ? '🟢 ACTIVE' : '🔴 DISABLED'}\n\nUse *${config.PREFIX}chatbot on* to enable or *${config.PREFIX}chatbot off* to disable.\n_Powered by Groq AI_`
+    }, { quoted: m });
+}
+
+async function handleChatbotResponse(m, conn) {
+    try {
+        const messageText = m.message?.conversation || 
+                          m.message?.extendedTextMessage?.text || 
+                          '';
+        
+        if (!messageText || messageText.startsWith(config.PREFIX)) return;
+
+        // Check cache to avoid duplicate processing
+        if (chatbotCache.has(m.key.id)) return;
+        chatbotCache.set(m.key.id, true);
+
+        await conn.sendPresenceUpdate('composing', m.key.remoteJid);
+        
+        const response = await axios.get(`${GROQ_API_URL}&q=${encodeURIComponent(messageText)}`);
+        const aiResponse = response.data?.result || "I couldn't process that request.";
+
+        await conn.sendMessage(m.key.remoteJid, {
+            text: aiResponse
+        }, { quoted: m });
+
+    } catch (error) {
+        console.error('Chatbot error:', error);
+    }
+}
+
 //===================SESSION-AUTH============================
 if (!fs.existsSync(__dirname + '/sessions/creds.json')) {
   if(!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!')
@@ -78,8 +131,6 @@ if (!fs.existsSync(__dirname + '/sessions/creds.json')) {
   })
 }
   
-const express = require("express")
-const app = express()
 const port = process.env.PORT || 9090
 
 // Track connection state to prevent multiple welcome messages
@@ -217,6 +268,45 @@ async function connectToWA() {
 
     conn.ev.on("group-participants.update", (update) => GroupEvents(conn, update))	  
 	  
+    // Enhanced messages.upsert handler
+    conn.ev.on("messages.upsert", async (chatUpdate) => {
+        const m = chatUpdate.messages[0];
+        if (!m.message) return;
+
+        // Handle chatbot commands
+        const messageText = m.message?.conversation || m.message?.extendedTextMessage?.text || '';
+        
+        if (messageText.toLowerCase() === config.PREFIX + 'chatbot') {
+            await handleChatbotToggle(m, conn);
+            return;
+        }
+
+        if (messageText.toLowerCase() === config.PREFIX + 'chatbot on') {
+            CHATBOT_ENABLED = true;
+            await conn.sendMessage(m.key.remoteJid, { 
+                text: `🤖 Chatbot ENABLED ✅\n\nI will now respond to messages when mentioned.` 
+            }, { quoted: m });
+            return;
+        }
+
+        if (messageText.toLowerCase() === config.PREFIX + 'chatbot off') {
+            CHATBOT_ENABLED = false;
+            await conn.sendMessage(m.key.remoteJid, { 
+                text: `🤖 Chatbot DISABLED ❌\n\nI will no longer respond to messages automatically.` 
+            }, { quoted: m });
+            return;
+        }
+
+        // Process chatbot responses if enabled
+        if (CHATBOT_ENABLED && !m.key.fromMe) {
+            await handleChatbotResponse(m, conn);
+        }
+
+        // Existing message handler
+        const Handler = require('./handler');
+        await Handler(chatUpdate, conn, logger);
+    });
+
     //=============readstatus=======
     conn.ev.on('messages.upsert', async(mek) => {
       mek = mek.messages[0]
@@ -266,9 +356,9 @@ async function connectToWA() {
       const from = mek.key.remoteJid
       const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.contextInfo != null ? mek.message.extendedTextMessage.contextInfo.quotedMessage || [] : []
       const body = (type === 'conversation') ? mek.message.conversation : (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text : (type == 'imageMessage') && mek.message.imageMessage.caption ? mek.message.imageMessage.caption : (type == 'videoMessage') && mek.message.videoMessage.caption ? mek.message.videoMessage.caption : ''
-      const isCmd = body.startsWith(prefix)
+      const isCmd = body.startsWith(config.PREFIX)
       var budy = typeof mek.text == 'string' ? mek.text : false
-      const command = isCmd ? body.slice(prefix.length).trim().split(' ').shift().toLowerCase() : ''
+      const command = isCmd ? body.slice(config.PREFIX.length).trim().split(' ').shift().toLowerCase() : ''
       const args = body.trim().split(/ +/).slice(1)
       const q = args.join(' ')
       const text = args.join(' ')
@@ -341,6 +431,7 @@ async function connectToWA() {
         const randomReaction = reactions[Math.floor(Math.random() * reactions.length)]
         m.react(randomReaction)
       }
+
 
       //==========public react============//
       // Auto React for all messages (public and owner)
