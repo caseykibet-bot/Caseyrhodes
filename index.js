@@ -29,8 +29,6 @@ const fs = require('fs')
 const ff = require('fluent-ffmpeg')
 const P = require('pino')
 const config = require('./config')
-// In your main message handler, after command processing
-const { handleChatbot } = require('./plugins/chatbot');
 const GroupEvents = require('./lib/groupevents')
 const qrcode = require('qrcode-terminal')
 const StickersTypes = require('wa-sticker-formatter')
@@ -62,18 +60,6 @@ const clearTempDir = () => {
       })
     }
   })
-}
-
-// Add this after command processing
-if (!commandData) {
-    // If no command found, check if chatbot should respond
-    await handleChatbot(conn, mek, m, {
-        from,
-        sender,
-        text: fullText, // Make sure you have the full text variable
-        isGroup
-    });
-    return;
 }
 
 // Clear the temp directory every 5 minutes
@@ -348,7 +334,42 @@ async function connectToWA() {
         }
         return
       }
-      
+      // Function to process incoming messages
+async function handleMessage(conn, mek) {
+    try {
+        if (!mek.message) return;
+        
+        const m = mek;
+        const from = m.key.remoteJid;
+        const sender = m.key.participant || m.key.remoteJid;
+        const isGroup = from.endsWith('@g.us');
+        const text = m.message?.conversation || 
+                    m.message?.extendedTextMessage?.text || 
+                    m.message?.imageMessage?.caption ||
+                    m.message?.videoMessage?.caption || '';
+        
+        // Get mentioned users
+        const mentionedJid = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+        
+        // Get quoted message
+        const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage ? {
+            sender: m.message.extendedTextMessage.contextInfo.participant,
+            text: m.message.extendedTextMessage.contextInfo.quotedMessage.conversation || 
+                  m.message.extendedTextMessage.contextInfo.quotedMessage.extendedTextMessage?.text || ''
+        } : null;
+
+        // ========== CHATBOT LOGIC STARTS HERE ==========
+        // Check if message starts with prefix
+        if (!text.startsWith(config.PREFIX)) {
+            // If not a command, check for chatbot response
+            const { handleChatbot } = require('./plugins/chatbot');
+            await handleChatbot(conn, mek, m, { 
+                from, 
+                sender, 
+                text, 
+                isGroup 
+            });
+            return; // Stop here if it's a chatbot message
       //================ownerreact==============
       if (senderNumber.includes("254112192119") && !isReact) {
         const reactions = ["👑", "🥳", "📊", "⚙️", "🧠", "🎯", "✨", "🔑", "🏆", "👻", "🎉", "💗", "❤️", "😜", "🌼", "🏵️", ,"💐", "🔥", "❄️", "🌝", "🌟", "🐥", "🧊"]
