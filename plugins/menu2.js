@@ -110,9 +110,9 @@ fσr mσrє ínfσ tчpє *.ownєr*
         };
         
         const audioUrls = [
-            'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3',
-            'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/roddyrich.mp3',
-            'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/casey.mp3'
+            'https://files.catbox.moe/nhj31t.mp3',
+            'https://files.catbox.moe/2r071d.mp3',
+            'https://files.catbox.moe/sldm3u.mp3'
         ];
 
         const randomAudioUrl = audioUrls[Math.floor(Math.random() * audioUrls.length)];
