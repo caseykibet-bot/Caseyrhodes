@@ -15,16 +15,15 @@ cmd({
 }, async (conn, mek, m, { from, reply, isOwner }) => {
     if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
-    // Newsletter configuration (only for success message)
+    // Newsletter configuration
     const newsletterConfig = {
         contextInfo: {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
+            forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363420261263259@newsletter',
-                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐔𝐏𝐃𝐀𝐓𝐄𝐒',
-                serverMessageId: 143
+                newsletterName:'CASEYRHODES TECH 👑',
+                serverMessageId: -1
             }
         }
     };
@@ -115,31 +114,26 @@ cmd({
         fs.unlinkSync(zipPath);
         fs.rmSync(extractPath, { recursive: true, force: true });
 
-        // Final success message with newsletter (only here)
-        await conn.relayMessage(from, {
-            protocolMessage: {
-                key: updateMessage.key,
-                type: 14,
-                editedMessage: {
-                    conversation: "✅ *Update complete!*\n\n_Restarting the bot to apply changes..._\n\n⚡ Powered by CASEYRHODES-TECH"
-                }
-            }
-        }, {});
+        // Final success message with newsletter context
+        await conn.sendMessage(from, {
+            text: "✅ *Update Complete!*\n\n_Restarting the bot to apply changes..._\n\n⚡ Powered by CASEYRHODES-TECH",
+            ...newsletterConfig
+        }, { quoted: mek });
 
         // Send image with newsletter configuration
         await conn.sendMessage(from, {
             image: { 
-                url: "https://i.ibb.co/wN6Gw0ZF/lordcasey.jpg",
+                url: "https://files.catbox.moe/1bim2j.jpg",
                 mimetype: "image/jpeg"
             },
-            caption: "✅ *Update Complete!*",
+            caption: "🎉 *CASEYRHODES-XMD Successfully Updated!*\n\nYour bot is now running the latest version with all new features and improvements!",
             ...newsletterConfig
         }, { quoted: mek });
 
         // Restart the bot after a short delay
         setTimeout(() => {
             process.exit(0);
-        }, 2000);
+        }, 3000);
 
     } catch (error) {
         console.error("Update error:", error);
@@ -175,10 +169,10 @@ function copyFolderSync(source, target) {
         const srcPath = path.join(source, item);
         const destPath = path.join(target, item);
 
-        // Skip sensitive files
-        const preservedFiles = ["config.js", "app.json", "credentials.json", "data"];
-        if (preservedFiles.includes(item)) {
-            console.log(`⚠️ Preserving existing file: ${item}`);
+        // Skip sensitive files and directories
+        const preservedItems = ["config.js", "app.json", "credentials.json", "data", "session", "temp"];
+        if (preservedItems.includes(item)) {
+            console.log(`⚠️ Preserving existing: ${item}`);
             continue;
         }
 
