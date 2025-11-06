@@ -1,80 +1,154 @@
-const { cmd, commands } = require('../command');
-const os = require("os");
+const config = require("../config");
+const { cmd } = require('../command');
+const moment = require('moment-timezone');
 const { runtime } = require('../lib/functions');
+const os = require('os');
+
+const botStartTime = Date.now();
+const ALIVE_IMG = config.ALIVE_IMAGE || 'https://files.catbox.moe/y3j3kl.jpg';
+const NEWSLETTER_JID = '120363420261263259@newsletter';
+const AUDIO_URL = config.AUDIO_URL || 'https://files.catbox.moe/pjlpd7.mp3';
+
+// Tiny caps mapping for lowercase letters
+const tinyCapsMap = {
+  a: 'ᴀ', b: 'ʙ', c: 'ᴄ', d: 'ᴅ', e: 'ᴇ', f: 'ғ', g: 'ɢ', h: 'ʜ', i: 'ɪ',
+  j: 'ᴊ', k: 'ᴋ', l: 'ʟ', m: 'ᴍ', n: 'ɴ', o: 'ᴏ', p: 'ᴘ', q: 'q', r: 'ʀ',
+  s: 's', t: 'ᴛ', u: 'ᴜ', v: 'ᴠ', w: 'ᴡ', x: 'x', y: 'ʏ', z: 'ᴢ'
+};
+
+// Function to convert string to tiny caps
+const toTinyCaps = (str) => {
+  return str
+    .split('')
+    .map((char) => tinyCapsMap[char.toLowerCase()] || char)
+    .join('');
+};
+
+// Runtime function
+const runtime = (seconds) => {
+  seconds = Number(seconds);
+  var d = Math.floor(seconds / (3600 * 24));
+  var h = Math.floor(seconds % (3600 * 24) / 3600);
+  var m = Math.floor(seconds % 3600 / 60);
+  var s = Math.floor(seconds % 60);
+  var dDisplay = d > 0 ? d + (d == 1 ? " day, " : " days, ") : "";
+  var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+  var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+  var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+  return dDisplay + hDisplay + mDisplay + sDisplay;
+};
 
 cmd({
-    pattern: "alive",
-    alias: ["av", "runtime", "uptime"],
-    desc: "Check uptime and system status",
-    category: "main",
-    react: "📟",
-    filename: __filename
-},
-async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
-    try {
-        // Get system info
-        const platform = "Heroku Platform"; // Fixed deployment platform
-        const release = os.release(); // OS version
-        const cpuModel = os.cpus()[0].model; // CPU info
-        const totalMem = (os.totalmem() / 1024 / 1024).toFixed(2); // Total RAM in MB
-        const usedMem = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2); // Used RAM in MB
+  pattern: 'alive',
+  alias: ['uptime', 'runtime', 'test'],
+  desc: 'Check if the bot is active.',
+  category: 'system',
+  filename: __filename,
+}, async (Void, m, text, { prefix, pushName }) => {
+  try {
+    const uptime = runtime(process.uptime());
+    const usedRam = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
+    const totalRam = (os.totalmem() / 1024 / 1024).toFixed(2);
 
-        // Stylish and detailed system status message
-        const status = `🌟 *Good ${
-  new Date().getHours() < 12 ? 'Morning' : 
-  (new Date().getHours() < 18 ? 'Afternoon' : 'Evening')
-}, ${pushname}!* 💫
-╭───❰ *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* ❱──┈⊷
-┃ *✨𝖴ᴘᴛɪᴍᴇ* : *${runtime(process.uptime())}*
-┃ *💾 𝖱ᴀᴍ ᴜsᴀɢᴇ* : *${usedMem}MB / ${totalMem}MB*
-┃ *🧑‍💻𝖣ᴇᴘʟᴏʏᴇᴅ ᴏɴ* : *${platform}*
-┃ *👨‍💻𝖮ᴡɴᴇʀ* : *𝖬ʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs*
-┃ *🧬𝖵ᴇʀsɪᴏɴ* : *𝟣.𝟢.𝟢 �𝖡𝖤𝖳𝖠*
-╰──────────────────────┈⊷
-> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ`;
-          
-        // Contact message for verified context
-        const verifiedContact = {
-            key: {
-                fromMe: false,
-                participant: `0@s.whatsapp.net`,
-                remoteJid: "status@broadcast"
-            },
-            message: {
-                contactMessage: {
-                    displayName: "CASEYRHODES VERIFIED ✅",
-                    vcard: "BEGIN:VCARD\nVERSION:3.0\nFN: Caseyrhodes VERIFIED ✅\nORG:CASEYRHODES-TECH BOT;\nTEL;type=CELL;type=VOICE;waid=13135550002:+13135550002\nEND:VCARD"
-                }
-            }
-        };
-        
-        // Send image + caption + audio combined
-        await conn.sendMessage(from, { 
-            image: { url: `https://i.ibb.co/fGSVG8vJ/caseyweb.jpg` },  
-            caption: status,
-            contextInfo: {
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363420261263259@newsletter',
-                    newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐀𝐋𝐈𝐕𝐄🍀',
-                    serverMessageId: 143
-                   }
-                }
-            },
-            { quoted: verifiedContact }
-        );
+    const caption = `
+*┏─〔${pushName || 'User'}〕─⊷*
+*┇ ᴜᴘᴛɪᴍᴇ: ${uptime}*
+*┇ ʙᴏᴛ ɴᴀᴍᴇ: ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ*
+*┇ ᴏᴡɴᴇʀ: ᴄᴀsᴇʏʀʜᴏᴅᴇs*
+*┇ ᴘʟᴀᴛғᴏʀᴍ: ʜᴇʀᴏᴋᴜ*
+*┇ ʀᴀᴍ: ${usedRam}ᴍʙ / ${totalRam}ᴍʙ*
+*┗──────────────⊷*
+> ᴍᴀᴅᴇ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ
+`.trim();
 
-        // Attach audio within the same "quoted" message for grouping
-        await conn.sendMessage(from, { 
-            audio: { url: 'https://github.com/caseyweb/autovoice/raw/refs/heads/main/caseytech/alive.mp3' },
-            mimetype: 'audio/mp4',
-            ptt: false
-             }, { quoted: verifiedContact });
+    const buttons = [
+      {
+        buttonId: "action",
+        buttonText: { displayText: "ᴍᴇɴᴜ ᴏᴘᴛɪᴏɴꜱ" },
+        type: 4,
+        nativeFlowInfo: {
+          name: "single_select",
+          paramsJson: JSON.stringify({
+            title: "ᴄʟɪᴄᴋ ʜᴇʀᴇ",
+            sections: [
+              {
+                title: "ᴄᴀsᴇʏʀʜᴏᴅᴇs",
+                highlight_label: "",
+                rows: [
+                  {
+                    title: "ᴍᴇɴᴜ",
+                    description: "ᴏᴘᴇɴ ᴀʟʟ ᴄᴏᴍᴍᴀɴᴅꜱ",
+                    id: `${prefix}allmenu`,
+                  },
+                  {
+                    title: "ᴏᴡɴᴇʀ",
+                    description: "ᴄᴏɴᴛᴀᴄᴛ ʙᴏᴛ ᴏᴡɴᴇʀ",
+                    id: `${prefix}owner`,
+                  },
+                  {
+                    title: "ᴘɪɴɢ",
+                    description: "ᴛᴇꜱᴛ ʙᴏᴛ ꜱᴘᴇᴇᴅ",
+                    id: `${prefix}ping`,
+                  },
+                  {
+                    title: "ꜱʏꜱᴛᴇᴍ",
+                    description: "ꜱʏꜱᴛᴇᴍ ɪɴꜰᴏʀᴍᴀᴛɪᴏɴ",
+                    id: `${prefix}system`,
+                  },
+                  {
+                    title: "ʀᴇᴘᴏ",
+                    description: "ɢɪᴛʜᴜʙ ʀᴇᴘᴏꜱɪᴛᴏʀʏ",
+                    id: `${prefix}repo`,
+                  },
+                ],
+              },
+            ],
+          }),
+        },
+      },
+    ];
 
-    } catch (e) {
-        console.error("Error in alive command:", e);
-        reply(`🚨 *An error occurred:* ${e.message}`);
+    await Void.sendMessage(m.chat, {
+      buttons,
+      headerType: 1,
+      viewOnce: true,
+      image: { url: ALIVE_IMG },
+      caption,
+      contextInfo: {
+        mentionedJid: [m.sender],
+        forwardingScore: 999,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: NEWSLETTER_JID,
+          newsletterName: toTinyCaps('ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ'),
+          serverMessageId: 143,
+        },
+        externalAdReply: {
+          title: "CASEYRHODES TECH",
+          body: "ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ",
+          mediaType: 1,
+          thumbnailUrl: ALIVE_IMG,
+          sourceUrl: "https://github.com/CASEYRHODES-TECH/CASEYRHODES-XMD"
+        }
+      },
+    }, { quoted: m });
+
+    // Send audio if configured
+    if (AUDIO_URL) {
+      await Void.sendMessage(m.chat, {
+        audio: { url: AUDIO_URL },
+        mimetype: 'audio/mp4',
+        ptt: true,
+      }, { quoted: m });
     }
+
+  } catch (error) {
+    console.error('❌ Error in alive command:', error.message);
+    const errorMessage = toTinyCaps(`
+      An error occurred while processing the alive command.
+      Error Details: ${error.message}
+      Please report this issue or try again later.
+    `).trim();
+    return m.reply(errorMessage);
+  }
 });
