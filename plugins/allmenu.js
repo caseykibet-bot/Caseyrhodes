@@ -12,6 +12,55 @@ const path = require('path');
 const { cmd } = require('../command');
 const moment = require('moment-timezone');
 
+// Function to stylize text like ʜɪ
+function toUpperStylized(str) {
+  const stylized = {
+    A: 'ᴀ', B: 'ʙ', C: 'ᴄ', D: 'ᴅ', E: 'ᴇ', F: 'ғ', G: 'ɢ', H: 'ʜ',
+    I: 'ɪ', J: 'ᴊ', K: 'ᴋ', L: 'ʟ', M: 'ᴍ', N: 'ɴ', O: 'ᴏ', P: 'ᴘ',
+    Q: 'ǫ', R: 'ʀ', S: 's', T: 'ᴛ', U: 'ᴜ', V: 'ᴠ', W: 'ᴡ', X: 'x',
+    Y: 'ʏ', Z: 'ᴢ'
+  };
+  return str.split('').map(c => stylized[c.toUpperCase()] || c).join('');
+}
+
+// Normalize categories
+const normalize = (str) => str.toLowerCase().replace(/\s+menu$/, '').trim();
+
+// Emojis by normalized category
+const emojiByCategory = {
+  ai: '🤖',
+  anime: '🍥',
+  audio: '🎧',
+  bible: '📖',
+  download: '⬇️',
+  downloader: '📥',
+  fun: '🎮',
+  game: '🕹️',
+  group: '👥',
+  img_edit: '🖌️',
+  info: 'ℹ️',
+  information: '🧠',
+  logo: '🖼️',
+  main: '🏠',
+  media: '🎞️',
+  menu: '📜',
+  misc: '📦',
+  music: '🎵',
+  other: '📁',
+  owner: '👑',
+  privacy: '🔒',
+  search: '🔎',
+  settings: '⚙️',
+  sticker: '🌟',
+  system: '⚙️',
+  tools: '🛠️',
+  user: '👤',
+  utilities: '🧰',
+  utility: '🧮',
+  wallpapers: '🖼️',
+  whatsapp: '📱',
+};
+
 cmd({
   pattern: "allmenu",
   alias: ["commandlist", "help"],
@@ -41,11 +90,12 @@ cmd({
           const categoryMatch = content.match(/category:\s*["'`](.*?)["'`]/);
           const category = categoryMatch ? categoryMatch[1] : 'general';
           
-          if (!categories[category]) {
-            categories[category] = [];
+          const normalizedCategory = normalize(category);
+          if (!categories[normalizedCategory]) {
+            categories[normalizedCategory] = [];
           }
           
-          categories[category].push(pattern);
+          categories[normalizedCategory].push(pattern);
           totalCommands++;
         }
       } catch (fileErr) {
@@ -53,79 +103,51 @@ cmd({
       }
     }
 
-    // Function to stylize text
-    const toUpperStylized = (text) => {
-      return text.toUpperCase();
-    };
-
-    // Emoji mapping for categories
-    const emojiByCategory = {
-      'system': '⚙️',
-      'general': '💫',
-      'download': '📥',
-      'media': '🎬',
-      'fun': '🎮',
-      'tools': '🛠️',
-      'owner': '👑',
-      'search': '🔍',
-      'group': '👥',
-      'ai': '🤖'
-    };
-
-    let commandList = "";
-
-    // Add sorted categories with stylized text
-    const sortedCategories = Object.keys(categories).sort();
-    
-    for (const cat of sortedCategories) {
-      const emoji = emojiByCategory[cat] || '💫';
-      commandList += `╭─『 ${emoji} ${toUpperStylized(cat)} 』\n`;
-      
-      // Add commands in a compact format (5 per line)
-      const commands = categories[cat].sort();
-      for (let i = 0; i < commands.length; i += 5) {
-        const lineCommands = commands.slice(i, i + 5);
-        commandList += `│ ${lineCommands.join(' • ')}\n`;
-      }
-      commandList += `╰────────────────\n\n`;
-    }
-
     const time = moment().tz('Africa/Nairobi').format('HH:mm:ss');
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
 
-    const caption = `
-╭━━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》━━━┈⊷
-┃❍╭──────────────
-┃❍│▸  Usᴇʀ : ${m.pushName || 'User'} 🌟
-┃❍│▸  ʙᴀɪʟᴇʏs : 𝐌𝐮𝐥𝐭𝐢 𝐝𝐞𝐯𝐢𝐜𝐞
-┃❍│▸  ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : *${totalCommands}*
-┃❍⁠│▸  𝖳ʏᴘᴇ : 𝐍𝐨𝐝𝐞𝐣𝐬
-┃❍│▸  ᴘʟᴀᴛғᴏʀᴍ : 𝐇𝐞𝐫𝐨𝐤𝐮
-┃❍⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎
-┃❍╰──────────────
-╰━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
+    let menu = `*╭───────────────────⊷*
+*┃ ᴜꜱᴇʀ : @${m.sender.split("@")[0]}*
+*┃ ʙᴀɪʟᴇʏs : 𝐌𝐮𝐥𝐭𝐢 𝐝𝐞𝐯𝐢𝐜𝐞*
+*┃ ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : 『 ${totalCommands} 』*
+*┃ ᴛʏᴘᴇ : 𝐍𝐨𝐝𝐞𝐣𝐬*
+*┃ ᴘʟᴀᴛғᴏʀᴍ : 𝐇𝐞𝐫𝐨𝐤𝐮*
+*┃ ᴏᴡɴᴇʀ : ᴄᴀsᴇʏʀʜᴏᴅᴇs 🎀*
+*┃ ᴠᴇʀꜱɪᴏɴ : 1.0.0*
+*╰──────────────────⊷*`;
 
-${commandList}`;
+    // Add sorted categories with stylized text
+    for (const cat of Object.keys(categories).sort()) {
+      const emoji = emojiByCategory[cat] || '💫';
+      menu += `\n\n*╭───『 ${emoji} ${toUpperStylized(cat)} ${toUpperStylized('Menu')} 』──⊷*\n`;
+      for (const cmd of categories[cat].sort()) {
+        menu += `*│ ✘${cmd}*\n`;
+      }
+      menu += `*╰───────────────⊷*`;
+    }
+
+    menu += `\n\n> ${toUpperStylized('Explore the bot commands!')}`;
 
     const messageOptions = {
-      image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
-      caption: caption,
+      image: { url: "https://files.catbox.moe/1bim2j.jpg" },
+      caption: menu,
       contextInfo: {
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
           newsletterJid: '120363420261263259@newsletter',
-          newsletterName: 'ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴍɪɴɪ ʙᴏᴛ🌟',
+          newsletterName: 'CASEYRHODES TECH 👑',
           serverMessageId: -1
         },
         externalAdReply: {
-          title: "CASEYRHODES TECH",
-          body: `ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ | ${time}`,
+          title: "ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴛᴇᴄʜ",
+          body: `ᴄᴀsᴇʏʀʜᴏᴅᴇs ʙᴏᴛ | ${time}`,
           mediaType: 1,
           thumbnailUrl: "https://files.catbox.moe/y3j3kl.jpg",
           sourceUrl: "https://github.com/CASEYRHODES-TECH/CASEYRHODES-XMD"
         }
-      }
+      },
+      mentions: [m.sender]
     };
 
     await Void.sendMessage(m.chat, messageOptions, { quoted: m });
