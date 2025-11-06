@@ -15,19 +15,6 @@ cmd({
 }, async (conn, mek, m, { from, reply, isOwner }) => {
     if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
-    // Newsletter configuration
-    const newsletterConfig = {
-        contextInfo: {
-            forwardingScore: 1,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363420261263259@newsletter',
-                newsletterName:'CASEYRHODES TECH 👑',
-                serverMessageId: -1
-            }
-        }
-    };
-
     let updateMessage = null;
 
     try {
@@ -115,10 +102,30 @@ cmd({
         fs.rmSync(extractPath, { recursive: true, force: true });
 
         // Final success message with newsletter context
-        await conn.sendMessage(from, {
-            text: "✅ *Update Complete!*\n\n_Restarting the bot to apply changes..._\n\n⚡ Powered by CASEYRHODES-TECH",
-            ...newsletterConfig
-        }, { quoted: mek });
+        await conn.relayMessage(from, {
+            protocolMessage: {
+                key: updateMessage.key,
+                type: 14,
+                editedMessage: {
+                    conversation: "✅ *Update complete!*\n\n_Restarting the bot to apply changes..._\n\n⚡ Powered by CASEYRHODES-TECH"
+                }
+            }
+        }, {});
+
+        // Define newsletter configuration (this was missing)
+        const newsletterConfig = {
+            contextInfo: {
+                forwardingScore: 1,
+                isForwarded: true,
+                externalAdReply: {
+                    title: "CASEYRHODES-XMD Updated!",
+                    body: "✅ Successfully updated to latest version",
+                    mediaType: 1,
+                    thumbnailUrl: "https://files.catbox.moe/1bim2j.jpg",
+                    sourceUrl: "https://github.com/caseykibet-bot/Caseyrhodes"
+                }
+            }
+        };
 
         // Send image with newsletter configuration
         await conn.sendMessage(from, {
@@ -126,14 +133,14 @@ cmd({
                 url: "https://files.catbox.moe/1bim2j.jpg",
                 mimetype: "image/jpeg"
             },
-            caption: "🎉 *CASEYRHODES-XMD Successfully Updated!*\n\nYour bot is now running the latest version with all new features and improvements!",
+            caption: "✅ *Update Complete!*\n\nBot has been successfully updated to the latest version.",
             ...newsletterConfig
         }, { quoted: mek });
 
         // Restart the bot after a short delay
         setTimeout(() => {
             process.exit(0);
-        }, 3000);
+        }, 2000);
 
     } catch (error) {
         console.error("Update error:", error);
@@ -169,10 +176,10 @@ function copyFolderSync(source, target) {
         const srcPath = path.join(source, item);
         const destPath = path.join(target, item);
 
-        // Skip sensitive files and directories
-        const preservedItems = ["config.js", "app.json", "credentials.json", "data", "session", "temp"];
-        if (preservedItems.includes(item)) {
-            console.log(`⚠️ Preserving existing: ${item}`);
+        // Skip sensitive files
+        const preservedFiles = ["config.js", "app.json", "credentials.json", "data"];
+        if (preservedFiles.includes(item)) {
+            console.log(`⚠️ Preserving existing file: ${item}`);
             continue;
         }
 
