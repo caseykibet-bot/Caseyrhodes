@@ -25,7 +25,6 @@ cmd({
 
     let totalCommands = 0;
     const categories = {};
-    const commandDetails = {};
 
     // Read all command files and extract patterns
     for (const file of commandFiles) {
@@ -42,27 +41,11 @@ cmd({
           const categoryMatch = content.match(/category:\s*["'`](.*?)["'`]/);
           const category = categoryMatch ? categoryMatch[1] : 'general';
           
-          // Extract description
-          const descMatch = content.match(/desc:\s*["'`](.*?)["'`]/);
-          const description = descMatch ? descMatch[1] : 'No description available';
-          
-          // Extract alias
-          const aliasMatch = content.match(/alias:\s*\[(.*?)\]/);
-          let aliases = [];
-          if (aliasMatch) {
-            aliases = aliasMatch[1].split(',').map(a => a.trim().replace(/["'`]/g, ''));
-          }
-          
           if (!categories[category]) {
             categories[category] = [];
           }
           
           categories[category].push(pattern);
-          commandDetails[pattern] = {
-            description,
-            aliases,
-            category
-          };
           totalCommands++;
         }
       } catch (fileErr) {
@@ -89,37 +72,40 @@ cmd({
       'ai': '🤖'
     };
 
-    let menu = `╭━━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》━━━┈⊷\n`;
-    menu += `┃❍╭──────────────\n`;
-    menu += `┃❍│▸  Usᴇʀ : ${m.pushName || 'User'} 🌟\n`;
-    menu += `┃❍│▸  ʙᴀɪʟᴇʏs : 𝐌𝐮𝐥𝐭𝐢 𝐝𝐞𝐯𝐢𝐜𝐞\n`;
-    menu += `┃❍│▸  ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : *${totalCommands}*\n`;
-    menu += `┃❍⁠│▸  𝖳ʏᴘᴇ : 𝐍𝐨𝐝𝐞𝐣𝐬\n`;
-    menu += `┃❍│▸  ᴘʟᴀᴛғᴏʀᴍ : 𝐇𝐞𝐫𝐨𝐤𝐮\n`;
-    menu += `┃❍⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎\n`;
-    menu += `┃❍╰──────────────\n`;
-    menu += `╰━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n`;
+    let commandList = "";
 
     // Add sorted categories with stylized text
     const sortedCategories = Object.keys(categories).sort();
     
     for (const cat of sortedCategories) {
       const emoji = emojiByCategory[cat] || '💫';
-      menu += `╭─『 ${emoji} ${toUpperStylized(cat)} ${toUpperStylized('Menu')} 』──⊷\n`;
+      commandList += `╭─『 ${emoji} ${toUpperStylized(cat)} 』\n`;
       
-      for (const cmd of categories[cat].sort()) {
-        const details = commandDetails[cmd];
-        const aliasText = details.aliases.length > 0 ? ` (${details.aliases.join(', ')})` : '';
-        menu += `│ • ${prefix}${cmd}${aliasText}\n`;
-        menu += `│   └─ ${details.description}\n`;
+      // Add commands in a compact format (5 per line)
+      const commands = categories[cat].sort();
+      for (let i = 0; i < commands.length; i += 5) {
+        const lineCommands = commands.slice(i, i + 5);
+        commandList += `│ ${lineCommands.join(' • ')}\n`;
       }
-      menu += `╰──────────────⊷\n\n`;
+      commandList += `╰────────────────\n\n`;
     }
 
     const time = moment().tz('Africa/Nairobi').format('HH:mm:ss');
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
 
-    const caption = menu;
+    const caption = `
+╭━━━《 *𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐗𝐌𝐃* 》━━━┈⊷
+┃❍╭──────────────
+┃❍│▸  Usᴇʀ : ${m.pushName || 'User'} 🌟
+┃❍│▸  ʙᴀɪʟᴇʏs : 𝐌𝐮𝐥𝐭𝐢 𝐝𝐞𝐯𝐢𝐜𝐞
+┃❍│▸  ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs : *${totalCommands}*
+┃❍⁠│▸  𝖳ʏᴘᴇ : 𝐍𝐨𝐝𝐞𝐣𝐬
+┃❍│▸  ᴘʟᴀᴛғᴏʀᴍ : 𝐇𝐞𝐫𝐨𝐤𝐮
+┃❍⁠│▸  𝖵ᴇʀsɪᴏɴ : 𝟏.𝟎.𝟎
+┃❍╰──────────────
+╰━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
+
+${commandList}`;
 
     const messageOptions = {
       image: { url: "https://files.catbox.moe/y3j3kl.jpg" },
