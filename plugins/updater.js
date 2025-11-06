@@ -101,7 +101,7 @@ cmd({
         fs.unlinkSync(zipPath);
         fs.rmSync(extractPath, { recursive: true, force: true });
 
-        // Final success message with newsletter context
+        // Final success message
         await conn.relayMessage(from, {
             protocolMessage: {
                 key: updateMessage.key,
@@ -112,28 +112,26 @@ cmd({
             }
         }, {});
 
-        // Define newsletter configuration (this was missing)
+        // Newsletter configuration
         const newsletterConfig = {
             contextInfo: {
                 forwardingScore: 1,
                 isForwarded: true,
-                externalAdReply: {
-                    title: "CASEYRHODES-XMD Updated!",
-                    body: "✅ Successfully updated to latest version",
-                    mediaType: 1,
-                    thumbnailUrl: "https://files.catbox.moe/1bim2j.jpg",
-                    sourceUrl: "https://github.com/caseykibet-bot/Caseyrhodes"
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363420261263259@newsletter',
+                    newsletterName: 'CASEYRHODES TECH 👑',
+                    serverMessageId: -1
                 }
             }
         };
 
-        // Send image with newsletter configuration
+        // Send success image with newsletter context
         await conn.sendMessage(from, {
             image: { 
                 url: "https://files.catbox.moe/1bim2j.jpg",
                 mimetype: "image/jpeg"
             },
-            caption: "✅ *Update Complete!*\n\nBot has been successfully updated to the latest version.",
+            caption: "✅ *Update Complete!*\n\nBot has been successfully updated to the latest version.\n\n📰 *Caseyrhodes Mini Bot Newsletter*",
             ...newsletterConfig
         }, { quoted: mek });
 
