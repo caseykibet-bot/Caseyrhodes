@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const path = require('path');
 const { cmd } = require('../command');
@@ -11,10 +10,35 @@ function toUpperStylized(str) {
   const stylized = {
     A: 'ᴀ', B: 'ʙ', C: 'ᴄ', D: 'ᴅ', E: 'ᴇ', F: 'ғ', G: 'ɢ', H: 'ʜ',
     I: 'ɪ', J: 'ᴊ', K: 'ᴋ', L: 'ʟ', M: 'ᴍ', N: 'ɴ', O: 'ᴏ', P: 'ᴘ',
-    Q: 'ǫ', R: 'ʀ', S: 's', T: 'ᴛ', U: 'ᴜ', V: 'ᴠ', W: 'ᴡ', X: 'x',
+    Q: 'ǫ', R: 'ʀ', S: 'ꜱ', T: 'ᴛ', U: 'ᴜ', V: 'ᴠ', W: 'ᴡ', X: 'x',
     Y: 'ʏ', Z: 'ᴢ'
   };
   return str.split('').map(c => stylized[c.toUpperCase()] || c).join('');
+}
+
+// Function to format uptime
+function runtime(seconds) {
+  const days = Math.floor(seconds / (24 * 60 * 60));
+  const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+  const minutes = Math.floor((seconds % (60 * 60)) / 60);
+  const secs = Math.floor(seconds % 60);
+  
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+  
+  return parts.join(' ');
+}
+
+// Function to get memory usage
+function getMemoryUsage() {
+  const used = process.memoryUsage();
+  return {
+    used: Math.round(used.heapUsed / 1024 / 1024),
+    total: Math.round(used.heapTotal / 1024 / 1024)
+  };
 }
 
 // Normalize categories
@@ -64,6 +88,12 @@ cmd({
 }, async (Void, m, text, { prefix }) => {
   try {
     const commandDir = path.join(__dirname, '../plugins');
+    
+    // Check if directory exists
+    if (!fs.existsSync(commandDir)) {
+      return await m.reply('❌ Error: Command directory not found.');
+    }
+    
     const commandFiles = fs.readdirSync(commandDir).filter(file => file.endsWith('.js'));
 
     let totalCommands = 0;
@@ -99,12 +129,14 @@ cmd({
 
     const time = moment().tz('Africa/Nairobi').format('HH:mm:ss');
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
+    const memory = getMemoryUsage();
 
     let menu = `*⟣──────────────────⟢*
 ▧ *ᴄʀᴇᴀᴛᴏʀ* : *ᴍʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs (🇰🇪)*
 ▧ *ᴍᴏᴅᴇ* : *public*
 ▧ *ᴘʀᴇғɪx* : *${prefix}*
-▧ *ʀᴀᴍ* : *${usedMem}MB / ${totalMem}MB*
+▧ *ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs* : *${totalCommands}*
+▧ *ʀᴀᴍ* : *${memory.used}MB / ${memory.total}MB*
 ▧ *ᴠᴇʀsɪᴏɴ* : *V.5* ⚡
 ▧ *ᴜᴘᴛɪᴍᴇ* :  *${runtime(process.uptime())}*
 
@@ -119,7 +151,7 @@ ${readmore}
       const emoji = emojiByCategory[cat] || '💫';
       menu += `\n\n╭───『 ${emoji} ${toUpperStylized(cat)} ${toUpperStylized('Menu')} 』──⊷\n`;
       for (const cmd of categories[cat].sort()) {
-        menu += `│ ▢${cmd}\n`;
+        menu += `│ ▢ ${prefix}${cmd}\n`;
       }
       menu += `╰───────────────⊷`;
     }
@@ -150,7 +182,7 @@ ${readmore}
 
     await Void.sendMessage(m.chat, messageOptions, { quoted: m });
   } catch (err) {
-    console.error(err);
+    console.error('Error in allmenu command:', err);
     await m.reply('❌ Error: Could not fetch the command list.');
   }
 });
