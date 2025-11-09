@@ -1,1 +1,89 @@
-function _0x491e(){const _0x5b500c=['VERSION:3.0\x0a','CASEYRHODES\x20XMD\x20DEVELOPERS🥰💖🥰','@s.whatsapp.net','832308UJCDWG','https://files.catbox.moe/p4otel.jpg','OWNER_NAME','1492288zcQGjb','70SXLADn','An\x20error\x20occurred:\x20','https://files.catbox.moe/u66h53.mp3','Get\x20owner\x20number','210594Srwirb','sendMessage','audio/mp4','1677335lfsyir','220182RIjElg','../command','BEGIN:VCARD\x0a','owner','\x0a┃❍┃•\x20*ɴᴜᴍʙᴇʀ*\x20','replace','3cjIiek','╭━━〔\x20*𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒\x20𝐓𝐄𝐂𝐇*\x20〕━━┈⊷\x0a┃❍╭─────────────·๏\x0a┃❍┃•\x20*Here\x20is\x20the\x20owner\x20details*\x0a┃❍┃•\x20*ɴᴀᴍᴇ*\x20-\x20','error','message','735572uRbJiC','OWNER_NUMBER','2416005rhXvIm','main','120363302677217436@newsletter','TEL;type=CELL;type=VOICE;waid='];_0x491e=function(){return _0x5b500c;};return _0x491e();}const _0x3916ed=_0x1ad7;(function(_0x4a6358,_0x32c04e){const _0x516d8e=_0x1ad7,_0x39a7a9=_0x4a6358();while(!![]){try{const _0x5f784f=parseInt(_0x516d8e(0xb0))/0x1*(parseInt(_0x516d8e(0xaa))/0x2)+parseInt(_0x516d8e(0xbd))/0x3+parseInt(_0x516d8e(0xb4))/0x4+-parseInt(_0x516d8e(0xc8))/0x5+parseInt(_0x516d8e(0xc5))/0x6*(-parseInt(_0x516d8e(0xc1))/0x7)+-parseInt(_0x516d8e(0xc0))/0x8+parseInt(_0x516d8e(0xb6))/0x9;if(_0x5f784f===_0x32c04e)break;else _0x39a7a9['push'](_0x39a7a9['shift']());}catch(_0x2d206d){_0x39a7a9['push'](_0x39a7a9['shift']());}}}(_0x491e,0x2daae));const {cmd}=require(_0x3916ed(0xab)),config=require('../config');function _0x1ad7(_0x40b084,_0x32a3f6){const _0x491efb=_0x491e();return _0x1ad7=function(_0x1ad769,_0x30891b){_0x1ad769=_0x1ad769-0xaa;let _0xb9be81=_0x491efb[_0x1ad769];return _0xb9be81;},_0x1ad7(_0x40b084,_0x32a3f6);}cmd({'pattern':_0x3916ed(0xad),'react':'🦋','desc':_0x3916ed(0xc4),'category':_0x3916ed(0xb7),'filename':__filename},async(_0x3ac2ca,_0x54255b,_0x9960fd,{from:_0xa4b521})=>{const _0x1928b0=_0x3916ed;try{const _0xde3af8=config[_0x1928b0(0xb5)],_0x36eff7=config[_0x1928b0(0xbf)],_0x346a28=_0x1928b0(0xac)+_0x1928b0(0xba)+('FN:'+_0x36eff7+'\x0a')+(_0x1928b0(0xb9)+_0xde3af8[_0x1928b0(0xaf)]('+','')+':'+_0xde3af8+'\x0a')+'END:VCARD',_0x179846=await _0x3ac2ca[_0x1928b0(0xc6)](_0xa4b521,{'contacts':{'displayName':_0x36eff7,'contacts':[{'vcard':_0x346a28}]}});await _0x3ac2ca[_0x1928b0(0xc6)](_0xa4b521,{'image':{'url':_0x1928b0(0xbe)},'caption':_0x1928b0(0xb1)+_0x36eff7+_0x1928b0(0xae)+_0xde3af8+'\x0a┃❍┃•\x20*𝖵ᴇʀsɪᴏɴ*:\x201.0.0\x0a┃❍└───────────┈⊷\x0a╰──────────────┈⊷\x0a>\x20©ᴄᴀsᴇʏʀʜᴏᴅᴇs\x20ᴛᴇᴄʜ','contextInfo':{'mentionedJid':[_0xde3af8['replace']('+','')+_0x1928b0(0xbc)],'forwardingScore':0x3e7,'isForwarded':!![],'forwardedNewsletterMessageInfo':{'newsletterJid':_0x1928b0(0xb8),'newsletterName':_0x1928b0(0xbb),'serverMessageId':0x8f}}},{'quoted':_0x54255b}),await _0x3ac2ca[_0x1928b0(0xc6)](_0xa4b521,{'audio':{'url':_0x1928b0(0xc3)},'mimetype':_0x1928b0(0xc7),'ptt':!![]},{'quoted':_0x54255b});}catch(_0x5a538b){console[_0x1928b0(0xb2)](_0x5a538b),reply(_0x1928b0(0xc2)+_0x5a538b[_0x1928b0(0xb3)]);}});
+const { cmd } = require('../command');
+const config = require('../config');
+
+const more = String.fromCharCode(8206);
+const readMore = more.repeat(4001);
+
+function runtime(seconds) {
+    seconds = Number(seconds);
+    var d = Math.floor(seconds / (3600 * 24));
+    var h = Math.floor(seconds % (3600 * 24) / 3600);
+    var m = Math.floor(seconds % 3600 / 60);
+    var s = Math.floor(seconds % 60);
+    var dDisplay = d > 0 ? d + (d == 1 ? " day, " : " days, ") : "";
+    var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+    return dDisplay + hDisplay + mDisplay + sDisplay;
+}
+
+cmd({
+    pattern: "owner",
+    react: "🦋",
+    desc: "Get owner number",
+    category: "main",
+    filename: __filename,
+},
+async (conn, mek, m, { from, reply, prefix }) => {
+    try {
+        const ownerNumber = config.owner;
+        const ownerName = config.OWNER_NAME || "CASEYRHODES XMD DEVELOPERS🥰💖🥰";
+        
+        // Get memory usage
+        const used = process.memoryUsage();
+        const usedMem = Math.round(used.heapUsed / 1024 / 1024);
+        const totalMem = Math.round(used.heapTotal / 1024 / 1024);
+        
+        const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${ownerName}
+ORG:CASEYRHODES-TECH BOT;
+TEL;type=CELL;type=VOICE;waid=${ownerNumber.replace('+', '')}:${ownerNumber}
+END:VCARD`;
+
+        // Send contact card
+        await conn.sendMessage(from, {
+            contacts: {
+                displayName: ownerName,
+                contacts: [{ vcard: vcard }]
+            }
+        });
+
+        // Send image with owner info including phone number
+        await conn.sendMessage(from, {
+            image: { url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg' },
+            caption: `*⟣──────────────────⟢*
+▧ *ᴄʀᴇᴀᴛᴏʀ* : *ᴍʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs (🇰🇪)*
+▧ *ᴏᴡɴᴇʀ ɴᴜᴍʙᴇʀ* : *${ownerNumber}*
+▧ *ᴍᴏᴅᴇ* : *public*
+▧ *ᴘʀᴇғɪx* : *${prefix}*
+▧ *ʀᴀᴍ* : *${usedMem}MB / ${totalMem}MB*
+▧ *ᴠᴇʀsɪᴏɴ* : *V.5* ⚡
+▧ *ᴜᴘᴛɪᴍᴇ* :  *${runtime(process.uptime())}*
+
+⟣──────────────────⟢
+${readMore}
+> 𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃 
+
+*ᴏᴡɴᴇʀ ᴄᴏɴᴛᴀᴄᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ:*
+📞 *ᴘʜᴏɴᴇ*: ${ownerNumber}
+👤 *ɴᴀᴍᴇ*: ${ownerName}
+
+*⟣──────────────────⟢*`,
+            contextInfo: {
+                mentionedJid: [ownerNumber.replace('+', '') + '@s.whatsapp.net'],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363420261263259@newsletter',
+                    newsletterName: 'POWERED BY CASEYRHODES TECH',
+                    serverMessageId: -1
+                }
+            }
+        }, { quoted: mek });
+
+    } catch (error) {
+        console.error("An error occurred:", error);
+        reply("An error occurred: " + error.message);
+    }
+});
