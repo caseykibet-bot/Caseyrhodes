@@ -14,19 +14,18 @@ const path = require('path');
 // Helper function to send responses with newsletter info
 async function sendResponse(conn, from, replyText, quotedMsg) {
     await conn.sendMessage(from, { 
-        image: { url: `https://files.catbox.moe/y3j3kl.jpg` },  
-        caption: replyText,
-        contextInfo: {
-            mentionedJid: [quotedMsg.sender],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363302677217436@newsletter',
-                newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
-                serverMessageId: 143
-            }
+        image: { url: `https://i.ibb.co/gKnBmq8/casey.jpg` },  
+        caption: replyText
+    }, { 
+        quoted: quotedMsg,
+        forwardingScore: 1,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363420261263259@newsletter',
+            newsletterName: 'ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴍɪɴɪ ʙᴏᴛ🌟',
+            serverMessageId: -1
         }
-    }, { quoted: quotedMsg });
+    });
 }
 
 cmd({
@@ -80,11 +79,11 @@ cmd({
     desc: "Change the bot's command prefix.",
     category: "settings",
     filename: __filename,
-}, async (message, match, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await message.sendMessage("*📛 Only the owner can use this command!*");
+}, async (conn, mek, m, { from, args, isCreator, reply }) => {
+    if (!isCreator) return await sendResponse(conn, from, "*📛 Only the owner can use this command!*", m);
 
     const newPrefix = args[0];
-    if (!newPrefix) return await message.sendMessage("❌ Please provide a new prefix. Example: `.setprefix !`");
+    if (!newPrefix) return await sendResponse(conn, from, "❌ Please provide a new prefix. Example: `.setprefix !`", m);
 
     // Update config in memory
     config.PREFIX = newPrefix;
@@ -98,10 +97,10 @@ cmd({
             `PREFIX: "${newPrefix}"$1`
         );
         fs.writeFileSync(configPath, configFile);
-        return await message.sendMessage(`✅ Prefix successfully changed to *${newPrefix}*`);
+        return await sendResponse(conn, from, `✅ Prefix successfully changed to *${newPrefix}*`, m);
     } catch (error) {
         console.error('Error updating prefix:', error);
-        return await message.sendMessage("❌ Failed to update prefix in config file.");
+        return await sendResponse(conn, from, "❌ Failed to update prefix in config file.", m);
     }
 });
 
@@ -309,7 +308,7 @@ cmd({
     filename: __filename
 },    
 async (conn, mek, m, { from, args, isCreator, reply }) => {
-    if (!isCreator) return await sendResponse(conn, from, "*📛 �ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
+    if (!isCreator) return await sendResponse(conn, from, "*📛 ᴏɴʟʏ ᴛʜᴇ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ!*", m);
 
     if (args[0] === "on") {
         config.ANTI_BAD_WORD = "true";
