@@ -4,11 +4,6 @@ const config = require('../config');
 const more = String.fromCharCode(8206);
 const readMore = more.repeat(4001);
 
-// Function to create vcard
-function createVCard(name, number) {
-    return `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;type=CELL;type=VOICE;waid=${number.replace('+', '')}:${number}\nEND:VCARD`;
-}
-
 cmd({
     pattern: "owner",
     alias: ["creator", "dev"],
@@ -21,16 +16,28 @@ async (conn, mek, m, { from, reply, prefix }) => {
     try {
         const ownerNumber = config.owner || "+254112192119";
         const ownerName = config.OWNER_NAME || "CASEYRHODES XMD DEVELOPER";
-        
-        // Create vcard
-        const vcard = createVCard(ownerName, ownerNumber);
 
-        // Get memory usage (if available)
+        // Define fakevCard for quoting messages
+        const fakevCard = {
+            key: {
+                fromMe: false,
+                participant: "0@s.whatsapp.net",
+                remoteJid: "status@broadcast"
+            },
+            message: {
+                contactMessage: {
+                    displayName: "❯❯ ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴠᴇʀɪғɪᴇᴅ ✅",
+                    vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:Meta\nORG:META AI;\nTEL;type=CELL;type=VOICE;waid=254112192119:+25412192119\nEND:VCARD`
+                }
+            }
+        };
+
+        // Get memory usage
         const usedMemory = process.memoryUsage();
         const usedMem = Math.round(usedMemory.heapUsed / 1024 / 1024);
         const totalMem = Math.round(usedMemory.heapTotal / 1024 / 1024);
 
-        // Send single message with both contact and image
+        // Send image with bot info using fakevCard as quoted message
         await conn.sendMessage(from, {
             image: { 
                 url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg'
@@ -51,10 +58,6 @@ ${readMore}
 👤 *ɴᴀᴍᴇ*: ${ownerName}
 
 *⟣──────────────────⟢*`,
-            contacts: {
-                displayName: ownerName,
-                contacts: [{ vcard: vcard }]
-            },
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
@@ -64,7 +67,7 @@ ${readMore}
                     serverMessageId: -1
                 }
             }
-        }, { quoted: mek });
+        }, { quoted: fakevCard }); // Using fakevCard as the quoted message
 
     } catch (error) {
         console.error("Error in owner command:", error);
