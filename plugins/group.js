@@ -86,7 +86,7 @@ async (conn, mek, m, { from, sender, isCreator }) => {
 });
 
 cmd({
-    pattern: "tagall",
+    pattern: "tagall2",
     desc: "Tag all group members",
     category: "group",
     react: "🫂",
