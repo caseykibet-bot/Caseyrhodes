@@ -17,16 +17,18 @@ async (conn, mek, m, { from, reply, text }) => {
     }
 
     try {
+        console.log(`[VIDEO] Searching for: ${text}`); // Debug log
+        
         const search = await yts(text);
         const video = search.videos[0];
 
         if (!video) {
-            return reply('❌ *No Results Found*\nNo videos found for your query. Please try different keywords.');
+            return reply('❌ *No Results Found*\nNo videos found for your query.');
         }
 
-        // Create fancy video description with emojis and formatting
-        const videoInfo = `
-🎬 *NOW DOWNLOADING* 🎬
+        console.log(`[VIDEO] Found: ${video.title}`); // Debug log
+
+        const videoInfo = `🎬 *NOW DOWNLOADING* 🎬
 
 📹 *Title:* ${video.title}
 ⏱️ *Duration:* ${video.timestamp}
@@ -34,33 +36,41 @@ async (conn, mek, m, { from, reply, text }) => {
 📅 *Uploaded:* ${video.ago}
 🔗 *YouTube ID:* ${video.videoId}
 
-⬇️ *Downloading your video... Please wait* ⬇️
-        `.trim();
+⬇️ *Downloading... Please wait* ⬇️`.trim();
 
-        // Send video info with thumbnail first
+        // Send video info
         await conn.sendMessage(from, {
             image: { url: video.thumbnail },
             caption: videoInfo
         }, { quoted: mek });
 
-        // API PART UNCHANGED
+        // Enhanced API request with timeout
         const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, '');
         const fileName = `${safeTitle}.mp4`;
         const apiURL = `${BASE_URL}/dipto/ytDl3?link=${encodeURIComponent(video.videoId)}&format=mp4`;
 
-        const response = await axios.get(apiURL);
+        console.log(`[VIDEO] Fetching from API: ${apiURL}`); // Debug log
+
+        const response = await axios.get(apiURL, { 
+            timeout: 30000, // 30 second timeout
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+        
         const data = response.data;
+        console.log(`[VIDEO] API Response:`, data); // Debug log
 
         if (!data.downloadLink) {
-            return reply('❌ *Download Failed*\nFailed to retrieve the MP4 download link. Please try again later.');
+            return reply('❌ *Download Failed*\nNo download link received from API.');
         }
 
-        // Send video with newsletter context
+        // Send video
         await conn.sendMessage(from, {
             video: { url: data.downloadLink },
             mimetype: 'video/mp4',
             fileName: fileName,
-            caption: `🎬 *${video.title}*\n⏱️ ${video.timestamp} | 👁️ ${video.views}\n\n📥 Downloaded by CASEYRHODES-XMD`,
+            caption: `🎬 *${video.title}*\n⏱️ ${video.timestamp} | 👁️ ${video.views}`,
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
@@ -73,7 +83,14 @@ async (conn, mek, m, { from, reply, text }) => {
         }, { quoted: mek });
 
     } catch (err) {
-        console.error('[VIDEO] Error:', err);
-        reply('❌ *Error Occurred*\nFailed to process your video request. Please try again later.');
+        console.error('[VIDEO] Full Error:', err);
+        
+        if (err.code === 'ECONNABORTED') {
+            reply('❌ *Timeout Error*\nThe request took too long. Please try again.');
+        } else if (err.response) {
+            reply('❌ *API Error*\nThe download service is currently unavailable.');
+        } else {
+            reply('❌ *Unexpected Error*\nPlease try again later.');
+        }
     }
 });
