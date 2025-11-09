@@ -13,19 +13,35 @@ const path = require('path');
 
 // Helper function to send responses with newsletter info
 async function sendResponse(conn, from, replyText, quotedMsg) {
-    await conn.sendMessage(from, { 
-        image: { url: `https://i.ibb.co/gKnBmq8/casey.jpg` },  
-        caption: replyText
-    }, { 
-        quoted: quotedMsg,
-        forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363420261263259@newsletter',
-            newsletterName: 'ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴍɪɴɪ ʙᴏᴛ🌟',
-            serverMessageId: -1
-        }
-    });
+    try {
+        const messageOptions = {
+            image: { url: `https://i.ibb.co/gKnBmq8/casey.jpg` },  
+            caption: replyText
+        };
+        
+        // Add newsletter context to the message
+        const sendOptions = {
+            quoted: quotedMsg,
+            contextInfo: {
+                forwardingScore: 1,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363420261263259@newsletter',
+                    newsletterName: 'ᴄᴀsᴇʏʀʜᴏᴅᴇs ᴍɪɴɪ ʙᴏᴛ🌟',
+                    serverMessageId: -1
+                }
+            }
+        };
+        
+        await conn.sendMessage(from, messageOptions, sendOptions);
+    } catch (error) {
+        console.error('Error sending newsletter message:', error);
+        // Fallback: send without newsletter context
+        await conn.sendMessage(from, { 
+            image: { url: `https://i.ibb.co/gKnBmq8/casey.jpg` },  
+            caption: replyText
+        }, { quoted: quotedMsg });
+    }
 }
 
 cmd({
