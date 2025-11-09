@@ -40,7 +40,7 @@ async (conn, mek, m, { from, reply, prefix }) => {
         // Send image with bot info using fakevCard as quoted message
         await conn.sendMessage(from, {
             image: { 
-                url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg'
+                url: 'https://i.ibb.co/gKnBmq8/casey.jpg'
             },
             caption: `*⟣──────────────────⟢*
 ▧ *ᴄʀᴇᴀᴛᴏʀ* : *ᴍʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs*
@@ -59,7 +59,7 @@ ${readMore}
 
 *⟣──────────────────⟢*`,
             contextInfo: {
-                forwardingScore: 999,
+                forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363420261263259@newsletter',
