@@ -75,23 +75,22 @@ cmd({
         }
     };
 
-    // Enhanced context info with newsletter
+    // Enhanced context info with newsletter and external ad reply
     const contextInfo = {
-        mentionedJid: [message.sender],
-        forwardingScore: 999,
+        forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid: '120363420261263259@newsletter',
-            newsletterName: '𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒 𝐓𝐄𝐂𝐇 🌟',
-            serverMessageId: 143
+            newsletterName: 'CASEYRHODES TECH 🌟',
+            serverMessageId: -1
         },
         externalAdReply: {
             title: "CASEYRHODES VERIFIED ✅",
             body: "Media Upload Service",
             mediaType: 1,
-            thumbnailUrl: "https://i.ibb.co/whs6RtyC/caseywebs.jpg",
+            thumbnailUrl: mediaUrl, // Use the uploaded image URL as thumbnail
             sourceUrl: "https://whatsapp.com/channel/0029Va9aJNY6LtL5wM5pY3z",
-            mediaUrl: ""
+            mediaUrl: mediaUrl
         }
     };
 
@@ -102,14 +101,12 @@ cmd({
 ┃ 💾 *Size:* ${formatBytes(mediaBuffer.length)}
 ┃ 🔗 *URL:* ${mediaUrl}
 ╰──────────────────────⊷
-*📢 Uploaded by CASEYRHODES TECH*
-*✅ Verified & Secure Service*
     `.trim();
 
     // Send response with verification and newsletter
     await client.sendMessage(message.chat, { 
       image: { 
-        url: `https://i.ibb.co/whs6RtyC/caseywebs.jpg`
+        url: "https://i.ibb.co/gKnBmq8/casey.jpg"
       },  
       caption: status,
       contextInfo: contextInfo
