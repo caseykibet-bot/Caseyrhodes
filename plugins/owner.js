@@ -4,6 +4,11 @@ const config = require('../config');
 const more = String.fromCharCode(8206);
 const readMore = more.repeat(4001);
 
+// Function to create vcard
+function createVCard(name, number) {
+    return `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;type=CELL;type=VOICE;waid=${number.replace('+', '')}:${number}\nEND:VCARD`;
+}
+
 cmd({
     pattern: "owner",
     alias: ["creator", "dev"],
@@ -14,35 +19,21 @@ cmd({
 },
 async (conn, mek, m, { from, reply, prefix }) => {
     try {
-        const ownerNumber = config.owner || "+1234567890";
+        const ownerNumber = config.owner || "+254112192119";
         const ownerName = config.OWNER_NAME || "CASEYRHODES XMD DEVELOPER";
         
-        // Get memory usage
-        const used = process.memoryUsage();
-        const usedMem = Math.round(used.heapUsed / 1024 / 1024);
-        const totalMem = Math.round(used.heapTotal / 1024 / 1024);
-
         // Create vcard
-        const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${ownerName}
-ORG:CASEYRHODES-TECH BOT;
-TEL;type=CELL;type=VOICE;waid=${ownerNumber.replace('+', '')}:${ownerNumber}
-END:VCARD`;
+        const vcard = createVCard(ownerName, ownerNumber);
 
-        // Send contact card first
-        await conn.sendMessage(from, {
-            contacts: {
-                displayName: ownerName,
-                contacts: [{ vcard: vcard }]
-            }
-        }, { quoted: mek });
+        // Get memory usage (if available)
+        const usedMemory = process.memoryUsage();
+        const usedMem = Math.round(usedMemory.heapUsed / 1024 / 1024);
+        const totalMem = Math.round(usedMemory.heapTotal / 1024 / 1024);
 
-        // Send image with bot info
+        // Send single message with both contact and image
         await conn.sendMessage(from, {
             image: { 
-                url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg',
-                mimetype: 'image/jpeg'
+                url: 'https://i.ibb.co/fGSVG8vJ/caseyweb.jpg'
             },
             caption: `*⟣──────────────────⟢*
 ▧ *ᴄʀᴇᴀᴛᴏʀ* : *ᴍʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs*
@@ -60,8 +51,11 @@ ${readMore}
 👤 *ɴᴀᴍᴇ*: ${ownerName}
 
 *⟣──────────────────⟢*`,
+            contacts: {
+                displayName: ownerName,
+                contacts: [{ vcard: vcard }]
+            },
             contextInfo: {
-                mentionedJid: [ownerNumber.replace('+', '') + '@s.whatsapp.net'],
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
