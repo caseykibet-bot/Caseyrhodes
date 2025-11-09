@@ -79,7 +79,7 @@ ${readMore}
 
         // Send an image with the formatted info as a caption and newsletter context
         await conn.sendMessage(from, {
-            image: { url: `https://i.ibb.co/fGSVG8vJ/caseyweb.jpg` },
+            image: { url: `https://i.ibb.co/gKnBmq8/casey.jpg` },
             caption: formattedInfo,
             contextInfo: {
                 forwardingScore: 1,
