@@ -87,6 +87,14 @@ cmd({
   filename: __filename,
 }, async (Void, m, text, { prefix }) => {
   try {
+    // Add immediate reaction for better UX
+    await Void.sendMessage(m.chat, { 
+      react: { 
+        text: "📜", 
+        key: m.key 
+      } 
+    });
+
     const commandDir = path.join(__dirname, '../plugins');
     
     // Check if directory exists
@@ -99,7 +107,7 @@ cmd({
     let totalCommands = 0;
     const categories = {};
 
-    // Read all command files and extract patterns
+    // Read all command files and extract patterns - optimized for speed
     for (const file of commandFiles) {
       try {
         const filePath = path.join(commandDir, file);
@@ -134,7 +142,7 @@ cmd({
     let menu = `*⟣──────────────────⟢*
 ▧ *ᴄʀᴇᴀᴛᴏʀ* : *ᴍʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs (🇰🇪)*
 ▧ *ᴍᴏᴅᴇ* : *public*
-▧ *ᴘʀᴇғɪx* : *${prefix}*
+▧ *ᴘʀᴇғɪx* : *.* (dot)
 ▧ *ᴛᴏᴛᴀʟ ᴄᴏᴍᴍᴀɴᴅs* : *${totalCommands}*
 ▧ *ʀᴀᴍ* : *${memory.used}MB / ${memory.total}MB*
 ▧ *ᴠᴇʀsɪᴏɴ* : *V.5* ⚡
@@ -151,7 +159,7 @@ ${readmore}
       const emoji = emojiByCategory[cat] || '💫';
       menu += `\n\n╭───『 ${emoji} ${toUpperStylized(cat)} ${toUpperStylized('Menu')} 』──⊷\n`;
       for (const cmd of categories[cat].sort()) {
-        menu += `│ ▢ ${prefix}${cmd}\n`;
+        menu += `│ ▢ .${cmd}\n`; // Changed from ${prefix}${cmd} to .${cmd}
       }
       menu += `╰───────────────⊷`;
     }
@@ -181,8 +189,24 @@ ${readmore}
     };
 
     await Void.sendMessage(m.chat, messageOptions, { quoted: m });
+    
+    // Add success reaction
+    await Void.sendMessage(m.chat, { 
+      react: { 
+        text: "✅", 
+        key: m.key 
+      } 
+    });
+    
   } catch (err) {
     console.error('Error in allmenu command:', err);
+    // Add error reaction
+    await Void.sendMessage(m.chat, { 
+      react: { 
+        text: "❌", 
+        key: m.key 
+      } 
+    });
     await m.reply('❌ Error: Could not fetch the command list.');
   }
 });
