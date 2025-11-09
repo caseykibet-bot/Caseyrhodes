@@ -77,35 +77,33 @@ ${readMore}
             }
         };
 
-        // Send an image with the formatted info as a caption and context info
+        // Send an image with the formatted info as a caption and newsletter context
         await conn.sendMessage(from, {
-            image: { url: `https://files.catbox.moe/heu4tc.png` },
+            image: { url: `https://i.ibb.co/fGSVG8vJ/caseyweb.jpg` },
             caption: formattedInfo,
-            contextInfo: { 
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
+            contextInfo: {
+                forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: '☇ cαsєчrhσdєs suppσrt  ⃪🤖͎᪳᪳𝆺𝅥',
-                    serverMessageId: 143
+                    newsletterJid: '120363420261263259@newsletter',
+                    newsletterName: 'CASEYRHODES TECH 👑',
+                    serverMessageId: -1
                 }
             }
         }, { quoted: verifiedContact });
 
-        // Send the audio file with context info
+        // Send the audio file with newsletter context
         await conn.sendMessage(from, {
             audio: { url: 'https://files.catbox.moe/gquwjz.m4a' },
             mimetype: 'audio/mp4',
             ptt: true,
-            contextInfo: { 
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
+            contextInfo: {
+                forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363302677217436@newsletter',
-                    newsletterName: '☇ cαsєчrhσdєs suppσrt⃪🤖͎᪳᪳𝆺𝅥',
-                    serverMessageId: 143
+                    newsletterJid: '120363420261263259@newsletter',
+                    newsletterName: 'CASEYRHODES TECH 👑',
+                    serverMessageId: -1
                 }
             }
         }, { quoted: verifiedContact });
