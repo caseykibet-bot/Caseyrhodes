@@ -72,7 +72,7 @@ async (conn, mek, m, { from, reply, text }) => {
             fileName: fileName,
             caption: `🎬 *${video.title}*\n⏱️ ${video.timestamp} | 👁️ ${video.views}`,
             contextInfo: {
-                forwardingScore: 999,
+                forwardingScore: 1,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363420261263259@newsletter',
