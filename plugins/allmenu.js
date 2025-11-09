@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { cmd } = require('../command');
 const moment = require('moment-timezone');
+const more = String.fromCharCode(8206);
+const readmore = more.repeat(4001);
 
 // Function to stylize text like ʜɪ
 function toUpperStylized(str) {
@@ -98,28 +100,28 @@ cmd({
     const time = moment().tz('Africa/Nairobi').format('HH:mm:ss');
     const date = moment().tz('Africa/Nairobi').format('dddd, MMMM Do YYYY');
 
-    let menu = `⟣──────────────────⟢
+    let menu = `*⟣──────────────────⟢*
 ▧ *ᴄʀᴇᴀᴛᴏʀ* : *ᴍʀ ᴄᴀsᴇʏʀʜᴏᴅᴇs (🇰🇪)*
 ▧ *ᴍᴏᴅᴇ* : *public*
-▧ *ᴘʀᴇғɪx* : *.*
-▧ *ʀᴀᴍ* : 76.28MB / 63276MB
+▧ *ᴘʀᴇғɪx* : *${prefix}*
+▧ *ʀᴀᴍ* : *${usedMem}MB / ${totalMem}MB*
 ▧ *ᴠᴇʀsɪᴏɴ* : *V.5* ⚡
-▧ *ᴜᴘᴛɪᴍᴇ* : 
+▧ *ᴜᴘᴛɪᴍᴇ* :  *${runtime(process.uptime())}*
 
 ⟣──────────────────⟢
-
+${readmore}
 > 𝐂𝐀𝐒𝐄𝐘𝐑𝐇𝐎𝐃𝐄𝐒-𝐗𝐌𝐃 
 
-⟣──────────────────⟢`;
+*⟣──────────────────⟢*`;
 
     // Add sorted categories with stylized text
     for (const cat of Object.keys(categories).sort()) {
       const emoji = emojiByCategory[cat] || '💫';
-      menu += `\n\n*╭───『 ${emoji} ${toUpperStylized(cat)} ${toUpperStylized('Menu')} 』──⊷*\n`;
+      menu += `\n\n╭───『 ${emoji} ${toUpperStylized(cat)} ${toUpperStylized('Menu')} 』──⊷\n`;
       for (const cmd of categories[cat].sort()) {
-        menu += `│ ▢ *${cmd}\n*`;
+        menu += `│ ▢${cmd}\n`;
       }
-      menu += `*╰───────────────⊷*`;
+      menu += `╰───────────────⊷`;
     }
 
     menu += `\n\n> ${toUpperStylized('Explore the bot commands!')}`;
