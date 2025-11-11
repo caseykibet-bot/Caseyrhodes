@@ -7,73 +7,76 @@ cmd({
   desc: "Forwards quoted message back to user",
   category: "utility",
   filename: __filename
-}, async (client, message, match, { from }) => {
-  try {
-    // Owner restrictions - uses bot owner's number from system
-    const botOwner = client.config.owner || client.user.id.split(':')[0] + '@s.whatsapp.net';
-    if (message.sender !== botOwner) {
-      return await client.sendMessage(from, {
-        text: "🚫 *Access Denied*"
-      }, { quoted: message });
+}, async (conn, mek, m, { from, reply, isOwner, quoted, client }) => {
+    if (!isOwner) return reply("❌ This command is only for the bot owner.");
+
+    try {
+        if (!quoted) {
+            return await client.sendMessage(from, {
+                text: "*🍁 Please reply to a message!*"
+            }, { quoted: m });
+        }
+
+        const buffer = await quoted.download();
+        const mtype = quoted.mtype;
+        
+        // Configuration to make message appear forwarded
+        const forwardConfig = {
+            contextInfo: {
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: 'status@broadcast',
+                    newsletterName: 'Status',
+                    serverMessageId: Math.floor(Math.random() * 1000000)
+                }
+            }
+        };
+
+        let messageContent = {};
+        switch (mtype) {
+            case "imageMessage":
+                messageContent = {
+                    image: buffer,
+                    caption: quoted.text || '',
+                    ...forwardConfig
+                };
+                break;
+            case "videoMessage":
+                messageContent = {
+                    video: buffer,
+                    caption: quoted.text || '',
+                    ...forwardConfig
+                };
+                break;
+            case "audioMessage":
+                messageContent = {
+                    audio: buffer,
+                    mimetype: "audio/mp4",
+                    ptt: quoted.ptt || false,
+                    ...forwardConfig
+                };
+                break;
+            case "extendedTextMessage":
+            case "conversation":
+                // For text messages, use the forwarding configuration
+                messageContent = {
+                    text: quoted.text,
+                    ...forwardConfig
+                };
+                break;
+            default:
+                return await client.sendMessage(from, {
+                    text: "❌ Unsupported message type"
+                }, { quoted: m });
+        }
+
+        await client.sendMessage(from, messageContent);
+        
+    } catch (error) {
+        console.error("Forward Error:", error);
+        await client.sendMessage(from, {
+            text: "❌ Error forwarding message:\n" + error.message
+        }, { quoted: m });
     }
-
-    if (!match.quoted) {
-      return await client.sendMessage(from, {
-        text: "📍 *Reply to a message*"
-      }, { quoted: message });
-    }
-
-    const buffer = await match.quoted.download();
-    const mtype = match.quoted.mtype;
-    const options = { quoted: message };
-    const time = new Date().toLocaleString();
-    
-    let messageContent = {};
-    switch (mtype) {
-      case "imageMessage":
-        messageContent = {
-          image: buffer,
-          caption: (match.quoted.text || '') + `\n\n╭─「 🔥 」\n│ ✦ @${message.sender.split('@')[0]}\n│ ✦ ${time}\n╰─`,
-          mimetype: match.quoted.mimetype || "image/jpeg"
-        };
-        break;
-      case "videoMessage":
-        messageContent = {
-          video: buffer,
-          caption: (match.quoted.text || '') + `\n\n╭─「 🎬 」\n│ ✦ @${message.sender.split('@')[0]}\n│ ✦ ${time}\n╰─`,
-          mimetype: match.quoted.mimetype || "video/mp4"
-        };
-        break;
-      case "audioMessage":
-        messageContent = {
-          audio: buffer,
-          mimetype: "audio/mp4",
-          ptt: match.quoted.ptt || false
-        };
-        break;
-      case "textMessage":
-        messageContent = {
-          text: (match.quoted.text || '') + `\n\n╭─「 📝 」\n│ ✦ @${message.sender.split('@')[0]}\n│ ✦ ${time}\n╰─`
-        };
-        break;
-      case "stickerMessage":
-        messageContent = {
-          sticker: buffer,
-          mimetype: match.quoted.mimetype || "image/webp"
-        };
-        break;
-      default:
-        return await client.sendMessage(from, {
-          text: "❌ *Unsupported format*"
-        }, { quoted: message });
-    }
-
-    await client.sendMessage(from, messageContent, options);
-
-  } catch (error) {
-    console.error("Forward Error:", error);
-    await client.sendMessage(from, {
-      text: "💥 *Error processing request*"
-    }, { quoted: message });
-  }
 });
