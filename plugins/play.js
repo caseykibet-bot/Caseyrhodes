@@ -85,6 +85,7 @@ cmd({
     `.trim();
 
     // Enhanced context info with thumbnail image for audio message
+    // REMOVED newsletter info and simplified
     const audioContextInfo = {
         externalAdReply: {
             title: videoData.title.substring(0, 40) + (videoData.title.length > 40 ? "..." : ""),
@@ -103,16 +104,12 @@ cmd({
             })(),
             sourceUrl: `https://youtu.be/${videoData.videoId}`,
             renderLargerThumbnail: true,
-            showAdAttribution: true,
-            mediaUrl: videoData.thumbnail
+            showAdAttribution: false, // Set to false for cleaner look
+            mediaUrl: ""
         },
         forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363420261263259@newsletter',
-            newsletterName: 'CASEYRHODES TECH 🧑‍💻🌸',
-            serverMessageId: -1
-        }
+        isForwarded: true
+        // REMOVED: forwardedNewsletterMessageInfo completely
     };
 
     // Send audio with combined caption, thumbnail image, and context info in ONE message
@@ -121,7 +118,7 @@ cmd({
       mimetype: 'audio/mpeg',
       fileName: sanitizedFileName,
       ptt: false,
-      caption: combinedCaption,
+      caption: combinedCaption, // This caption will be visible
       contextInfo: audioContextInfo,
       // Alternative method: Include thumbnail directly (some WhatsApp APIs support this)
       thumbnail: await (async () => {
@@ -133,7 +130,14 @@ cmd({
           return null;
         }
       })()
-    }, { quoted: verifiedContact });
+    }, { 
+      quoted: verifiedContact,
+      // Add to ensure caption is visible
+      captionOptions: {
+        showAlways: true,
+        parseMode: true
+      }
+    });
 
     // Send success reaction
     await message.sendMessage(sender, {
