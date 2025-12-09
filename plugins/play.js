@@ -45,44 +45,6 @@ cmd({
         }
     };
 
-    // Context info for the info message
-    let contextInfo = {
-        forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363420261263259@newsletter',
-            newsletterName: 'CASEYRHODES TECH 🧑‍💻🌸',
-            serverMessageId: -1
-        },
-        externalAdReply: {
-            title: " ⇆ㅤ ||◁   ㅤ❚❚   ㅤ▷||ㅤ ↻",
-            body: "Powered by Caseyrhodes Tech",
-            mediaType: 1,
-            thumbnailUrl: videoData.thumbnail,
-            sourceUrl: "https://whatsapp.com/channel/0029Va9aJNY6LtL5wM5pY3z",
-            mediaUrl: ""
-        }
-    };
-
-    // Create info caption
-    const infoCaption = ` 
-    *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
-╭───❮ *CASEYRHODES XMD* ❯────⊷
-┃ 🎵 *Title:* ${videoData.title}
-┃ ⏱️ *Duration:* ${videoData.timestamp}
-┃ 👀 *Views:* ${videoData.views}
-┃ 👤 *Author:* ${videoData.author.name}
-╰──────────────────────⊷
-> *Powered by Caseyrhodes tech♡*
-    `.trim();
-
-    // Send video info with thumbnail and context info
-    await message.sendMessage(sender, {
-      image: { url: videoData.thumbnail },
-      caption: infoCaption,
-      contextInfo: contextInfo
-    }, { quoted: verifiedContact });
-
     // Fetch audio download URL
     const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytplaymp3?query=${encodeURIComponent(videoData.title)}`;
     const apiResponse = await fetch(apiUrl);
@@ -109,25 +71,68 @@ cmd({
     // Sanitize filename
     const sanitizedFileName = `${videoData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
 
-    // Context info for audio message with external ad reply
+    // Create combined caption with song description
+    const combinedCaption = ` 
+    *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
+╭───❮ *CASEYRHODES XMD* ❯────⊷
+┃ 🎵 *Title:* ${videoData.title}
+┃ ⏱️ *Duration:* ${videoData.timestamp}
+┃ 👀 *Views:* ${videoData.views}
+┃ 👤 *Author:* ${videoData.author.name}
+┃ 🔗 *Video ID:* ${videoData.videoId}
+╰──────────────────────⊷
+> *Powered by Caseyrhodes tech ♡*
+    `.trim();
+
+    // Enhanced context info with thumbnail image for audio message
     const audioContextInfo = {
         externalAdReply: {
-            title: videoData.title.substring(0, 40),
-            body: `Duration: ${videoData.timestamp}`,
+            title: videoData.title.substring(0, 40) + (videoData.title.length > 40 ? "..." : ""),
+            body: `Duration: ${videoData.timestamp} | Views: ${videoData.views}`,
             mediaType: 1, // 1 for image
             thumbnailUrl: videoData.thumbnail,
+            thumbnail: await (async () => {
+              try {
+                const thumbResponse = await fetch(videoData.thumbnail);
+                const thumbBuffer = await thumbResponse.buffer();
+                return thumbBuffer;
+              } catch (e) {
+                console.error("Failed to fetch thumbnail:", e);
+                return null;
+              }
+            })(),
             sourceUrl: `https://youtu.be/${videoData.videoId}`,
-            renderLargerThumbnail: false
+            renderLargerThumbnail: true,
+            showAdAttribution: true,
+            mediaUrl: videoData.thumbnail
+        },
+        forwardingScore: 1,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363420261263259@newsletter',
+            newsletterName: 'CASEYRHODES TECH 🧑‍💻🌸',
+            serverMessageId: -1
         }
     };
 
-    // Send audio with external ad reply and verification contact
+    // Send audio with combined caption, thumbnail image, and context info in ONE message
     await message.sendMessage(sender, {
       audio: convertedAudio,
       mimetype: 'audio/mpeg',
       fileName: sanitizedFileName,
       ptt: false,
-      contextInfo: audioContextInfo
+      caption: combinedCaption,
+      contextInfo: audioContextInfo,
+      // Alternative method: Include thumbnail directly (some WhatsApp APIs support this)
+      thumbnail: await (async () => {
+        try {
+          const thumbResponse = await fetch(videoData.thumbnail);
+          return await thumbResponse.buffer();
+        } catch (e) {
+          console.error("Failed to fetch thumbnail for direct attachment:", e);
+          return null;
+        }
+      })()
     }, { quoted: verifiedContact });
 
     // Send success reaction
