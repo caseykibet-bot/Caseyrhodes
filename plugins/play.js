@@ -1,4 +1,3 @@
-// Alternative approach: Send as image with audio document
 const { cmd } = require("../command");
 const { ytsearch } = require("@dark-yasiya/yt-dl.js");
 const converter = require("../data/play-converter");
@@ -72,44 +71,55 @@ cmd({
     // Sanitize filename
     const sanitizedFileName = `${videoData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
 
-    // Create image caption with song details
-    const imageCaption = ` 
-🎵 *${videoData.title}*
+    // REMOVED: The combinedCaption variable
 
-📊 *Song Details:*
-⏱️ Duration: ${videoData.timestamp}
-👀 Views: ${videoData.views}
-👤 Artist: ${videoData.author.name}
-🔗 YouTube ID: ${videoData.videoId}
-
-━━━━━━━━━━━━━━━━━━
-🎧 *Powered by Caseyrhodes tech* ♡
-━━━━━━━━━━━━━━━━━━
-
-⬇️ *Audio file attached below*
-    `.trim();
-
-    // First: Send image with song details
-    await message.sendMessage(sender, {
-      image: { url: videoData.thumbnail },
-      caption: imageCaption,
-      contextInfo: {
+    // Enhanced context info with thumbnail image for audio message
+    const audioContextInfo = {
         externalAdReply: {
-            title: "🎵 Music Player",
-            body: "Click to play audio",
-            mediaType: 1,
+            title: videoData.title.substring(0, 40) + (videoData.title.length > 40 ? "..." : ""),
+            body: `Duration: ${videoData.timestamp} | Views: ${videoData.views}`,
+            mediaType: 1, // 1 for image
             thumbnailUrl: videoData.thumbnail,
-            sourceUrl: `https://youtu.be/${videoData.videoId}`
-        }
-      }
-    }, { quoted: verifiedContact });
+            thumbnail: await (async () => {
+              try {
+                const thumbResponse = await fetch(videoData.thumbnail);
+                const thumbBuffer = await thumbResponse.buffer();
+                return thumbBuffer;
+              } catch (e) {
+                console.error("Failed to fetch thumbnail:", e);
+                return null;
+              }
+            })(),
+            sourceUrl: `https://youtu.be/${videoData.videoId}`,
+            renderLargerThumbnail: true,
+            showAdAttribution: false,
+            mediaUrl: ""
+        },
+        forwardingScore: 1,
+        isForwarded: true
+        // REMOVED: forwardedNewsletterMessageInfo completely
+    };
 
-    // Second: Send audio as a document (this shows filename in caption)
+    // Send audio WITHOUT caption
     await message.sendMessage(sender, {
-      document: convertedAudio,
+      audio: convertedAudio,
       mimetype: 'audio/mpeg',
       fileName: sanitizedFileName,
-      caption: `🔊 ${videoData.title} - ${videoData.author.name}`
+      ptt: false,
+      // REMOVED: caption parameter
+      contextInfo: audioContextInfo,
+      thumbnail: await (async () => {
+        try {
+          const thumbResponse = await fetch(videoData.thumbnail);
+          return await thumbResponse.buffer();
+        } catch (e) {
+          console.error("Failed to fetch thumbnail for direct attachment:", e);
+          return null;
+        }
+      })()
+    }, { 
+      quoted: verifiedContact
+      // REMOVED: captionOptions
     });
 
     // Send success reaction
