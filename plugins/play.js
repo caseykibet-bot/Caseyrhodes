@@ -1,3 +1,4 @@
+// Alternative approach: Send as image with audio document
 const { cmd } = require("../command");
 const { ytsearch } = require("@dark-yasiya/yt-dl.js");
 const converter = require("../data/play-converter");
@@ -71,72 +72,44 @@ cmd({
     // Sanitize filename
     const sanitizedFileName = `${videoData.title}.mp3`.replace(/[^\w\s.-]/gi, '');
 
-    // Create combined caption with song description
-    const combinedCaption = ` 
-    *⇆ㅤ ||◁     ㅤ❚❚   ㅤ▷||ㅤ ↻*
-╭───❮ *CASEYRHODES XMD* ❯────⊷
-┃ 🎵 *Title:* ${videoData.title}
-┃ ⏱️ *Duration:* ${videoData.timestamp}
-┃ 👀 *Views:* ${videoData.views}
-┃ 👤 *Author:* ${videoData.author.name}
-┃ 🔗 *Video ID:* ${videoData.videoId}
-╰──────────────────────⊷
-> *Powered by Caseyrhodes tech ♡*
+    // Create image caption with song details
+    const imageCaption = ` 
+🎵 *${videoData.title}*
+
+📊 *Song Details:*
+⏱️ Duration: ${videoData.timestamp}
+👀 Views: ${videoData.views}
+👤 Artist: ${videoData.author.name}
+🔗 YouTube ID: ${videoData.videoId}
+
+━━━━━━━━━━━━━━━━━━
+🎧 *Powered by Caseyrhodes tech* ♡
+━━━━━━━━━━━━━━━━━━
+
+⬇️ *Audio file attached below*
     `.trim();
 
-    // Enhanced context info with thumbnail image for audio message
-    // REMOVED newsletter info and simplified
-    const audioContextInfo = {
-        externalAdReply: {
-            title: videoData.title.substring(0, 40) + (videoData.title.length > 40 ? "..." : ""),
-            body: `Duration: ${videoData.timestamp} | Views: ${videoData.views}`,
-            mediaType: 1, // 1 for image
-            thumbnailUrl: videoData.thumbnail,
-            thumbnail: await (async () => {
-              try {
-                const thumbResponse = await fetch(videoData.thumbnail);
-                const thumbBuffer = await thumbResponse.buffer();
-                return thumbBuffer;
-              } catch (e) {
-                console.error("Failed to fetch thumbnail:", e);
-                return null;
-              }
-            })(),
-            sourceUrl: `https://youtu.be/${videoData.videoId}`,
-            renderLargerThumbnail: true,
-            showAdAttribution: false, // Set to false for cleaner look
-            mediaUrl: ""
-        },
-        forwardingScore: 1,
-        isForwarded: true
-        // REMOVED: forwardedNewsletterMessageInfo completely
-    };
-
-    // Send audio with combined caption, thumbnail image, and context info in ONE message
+    // First: Send image with song details
     await message.sendMessage(sender, {
-      audio: convertedAudio,
+      image: { url: videoData.thumbnail },
+      caption: imageCaption,
+      contextInfo: {
+        externalAdReply: {
+            title: "🎵 Music Player",
+            body: "Click to play audio",
+            mediaType: 1,
+            thumbnailUrl: videoData.thumbnail,
+            sourceUrl: `https://youtu.be/${videoData.videoId}`
+        }
+      }
+    }, { quoted: verifiedContact });
+
+    // Second: Send audio as a document (this shows filename in caption)
+    await message.sendMessage(sender, {
+      document: convertedAudio,
       mimetype: 'audio/mpeg',
       fileName: sanitizedFileName,
-      ptt: false,
-      caption: combinedCaption, // This caption will be visible
-      contextInfo: audioContextInfo,
-      // Alternative method: Include thumbnail directly (some WhatsApp APIs support this)
-      thumbnail: await (async () => {
-        try {
-          const thumbResponse = await fetch(videoData.thumbnail);
-          return await thumbResponse.buffer();
-        } catch (e) {
-          console.error("Failed to fetch thumbnail for direct attachment:", e);
-          return null;
-        }
-      })()
-    }, { 
-      quoted: verifiedContact,
-      // Add to ensure caption is visible
-      captionOptions: {
-        showAlways: true,
-        parseMode: true
-      }
+      caption: `🔊 ${videoData.title} - ${videoData.author.name}`
     });
 
     // Send success reaction
